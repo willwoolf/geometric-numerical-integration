@@ -1,0 +1,395 @@
+\documentclass{report}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{dsfont}
+\usepackage[width=6in, height=8in]{geometry}
+\usepackage{xcolor}
+
+\usepackage[
+backend=biber,
+natbib=true,
+url=false, 
+doi=true,
+eprint=false
+]{biblatex}
+\addbibresource{sources.bib}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\ttfamily\footnotesize,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+
+\chapter{Hamiltonian Mechanics and Symplecticity}
+
+\section{Definitions}
+
+\subsection{Principles of Hamiltonian Mechanics}
+
+The most general way to define a dynamical system is to denote position by the vector $\mathbf{x}$ and express the system as
+\begin{equation}
+	\mathbf{\dot{x}} = f(\mathbf{x})
+	\label{eqn:dyn}
+\end{equation}
+for an arbitrary function $f$, using dot notation for time derivative.
+This can express any dynamical system from reduction to a first order vector equation.
+
+For a Hamiltonian system in one dimension, we denote position by the variable $q$, and momentum by $p$.
+The Hamiltonian $H(q,p)$ is a first integral of the system, used to denote the total energy.
+In this case, we write the system as
+\begin{equation}
+	\dfrac{\mathrm{d}}{\mathrm{d}t}\begin{pmatrix}
+		q \\
+		p
+	\end{pmatrix} = \begin{bmatrix}
+		\strut 0 & \strut 1 \\
+		\strut -1 & \strut 0
+	\end{bmatrix}\begin{bmatrix}
+	\dfrac{\strut\mathrm{d}H}{\strut\mathrm{d}q} \\
+	\dfrac{\strut\mathrm{d}H}{\strut\mathrm{d}p}
+	\end{bmatrix}.
+\end{equation}
+Explicitly this expands as
+\begin{align*}
+	&\dot{q} = \dfrac{\partial H}{\partial p}
+	&
+	\dot{p} = \dfrac{-\partial H}{\partial q}&.	
+\end{align*}
+If we write $\mathbf{x} = (q,p)^\mathrm{T}$ and denote the matrix as $\mathbf{J}$, which we will refer to as the symplectic matrix,
+then the statement of a hamiltonian system is of the form 
+\begin{equation}
+	\mathbf{\dot{x}} = \mathbf{J}\nabla H(\mathbf{x}),
+\end{equation}
+which resembles Equation \ref{eqn:dyn}.
+
+For an $n$-dimensional problem,
+we instead denote the variables $q_1, \mathellipsis, q_n, p_1, \mathellipsis, p_n$ as the position and momentum in the directions of each basis vector respectively.
+Write $\mathbf{x} = (q_1, \mathellipsis, q_n, p_1, \mathellipsis, p_n)$.
+Define $\mathbf{J}$ to be
+\begin{equation}
+	\mathbf{J} = \begin{bmatrix}
+		\mathbf{0}_n & \mathbf{I}_n \\
+		-\mathbf{I}_n & \mathbf{0}_n
+	\end{bmatrix}
+\end{equation}
+and the problem can be written as $\mathbf{\dot{x}} = \mathbf{J}\nabla H(\mathbf{x})$.
+We often call $\mathbf{J}$ the symplectic matrix.
+
+Define the flow $\varphi_t$ as a map of the problem from an initial time to the time $t$.
+Specifically, we write $\varphi_t(\alpha) = \mathbf{x}(t)$ given the initial condition $\mathbf{x}(t=0) = \alpha$. Hence the flow $\varphi_t:\mathds{R}^{2n}\rightarrow \mathds{R}^{2n}$ is a map from the initial point of the system to the time $t$.
+
+The Jacobian matrix $\varphi'_t(\mathbf{\alpha})$ is often called the sensitivity of the flow.
+We show the element-wise expression:
+\begin{align*}
+	\left. \varphi'_t(\alpha) \right)_i &= \left. \frac{\partial}{\partial \alpha} \varphi_t(\alpha) \right)_i \\
+	&= \left. \frac{\partial}{\partial \alpha} x_i(t) \right)_i \\
+	&= \begin{bmatrix}
+		\frac{\partial x_i}{\partial \alpha_1} & \mathellipsis & \frac{\partial x_i}{\partial \alpha_{2n}}
+	\end{bmatrix},
+\end{align*}
+which is the Jacobian.
+A flow is symplectic if it satisfies $\varphi'_t(\alpha)^\mathrm{T} \mathbf{J} \varphi'_t(\alpha) = \mathbf{J}.$
+
+\section{Examples}
+\subsection{Forward Euler Method}
+
+If a problem has a closed-form solution, then we can find an explicit expression for the flow.
+However, many problems must instead be solved numerically, often using a finite difference method.
+We will focus on symplectic and non-symplectic methods for solving differential equations.
+If a numerical method maintains symplecticity, it is a symplectic integrator.
+These are a class of geometric numerical integrators.
+
+Given an ODE $\dot{\mathbf{x}} = f(\mathbf{x})$, a numerical method is an iteration of the form $\mathbf{x}_{n+1} = \mathbf{x}_n + F(t_n, \mathbf{x}_n; h)$
+We can write a step as the map $\Phi: \mathbf{x}_n \rightarrow \mathbf{x}_{n+1}$. The map $\Phi$ is the numerical flow:
+rather than mapping from the initial condition to a point at time $t$, we map the solution from one point $t_n$ to the next in a discretised time interval.
+
+Consider the forward Euler method: for $\dot{\mathbf{x}} = f(\mathbf{x})$, the iteration is $\mathbf{x}_{n+1} = \mathbf{x}_n + hf(\mathbf{x}_n)$.
+We can apply the Euler method to examples in order to evaluate its properties.
+
+First, we look at the simple harmonic oscillator $m \ddot{x} = -k x$.
+In Hamiltonian variables this is
+\begin{equation*}
+	\begin{aligned}
+		&\dot{q} = \frac{p}{m}, &\dot{p} = m\ddot{q} = -kq.
+	\end{aligned}
+\end{equation*}
+A suitable Hamiltonian is
+\begin{equation*}
+	H = \frac{1}{2m}p^2 + \frac{1}{2}kq^2.
+\end{equation*}
+Applying the forward Euler method to the problem, we get
+\begin{equation*}
+	\begin{aligned}
+		q_{n+1} &= q_n + h\frac{\partial H}{\partial p}(q_n, p_n) &= q_n + \frac{p_n}{m}\\
+		p_{n+1} &= p_n - h\frac{\partial H}{\partial q}(q_n, p_n) &= p_n - kq_n
+	\end{aligned}
+\end{equation*}
+which can be written as a matrix equation
+\begin{equation*}
+	\begin{pmatrix}
+		q_{n+1} \\
+		p_{n+1}
+	\end{pmatrix} = \begin{bmatrix}
+		1 & 1/m \\
+		-k & 1
+	\end{bmatrix} \begin{pmatrix}
+		q_n \\
+		p_n
+	\end{pmatrix}.
+\end{equation*}
+where the matrix is the numerical flow map.
+We could show that this matrix does not satisfy the symplectic identity,
+but it is enough to show that its determinant is not $1$, which is a requirement for symplectic matrices.
+
+\subsection{Example of a symplectic flow}
+We can demonstrate symplecticity with the actual flow map. Note the general closed form solution:
+\begin{equation*}
+	\begin{aligned}
+		q(t) &= A\cos\left( \sqrt{\frac{k}{m}} t \right) + B \sin\left( \sqrt{\frac{k}{m}}t \right) \\
+		p(t) &= B\sqrt{km} \cos\left( \sqrt{\frac{k}{m}} t \right) -A\sqrt{km} \sin\left( \sqrt{\frac{k}{m}}t \right) 
+	\end{aligned}
+\end{equation*}
+for arbitrary constants $A$ and $B$.
+Impose initial conditions:
+suppose $q(t=0) = q_0,~ p(t=0) = p_0.$
+Define $\omega = \sqrt{k/m}$ for shorthand, and apply the initial conditions to find that the coefficients are $A = q_0,~ B = p_0/m \omega$
+Hence the particular solution is
+\begin{equation*}
+	\begin{aligned}
+		q(t) &= q_0 \cos\left( \omega t \right) + \frac{p_0}{m\omega} \sin\left( \omega t \right) \\
+		p(t) &= p_0 \cos\left( \omega t \right) - q_0 m\omega \sin\left( \omega t \right).
+	\end{aligned}
+\end{equation*}
+We are in the position to evaluate the Jacobian entry-wise.
+\begin{equation*}
+	\varphi'_t \begin{pmatrix}
+		q_0 \\
+		p_0
+	\end{pmatrix} = \begin{bmatrix}
+		\frac{\partial q}{\partial q_0} & \frac{\partial q}{\partial p_0} \\
+		\frac{\partial p}{\partial q_0} & \frac{\partial p}{\partial p_0}
+	\end{bmatrix} = \begin{bmatrix}
+		\cos(\omega t) & \frac{1}{m\omega} \sin(\omega t) \\
+		-m\omega \sin(\omega t) & \cos(\omega t)
+	\end{bmatrix},
+\end{equation*}
+and if we now plug this into the symplectic identity we get
+\begin{align*}
+	\varphi'_t(x_0)^\mathrm{T} \mathbf{J} \varphi'_t(x_0) &= \begin{bmatrix}
+		\cos(\omega t) & -m\omega \sin(\omega t) \\
+		\frac{1}{m\omega} \sin(\omega t) & \cos(\omega t)
+	\end{bmatrix} \begin{bmatrix}
+		0 & 1 \\
+		-1 & 0
+	\end{bmatrix} \begin{bmatrix}
+		\cos(\omega t) & \frac{1}{m\omega} \sin(\omega t) \\
+		-m\omega \sin(\omega t) & \cos(\omega t)
+	\end{bmatrix} \\
+	&= \begin{bmatrix}
+		m \omega \sin(\omega t) & \cos(\omega t) \\
+		-\cos(\omega t) & \frac{1}{m \omega} \sin(\omega t)
+	\end{bmatrix} \begin{bmatrix}
+		\cos(\omega t) & \frac{1}{m\omega} \sin(\omega t) \\
+		-m\omega \sin(\omega t) & \cos(\omega t)
+	\end{bmatrix} \\
+	&= \begin{bmatrix}
+		m \omega \sin(\omega t) \cos(\omega t) - m \omega \sin(\omega t) \cos(\omega t)  & \sin^2(\omega t) + \cos^2(\omega t) \\
+		-\cos^2(\omega t) - \sin^2(\omega t) & -\frac{1}{m\omega}\cos(\omega t)\sin(\omega t) + \frac{1}{m \omega}\cos(\omega t)\sin(\omega t)
+	\end{bmatrix} \\
+	&= \begin{bmatrix}
+		0 & 1 \\
+		-1 & 0
+	\end{bmatrix} = \mathbf{J}.
+\end{align*}
+Hence the flow is symplectic.
+
+\subsection{A symplectic integrator}
+With symplectic integration, we are interested in numerical methods for which the numerical flow also attains symplecticity.
+One such example is the symplectic Euler method
+\begin{equation*}
+	\begin{pmatrix}
+		q_{n+1} \\
+		p_{n+1} 
+	\end{pmatrix} = \begin{pmatrix}
+		q_{n} \\
+		p_{n}
+	\end{pmatrix} + h \nabla H(q_{n}, p_{n+1}).
+\end{equation*}
+For an arbitrary problem this method is implicit. However, many problems have a separate Hamiltonian that allows the iteration to be performed in two explicit steps. 
+The simple harmonic oscillator has a Hamiltonian $H(q, p) = \frac{1}{2m}p^2 + \frac{1}{2}kq^2$ which can be written as $H(q, p) = V(q) + T(p)$, where $V(q)$ represents kinetic energy and $T(p)$ represents potential energy of the system.
+We expand out the method as
+\begin{equation*}
+	\begin{pmatrix}
+		q_{n+1} \\
+		p_{n+1} 
+	\end{pmatrix} = \begin{pmatrix}
+		q_{n} \\
+		p_{n}
+	\end{pmatrix} + h \mathbf{J} \begin{pmatrix}
+		V'(q_n) \\
+		T'(p_{n+1})
+	\end{pmatrix} = \begin{pmatrix}
+		q_{n} + \frac{h}{m}p_{n+1} \\
+		p_{n} - hk q_n
+	\end{pmatrix}.
+\end{equation*}
+On inspection, we can perform this iteration separably: compute $p_{n+1}$ using $p_n$ and $q_n$,
+then use $q_n$ and $p_{n+1}$ to compute $q_{n+1}$.
+Important to note is that this is specifically the symplectic Euler-VT method, since we evaluate $V'$ before $T'$,
+and the symplectic Euler-TV method is an alternative which computes in the opposite order analogously.
+For simplicity we will stick with the VT method for examples.
+We find an expression for the numerical flow:
+\begin{equation*}
+	\begin{aligned}
+		\begin{pmatrix}
+			q_{n+1} \\
+			p_{n+1} 
+		\end{pmatrix} &= \begin{pmatrix}
+			q_{n} + \frac{h}{m} \left( p_{n} - h \omega q_n \right) \\
+			p_{n} - h \omega q_n
+		\end{pmatrix} \\
+		&= \begin{bmatrix}
+			1 - \frac{h^2 k}{m} & \frac{h}{m} \\
+			-hk & 1
+		\end{bmatrix} \begin{pmatrix}
+			q_n \\
+			p_n
+		\end{pmatrix} \equiv \Phi \begin{pmatrix}
+			q_n \\
+			p_n
+		\end{pmatrix}
+	\end{aligned}
+\end{equation*}
+and just like before, test the symplectic identity
+\begin{equation*}
+	\Phi^\mathrm{T}\mathbf{J}\Phi = \begin{bmatrix}
+		\left(1-\frac{h^2 k}{m}\right)(-hk) + \left(\frac{h^2 k}{m}-1\right)(-hk) & 1 - \frac{h^2 k}{m} + \frac{h^2 k}{m} \\
+		-\frac{h^2 k}{m} + \frac{h^2 k}{m} -1 & \frac{h}{m} - \frac{h}{m}
+	\end{bmatrix} = \begin{bmatrix}
+		0 & 1 \\
+		-1 & 0
+	\end{bmatrix} = \mathbf{J}.
+\end{equation*}
+Hence this method is symplectic for this example.
+
+\section{Numerical and Symplectic Integrators}
+
+It is important to note at the moment that the only example we have looked at is the simple harmonic oscillator, which has a closed form solution.
+Our results so far only serve for understanding the definition of symplecticity.
+Further on we will discuss and explore real applications of symplectic methods.
+% go into more detail of forward euler
+
+\subsection{Stability and Symplecticity}
+In contrast to our examples so far, we usually solve an ODE numerically when we cannot find a closed form solution, and we want to produce a numerical approximation with which we can analyse its behaviour.
+However, numerical integrators such as the forward Euler method do not always provide reliable solutions to the problems given.
+In oder to explore this further, we need to introduce the concept of A-stability.
+
+Consider the linear test problem $\dot{x} = \lambda x$. Given an initial condition $x(t=0) = x_0$, $x$ decays to $0$ as $t \rightarrow \infty$ if $\lambda$ is negative.
+Now consider how the forward Euler approximation behaves.
+We have the iteration $x_{n+1} = x_n + hf(x_n) = x_n + h(\lambda x_n) = (1 + h\lambda)x_n$.
+Hence, given an initial condition, $x_n = (1 + h\lambda)^n x_0$, which decays to zero if $|1+h\lambda| < 1$.
+Even if $\lambda < 0$, we can choose values of $h$ for which the sequence does not converge to zero.
+A numerical method is called A-stable if, when applied to the linear test problem, the sequence converges to zero for all $h\lambda$ such that $\operatorname{Re}(h\lambda) < 0$.
+Euler's method is not A-stable, and it is a favourable quality which we prefer methods to attain.
+
+% goal of symplectic - area preserving
+% symplectic in hamiltonian mechanics preserving a first integral
+Symplecticity is stronger than A-stability, but it is similar in how it aims to provide stable solutions for long timespan integrations.
+The formal definition is that a symplectic integration method maintains the form $\mathrm{d}q_i \wedge \mathrm{d}p_i$ with $i = 1, \mathellipsis, n$ for an $n$-dimensional problem.
+The form is an infinitesimal area generated by the infinitesimals in $q, p$.
+For a one-dimensional problem, we can produce the phase portrait by plotting $p$ against $q$.
+A single point in the phase portrait represents the state of the dynamical system at a fixed point in time.
+The flow and the numerical flow are maps between points in the phase portrait.
+If we think of the phase portrait as a solution space for a one-dimensional dynamical system, we can say that symplectic methods preserve the area of the solution space.
+This is the paradigm of symplectic integration: by maintaining area of the phase space under mapping of the numerical flow, we maintain qualitative behaviour of the ODE over long timespans.
+Furthermore, the conservation of area is equivalent to a symplectic method maintaining a first integral of the system, which is the Hamiltonian $H$.
+
+The dilemma with symplectic integration is that it can be an extremely expensive implementation, when another method might suffice.
+For applications in celestial mechanics, symplectic integrators are extremely important, since we may need to estimate the motion of celestial bodies far into the future, to a required accuracy.
+However, many examples would be exhaustive for symplectic methods, since it would be more computationally efficient to use an error-controlled explicit integrator.
+In this case, we accrue error over time, but we can make a restriction of the local error in order to keep the global error below a particular threshold.
+An extremely popular family of integrators would be the explicit Runge-Kutta methods.
+
+\subsection{Runge-Kutta Methods}
+
+These are methods of the form
+\begin{equation*}
+	x_{n+1} = x_n + h(\sum_{i = 1}^{s} b_i k_i )
+\end{equation*}
+where
+\begin{equation*}
+	k_i = f(t_n + c_i h,~ x_n + h\sum_{j = 1}^{s} a_{ij}k_j).	
+\end{equation*}
+An explicit Runge Kutta method is a sequence of explicit steps to gain a better approximation.
+We aim to choose the parameters such that we can reduce the order of the error for each step.
+For ease of notation, we introdue the Butcher tableau for a Runge Kutta method
+\begin{equation*}
+	\begin{array}{c|ccc}
+		c_1  &a_{11} &\hdots &a_{1s} \\
+		\vdots &\vdots & &\vdots \\
+		c_s &a_{s1} &\hdots &a_{ss} \\
+		\hline \\
+		 &b_1 &\hdots &b_s
+	\end{array}
+\end{equation*}
+which also helps us regard the Runge Kutta method as defined by vectors and a matrix.
+
+
+
+% properties required for A-stability
+% properties required for symplecticity
+
+% error control on explicit method versus symplectic method - what is the cost
+
+
+%% symplecticity proof with differentiation
+
+
+
+
+
+
+
+
+
+\appendix
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
