@@ -2,6 +2,25 @@
 
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{amsthm}
+
+
+\newtheorem{theorem}{Theorem}[subsection]
+\newtheoremstyle{exampstyle}
+  {\topsep} % Space above
+  {\topsep} % Space below
+  {} % Body font
+  {} % Indent amount
+  {\bfseries} % Theorem head font
+  {.} % Punctuation after theorem head
+  {.5em} % Space after theorem head
+  {} % Theorem head spec (can be left empty, meaning `normal')
+\theoremstyle{exampstyle} \newtheorem{example}[theorem]{Example}
+\theoremstyle{exampstyle} \newtheorem{remark}[theorem]{Remark}
+\theoremstyle{exampstyle} \newtheorem{definition}[theorem]{Definition}
+\theoremstyle{exampstyle} \newtheorem{lemma}[theorem]{Lemma}
+
+\usepackage[english]{babel}
 \usepackage{graphicx}
 \usepackage{verbatim}
 \usepackage{listings}
@@ -317,7 +336,42 @@ We have the iteration $x_{n+1} = x_n + hf(x_n) = x_n + h(\lambda x_n) = (1 + h\l
 Hence, given an initial condition, $x_n = (1 + h\lambda)^n x_0$, which decays to zero if $|1+h\lambda| < 1$.
 Even if $\lambda < 0$, we can choose values of $h$ for which the sequence does not converge to zero.
 A numerical method is called A-stable if, when applied to the linear test problem, the sequence converges to zero for all $h\lambda$ such that $\operatorname{Re}(h\lambda) < 0$.
-Euler's method is not A-stable, and it is a favourable quality which we prefer methods to attain.
+Euler's method is not A-stable, making it susceptible to long timespan error growth.
+
+We will look at the concept of the adjoint method. Given a method defined by a numerical flow $\Psi_h$,
+the adjoint $\Psi*_h$ is the method that satisfies $\Psi^*_{-h} = \Psi^{-1}_h$.
+In words, stepping backward with the adjoint method is equivalent to stepping forward with the inverse.
+Adjoint methods are very useful. Given an arbitrary method $\Psi_h$,
+the method $\Psi_{h/2} \circ \Psi_{h/2}^*$ is symmetric.
+A symmetric method is a method that satisfies $\Psi_h^{-1} = \Psi_{-h}$.
+This means if we integrate forwards in time by a particular step, and then integrate back,
+we return to the original value since we are equivalently applying the inverse.
+
+We can show that the implicit Euler method is the adjoint of explicit Euler.
+First, let $\Psi_h^I$ denote the implicit method and let $\Psi_h^E$ denote the explicit method.
+We want to show that $\Psi_h^E = (\Psi_{-h}^I)^{-1}$.
+This is equivalent to $\Psi_{-h}^I \circ \Psi_h^E (x) = x$.
+If we expand this composition, we obtain
+\begin{align*}
+	\Phi_{-h}^I \left( \Phi_j^E  (x) \right) &= \Phi_{-h}^I \left( x + h f(x) \right) \\
+	&= x + h f(x) - h f\left( \Phi_{-h}^I \left( x + h f(x) \right) \right) \\
+	&= x + h f(x) - h f\left( \Phi_{-h}^I \left( \Phi_h^E (x) \right) \right),
+\end{align*}
+and $\Phi_{-h}^I (\Phi_h^E (x)) = x$ solves this equation. Hence $(\Phi_{-h}^I)^{-1} = \Phi_h^E$.
+
+Other methods of note are the implicit midpoint method and the trapezium method. Implicit midpoint is the method
+\begin{equation*}
+	\Phi_h^M (x_n) = x_{n+1} = x_n + hf\left(\frac{x_n + x_{n+1}}{2}\right).
+\end{equation*}
+The trapezium method is similar:
+\begin{equation*}
+	\Phi_j^T (x_n) = x_{n+1} = x_n + h \left(\frac{f(x_n) + f(x_{n+1})}{2}\right)
+\end{equation*}
+The implicit midpoint method is symplectic, but the trapezium method is not.
+However, it can be shown that these are conjugate methods, meaning that they exhibit similar long-term behaviour.
+Two methods $\Psi, \Phi$ are conjugate if there exists a map $\chi$ such that $\Phi = \chi^{-1} \Psi \chi$.
+
+%% find a defined inverse so that we can show conjugacy.
 
 % goal of symplectic - area preserving
 % symplectic in hamiltonian mechanics preserving a first integral
@@ -355,12 +409,111 @@ For ease of notation, we introdue the Butcher tableau for a Runge Kutta method
 		c_1  &a_{11} &\hdots &a_{1s} \\
 		\vdots &\vdots & &\vdots \\
 		c_s &a_{s1} &\hdots &a_{ss} \\
-		\hline \\
+		\hline
 		 &b_1 &\hdots &b_s
 	\end{array}
 \end{equation*}
 which also helps us regard the Runge Kutta method as defined by vectors and a matrix.
 
+\subsection{Stability}
+Consider the linear test problem $\dot{x} = \lambda x$.
+We have already explored stability for the basic Euler methods.
+We will look at an explicit 3-stage method.
+First, find expressions for the $k_i$:
+\begin{align*}
+	k_1 &= \lambda x_n, \\
+	k_2 &= \lambda\left( x_n + h a_{21}k_1 \right) \\
+	&= \left( \lambda + h a_{21}\lambda^2 \right)x_n, \\
+	k_3 &= \lambda \left( x_n + h a_{31}k_1 + h a_{32}k_2 \right) \\
+	&= \lambda \left( x_n + h a_{31} \lambda x_n + h a_{32}\left( \lambda + h a_{21} \lambda^2 \right) x_n \right) \\
+	&= \left( \lambda + h a_{31}\lambda^2 + h a_{32}\lambda^2 + h^2 a_{32}a_{21}\lambda^3 \right) x_n.
+\end{align*}
+therefore
+\begin{align*}
+	x_{n+1} &= x_n + h \left( b_1 k_1 + b_2 k_2 + b_3 k_3 \right) \\
+	&= x_n + h b_1 \lambda x_n + h b_2 \left(\lambda + h a_{21} \lambda^2\right)x_n + hb_3 \left( \lambda + h a_{31} \lambda^2 + h a_{32} \lambda ^2 + h^2 a_{32} a_{21} \lambda^3\right)x_n \\
+	&= \left(
+		1 + \left( b_1 + b_2 + b_3 \right) h\lambda + \left(
+			b_2 a_{21} + b_3 (a_{31} + a_{32})
+		\right)h^2\lambda^2 + \left(
+			b_3 a_{32} a_{21}
+		\right)h^3\lambda^3
+	\right)x_n.
+\end{align*}
+This is a polynomial on $h\lambda$, which we denote by $R(h\lambda)$.
+To ensure A-stability, we require that $|R(h\lambda)| < 0$ for $h \lambda$ in the left half of the complex plane.
+For any explicit method, the stability function is a polynomial.
+For any polynomial $p(y)$, we diverge to infinity as $|y| \rightarrow \infty$.
+Hence it is impossible for any explicit Runge-Kutta method to be A-stable.
+
+In general, the stability function for a Runge-Kutta method is
+\begin{equation*}
+	r(\lambda) = \frac{\det(I - \lambda A + \lambda eb^\mathrm{T})}{\det(I - \lambda A)}
+\end{equation*} %% cite this result
+where $A = (a_{ij})$, $b = (b_i)$ and $e$ is the vector of all ones.
+The stability function is a rational function, and is a polynomial if the concerned method is explicit.
+
+%% more stuff go here
+
+\subsection{Symplectic RK Methods}
+
+We have shown that all A-stable Runge-Kutta methods are necessarily implicit.
+This is also the case for all symplectic Runge-Kutta methods.
+
+% one theorem is that if the method satisfies the implicit criterion then it preserves quadratic integrals
+% another result shows that RK methods that preserve quadratic integrals are
+
+
+\section{Symplecticity of a Hamiltonian System}
+
+Earlier, we looked at the symplecticity of the flow of a particular Hamiltonian system.
+We will now generalise this result to any Hamiltonian system.
+It should be noted that the symplecticity of the flow is equivalent to the system itself being Hamiltonian.
+
+\begin{theorem}
+	A dynamical system is Hamiltonian if and only if its flow is symplectic.
+\end{theorem}
+\begin{proof}
+$(\Rightarrow)$ Consider the flow at time $t=0$. By definition, $\varphi_t(x_0) = x(t)$ given $x(0) = x_0$,
+therefore $\varphi_0(x_0) = x_0$. Hence the sensitivity at $t=0$ is $\varphi'_0(x_0) = I$ the identity matrix.
+The symplectic identity is satisfied trivially: $(\varphi'_0(x_0))^\mathrm{T} J \varphi'_0(x_0) = IJI = J$.
+
+Now, instead of finding an expression of the symplectic identity at time $t$,
+we show that this quantity is unchanging in time.
+By differentiating, the expression distributes by the product rule:
+\begin{equation*}
+	\frac{\mathrm{d}}{\mathrm{d}t} \left(
+		\varphi'_t(x_0)^\mathrm{T} J \varphi'_t(x_0)
+	\right) = \left(
+		\frac{\mathrm{d}}{\mathrm{d}t} \varphi'_t(x_0)^\mathrm{T}
+	\right) J \varphi'_t(x_0) + \varphi'_t(x_0)^\mathrm{T} J \left(
+		\frac{\mathrm{d}}{\mathrm{d}t} \varphi'_t(x_0)
+	\right).
+\end{equation*}
+We can find an expression for the derivative term:
+\begin{align*}
+	\frac{\mathrm{d}}{\mathrm{d}t} \varphi'_t(x_0) &= \frac{\mathrm{d}}{\mathrm{d}t} J \nabla H(\varphi_t(x_0)) \\
+	&= J \nabla^2 H(\varphi_t(x_0)) \varphi'_t(x_0).
+\end{align*}
+Now plug this back in, becoming
+\begin{align*}
+	\frac{\mathrm{d}}{\mathrm{d}t} \left(
+		\varphi'_t(x_0)^\mathrm{T} J \varphi'_t(x_0)
+	\right) &= \left( J \nabla^2 H(\varphi_t)\varphi'_t \right)^\mathrm{T} J \varphi'_t 
+	+ \varphi'_t J \left( 
+		J \nabla^2 H(\varphi_t) \varphi'_t
+  	\right) \\
+	&= (\varphi'_t)^\mathrm{T} \nabla^2 H(\varphi_t)^\mathrm{T} J^\mathrm{T} J \varphi'_t
+	+ (\varphi'_t)^\mathrm{T} J^2 \nabla^2 H(\varphi_t) \varphi'_t(x_0) \\
+	&= (\varphi'_t)^\mathrm{T} \nabla^2 H(\varphi_t)^\mathrm{T} \varphi'_t - (\varphi'_t)^\mathrm{T} \nabla^2 H(\varphi_t) \varphi'_t
+\end{align*}
+since $J^\mathrm{T}J = I$ and $J^2 = -I$.
+Under the assumption that the Hessian matrix $\nabla^2 H(\varphi_t)$ is symmetric,
+this expression evaluates to zero and hence the symplectic identity is satisfied for all $t$ and we are done.
+
+$(\Leftarrow)$ Assuming that the sensitivity satisfies the symplectic identity, we want to show that the system is Hamiltonian.
+
+\end{proof}
 
 
 % properties required for A-stability
@@ -374,7 +527,8 @@ which also helps us regard the Runge Kutta method as defined by vectors and a ma
 
 
 
-
+% symplectic RK methods preserving quadratic first integrals
+% the commutative diagram result
 
 
 
