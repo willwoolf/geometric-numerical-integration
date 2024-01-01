@@ -105,6 +105,7 @@ If we write $\mathbf{x} = (q,p)^\mathrm{T}$ and denote the matrix as $\mathbf{J}
 then the statement of a hamiltonian system is of the form 
 \begin{equation}
 	\mathbf{\dot{x}} = \mathbf{J}\nabla H(\mathbf{x}),
+	\label{eqn:hdyn}
 \end{equation}
 which resembles Equation \ref{eqn:dyn}.
 
@@ -119,25 +120,75 @@ Define $\mathbf{J}$ to be
 	\end{bmatrix}
 \end{equation}
 and the problem can be written as $\mathbf{\dot{x}} = \mathbf{J}\nabla H(\mathbf{x})$.
-We often call $\mathbf{J}$ the symplectic matrix.
 
 Define the flow $\varphi_t$ as a map of the problem from an initial time to the time $t$.
 Specifically, we write $\varphi_t(\alpha) = \mathbf{x}(t)$ given the initial condition $\mathbf{x}(t=0) = \alpha$. Hence the flow $\varphi_t:\mathds{R}^{2n}\rightarrow \mathds{R}^{2n}$ is a map from the initial point of the system to the time $t$.
 
 The Jacobian matrix $\varphi'_t(\mathbf{\alpha})$ is often called the sensitivity of the flow.
+Note that it is the derivative on the initial condition $\mathbf{\alpha}$.
 We show the element-wise expression:
 \begin{align*}
 	\left. \varphi'_t(\alpha) \right)_i &= \left. \frac{\partial}{\partial \alpha} \varphi_t(\alpha) \right)_i \\
-	&= \left. \frac{\partial}{\partial \alpha} x_i(t) \right)_i \\
+	&= \frac{\partial}{\partial \alpha} x_i(t) \\
 	&= \begin{bmatrix}
-		\frac{\partial x_i}{\partial \alpha_1} & \mathellipsis & \frac{\partial x_i}{\partial \alpha_{2n}}
+		\frac{\partial x_i}{\partial \alpha_1}, & \mathellipsis, & \frac{\partial x_i}{\partial \alpha_{2n}}
 	\end{bmatrix},
 \end{align*}
 which is the Jacobian.
 A flow is symplectic if it satisfies $\varphi'_t(\alpha)^\mathrm{T} \mathbf{J} \varphi'_t(\alpha) = \mathbf{J}.$
+The flow of a Hamiltonian system is, by definition, symplectic. We will show this later.
+We are concerned with numerical integration techniques which are symplectic.
+
+\subsection{Properties of the flow}
+
+The flow map $\varphi_t: \mathbf{x}_0 \rightarrow \mathbf{x}(t)$ gives us powerful insights into the behaviour of Hamiltonian integration.
+We will show expressions for the time derivatives of $\varphi_t(\alpha)$ and $\varphi'_t(\alpha)$.
+Starting with the flow, its time derivative is
+\begin{align*}
+	\frac{\mathrm{d}}{\mathrm{d}t} \left( \varphi_t(\mathbf{x}_0) \right) &= \frac{\mathrm{d}}{\mathrm{d}t} \mathbf{x}(t) \\
+	&= \dot{\mathbf{x}}(t) \\
+	&= \mathbf{J}\nabla H(\mathbf{x}(t)) \\
+	&= \mathbf{J}\nabla H \left( \varphi_t(\mathbf{x}_0) \right).
+\end{align*}
+We have a similar form for the time derivative of the sensitivity:
+\begin{align*}
+	\frac{\mathrm{d}}{\mathrm{d}t} \left( \varphi'_t(\mathbf{x}_0) \right) &= \frac{\partial}{\partial \mathbf{x}_0} \frac{\mathrm{d}}{\mathrm{d}t} \varphi_t(\mathbf{x}_0) \\
+	&= \frac{\partial}{\partial \mathbf{x}_0} \frac{\mathrm{d}}{\mathrm{d}t} \mathbf{x}(t) \\
+	&= \frac{\partial}{\partial \mathbf{x}_0} \dot{\mathbf{x}}(t) \\
+	&= \frac{\partial}{\partial \mathbf{x}_0} \mathbf{J}\nabla H(\mathbf{x}(t)) \\
+	&= J \nabla^2 H(\mathbf{x}(t)) \left(\frac{\partial}{\partial \mathbf{x}_0} \mathbf{x}(t)\right) \\
+	&= J \nabla^2 H(\varphi_t(\mathbf{x}_0))\varphi'_t(\mathbf{x}_0).
+\end{align*}
+These results will be useful later, when we look at properties of Hamiltonian systems.
+
+\subsection{Methods}
+
+We will explore a selection of methods in this project,
+which require an understanding of basic methods from which they develop from.
+Assume we have a dynamical system given by Equation \ref{eqn:dyn}.
+
+The explicit (forward) Euler method:
+\begin{equation}
+	x_{n+1} = x_n + h J \nabla H(x_n).
+\end{equation}
+
+The implicit (backward) Euler method:
+\begin{equation}
+	x_{n+1} = x_n + h J \nabla H(x_{n+1}).
+\end{equation}
+
+The implicit midpoint method:
+\begin{equation}
+	x_{n+1} = x_n + h J \nabla H \left( \frac{x_n + x_{n+1}}{2} \right).
+\end{equation}
+
+The trapezium method:
+\begin{equation}
+	x_{n+1} = x_n + h \left( \frac{J \nabla H(x_n) + J \nabla H(x_{n+1})}{2} \right).
+\end{equation}
 
 \section{Examples}
-\subsection{Forward Euler Method}
+\subsection{Forward Euler Method - Simple Harmonic Oscillator}
 
 If a problem has a closed-form solution, then we can find an explicit expression for the flow.
 However, many problems must instead be solved numerically, often using a finite difference method.
@@ -185,7 +236,7 @@ which can be written as a matrix equation
 \end{equation*}
 where the matrix is the numerical flow map.
 We could show that this matrix does not satisfy the symplectic identity,
-but it is enough to show that its determinant is not $1$, which is a requirement for symplectic matrices.
+but it is enough to show that its determinant is clearly not equal to $1$, which is necessary for symplectic matrices.
 
 \subsection{Example of a symplectic flow}
 We can demonstrate symplecticity with the actual flow map. Note the general closed form solution:
@@ -281,7 +332,7 @@ We expand out the method as
 \end{equation*}
 On inspection, we can perform this iteration separably: compute $p_{n+1}$ using $p_n$ and $q_n$,
 then use $q_n$ and $p_{n+1}$ to compute $q_{n+1}$.
-Important to note is that this is specifically the symplectic Euler-VT method, since we evaluate $V'$ before $T'$,
+Important to note is that this is specifically the symplectic Euler-VT method, since we evaluate $V'$ and then $T'$,
 and the symplectic Euler-TV method is an alternative which computes in the opposite order analogously.
 For simplicity we will stick with the VT method for examples.
 We find an expression for the numerical flow:
@@ -318,12 +369,87 @@ and just like before, test the symplectic identity
 \end{equation*}
 Hence this method is symplectic for this example.
 
+\subsection{The Simple Pendulum}
+
+%figure on comparison of three methods
+
+The simple pendulum is the one-dimensional system defined by
+\begin{equation*}
+	ml\frac{\mathrm{d}^2 \theta}{\mathrm{d}t^2} = - mg \sin(\theta)'
+\end{equation*}
+For this problem, we define $q = \theta$, $p = \dot{\theta}$ and the Hamiltonian
+\begin{equation*}
+	H(q,p) = \frac{1}{2}p^2 + k^2(1-\cos(q))
+\end{equation*}
+where $k^2 = g/l$.
+This Hamiltonian can be obtained by integrating the system, and is therefore a conserved quantity.
+We will look at a selection of numerical methods applied to this problem.
+Recall Euler's method, of the form $x_{n+1} = x_n + h \mathbf{J} \nabla H(x_n)$. This expands to:
+\begin{equation*}
+	\begin{pmatrix}
+		q_{n+1} \\
+		p_{n+1}
+	\end{pmatrix}^E = \begin{pmatrix}
+		q_n \\
+		p_n
+	\end{pmatrix} + h \begin{bmatrix}
+		0 & 1 \\
+		-1 & 0
+	\end{bmatrix} \begin{pmatrix}
+		k^2 \sin(q_n) \\
+		p_n
+	\end{pmatrix} = \begin{pmatrix}
+		q_n + h p_n \\
+		p_n - h k^2 \sin(q_n)
+	\end{pmatrix}.
+\end{equation*}
+The Implicit Midpoint method gives us
+\begin{equation*}
+	\begin{pmatrix}
+		q_{n+1} \\
+		p_{n+1}
+	\end{pmatrix}^M = \begin{pmatrix}
+		q_n \\
+		p_n
+	\end{pmatrix} + h \begin{bmatrix}
+		0 & 1 \\
+		-1 & 0
+	\end{bmatrix} \begin{pmatrix}
+		k^2 \sin \left(\dfrac{q_n + q_{n+1}}{2}\right) \\
+		\dfrac{p_n + p_{n+1}}{2}
+	\end{pmatrix} = \begin{pmatrix}
+		q_n + h \left( \dfrac{p_n + p_{n+1}}{2} \right) \\
+		p_n - h k^2 \sin \left( \frac{q_n + q_{n+1}}{2} \right)
+	\end{pmatrix}.
+\end{equation*}
+Finally, applying the Symplectic Euler-VT method yields
+\begin{equation}
+	\begin{pmatrix}
+		q_{n+1} \\
+		p_{n+1}
+	\end{pmatrix}^S = \begin{pmatrix}
+		q_n \\
+		p_n
+	\end{pmatrix} + h \begin{bmatrix}
+		0 & 1 \\
+		-1 & 0
+	\end{bmatrix} \begin{pmatrix}
+		k^2 \sin(q_n) \\
+		p_{n+1}
+	\end{pmatrix} = \begin{pmatrix}
+		q_n + h p_{n+1} \\
+		p_n - h k^2 \sin(q_n)
+	\end{pmatrix}
+\end{equation}
+
 \section{Numerical and Symplectic Integrators}
 
 It is important to note at the moment that the only example we have looked at is the simple harmonic oscillator, which has a closed form solution.
 Our results so far only serve for understanding the definition of symplecticity.
 Further on we will discuss and explore real applications of symplectic methods.
 % go into more detail of forward euler
+
+
 
 \subsection{Stability and Symplecticity}
 In contrast to our examples so far, we usually solve an ODE numerically when we cannot find a closed form solution, and we want to produce a numerical approximation with which we can analyse its behaviour.
@@ -373,9 +499,7 @@ Two methods $\Psi, \Phi$ are conjugate if there exists a map $\chi$ such that $\
 
 %% find a defined inverse so that we can show conjugacy.
 
-% goal of symplectic - area preserving
-% symplectic in hamiltonian mechanics preserving a first integral
-Symplecticity is stronger than A-stability, but it is similar in how it aims to provide stable solutions for long timespan integrations.
+Symplecticity and A-stability are not linked in a sense that one implies the other, but they are similar in how both properties to provide well-behaved solutions for long timespan integrations.
 The formal definition is that a symplectic integration method maintains the form $\mathrm{d}q_i \wedge \mathrm{d}p_i$ with $i = 1, \mathellipsis, n$ for an $n$-dimensional problem.
 The form is an infinitesimal area generated by the infinitesimals in $q, p$.
 For a one-dimensional problem, we can produce the phase portrait by plotting $p$ against $q$.
@@ -460,8 +584,42 @@ The stability function is a rational function, and is a polynomial if the concer
 We have shown that all A-stable Runge-Kutta methods are necessarily implicit.
 This is also the case for all symplectic Runge-Kutta methods.
 
+\begin{theorem}
+If a Runge-Kutta method satisfies
+\begin{equation}
+	b_i a_{ij} + b_j a_{ji} - b_ b_j = 0
+\end{equation}
+for all $i, j = 1, \mathellipsis, s$ then it is symplectic.
+\end{theorem}
+\begin{proof}
+
+This proof is in two parts. First, we want to show that any Runge-Kutta method must satisfy this rule in order to preserve quadratic invariants of the system.
+Then, we show that any Runge-Kutta method which preserves these invariants is in fact symplectic.
+
+Start by considering the recurrence $x_1 = x_0 + h \sum_{j=1}^{s} b_i k_i$ and let $C$ be an arbitrary matrix, in which case we can express a quadratic as
+\begin{equation}
+	x_1^\intercal C x_1 = x_0^\intercal C x_0 + h \sum_{i=1}^{s} b_i k_i^\intercal C x_0 + h \sum_{j=1}^{s} b_j x_0^\intercal C k_j + h^2 \sum_{i=1}^{s} \sum_{j=1}^{s} b_i b_j k_i^\intercal C k_j
+\end{equation}
+by expanding. We can make a simplification by writing $k_i = f(X_i) = f\left(x_0 h \sum_{j=1}^{s}a_{ij}k_j\right)$, which is the definition of the $k_i$ evaluations.
+The $f$ is the function which defines the dynamical system.
+Our expansion becomes
+\begin{equation} %TODO: expanantion of the expansion here
+	x_1^\intercal C x_1 = x_0^\intercal C x_0 + 2h \sum_{i=1}^{s} b_i X_i^\intercal C f(X_i) + h^2 \sum_{i=1}^{s} \sum_{j=1}^{s} (b_i b_j - b_i a_{ij} - b_j a_{ji}k_i^\intercal C k_j).
+\end{equation}
+We can notice that the $x^\intercal C f(x)$ is the application of product rule differentiation, namely that
+\begin{equation*}
+	x^\intercal C f(x) = \frac{1}{2} \left(\frac{\mathrm{d}}{\mathrm{d}t} (x^\intercal C x) \right)
+\end{equation*}
+and this is a derivative of a quadratic term.
+% explain why these terms should change
+Therefore we require $b_i b_j - b_i a_{ij} - b_j a_{ji} = 0$ in order for the method to preserve quadratic invariants.
+\end{proof}
+
+
 % one theorem is that if the method satisfies the implicit criterion then it preserves quadratic integrals
-% another result shows that RK methods that preserve quadratic integrals are
+% another result shows that RK methods that preserve quadratic integrals are symplectic
+
+
 
 
 \section{Symplecticity of a Hamiltonian System}
