@@ -162,6 +162,7 @@ We have a similar form for the time derivative of the sensitivity:
 These results will be useful later, when we look at properties of Hamiltonian systems.
 
 \subsection{Methods}
+% use this section freely to add methods that need to be referred to
 
 We will explore a selection of methods in this project,
 which require an understanding of basic methods from which they develop from.
@@ -442,6 +443,61 @@ Finally, applying the Symplectic Euler-VT method yields
 	\end{pmatrix}
 \end{equation}
 
+\section{Symplecticity of a Hamiltonian System}
+
+\subsection{Hamiltonian Systems are Symplectic}
+
+Earlier, we looked at the symplecticity of the flow of a particular Hamiltonian system.
+We will now generalise this result to any Hamiltonian system.
+It should be noted that the symplecticity of the flow is equivalent to the system itself being Hamiltonian.
+
+\begin{theorem}
+\label{thm:hamil}
+A dynamical system is Hamiltonian if and only if its flow is symplectic.
+\end{theorem}
+\begin{proof}
+$(\Rightarrow)$ Consider the flow of a Hamiltonian system at time $t=0$. By definition, $\varphi_t(x_0) = x(t)$ given $x(0) = x_0$,
+therefore $\varphi_0(x_0) = x_0$. Hence the sensitivity at $t=0$ is $\varphi'_0(x_0) = I$ the identity matrix.
+The symplectic identity is satisfied trivially: $(\varphi'_0(x_0))^\mathrm{T} J \varphi'_0(x_0) = IJI = J$.
+
+Now, instead of finding an expression of the symplectic identity at time $t$,
+we show that this quantity is unchanging in time.
+By differentiating, the expression distributes by the product rule:
+\begin{equation*}
+	\frac{\mathrm{d}}{\mathrm{d}t} \left(
+		\varphi'_t(x_0)^\mathrm{T} J \varphi'_t(x_0)
+	\right) = \left(
+		\frac{\mathrm{d}}{\mathrm{d}t} \varphi'_t(x_0)^\mathrm{T}
+	\right) J \varphi'_t(x_0) + \varphi'_t(x_0)^\mathrm{T} J \left(
+		\frac{\mathrm{d}}{\mathrm{d}t} \varphi'_t(x_0)
+	\right).
+\end{equation*}
+We can find an expression for the derivative term:
+\begin{align*}
+	\frac{\mathrm{d}}{\mathrm{d}t} \varphi'_t(x_0) &= \frac{\mathrm{d}}{\mathrm{d}t} J \nabla H(\varphi_t(x_0)) \\
+	&= J \nabla^2 H(\varphi_t(x_0)) \varphi'_t(x_0).
+\end{align*}
+Now plug this back in, becoming
+\begin{align*}
+	\frac{\mathrm{d}}{\mathrm{d}t} \left(
+		\varphi'_t(x_0)^\mathrm{T} J \varphi'_t(x_0)
+	\right) &= \left( J \nabla^2 H(\varphi_t)\varphi'_t \right)^\mathrm{T} J \varphi'_t 
+	+ \varphi'_t J \left( 
+		J \nabla^2 H(\varphi_t) \varphi'_t
+  	\right) \\
+	&= (\varphi'_t)^\mathrm{T} \nabla^2 H(\varphi_t)^\mathrm{T} J^\mathrm{T} J \varphi'_t
+	+ (\varphi'_t)^\mathrm{T} J^2 \nabla^2 H(\varphi_t) \varphi'_t(x_0) \\
+	&= (\varphi'_t)^\mathrm{T} \nabla^2 H(\varphi_t)^\mathrm{T} \varphi'_t - (\varphi'_t)^\mathrm{T} \nabla^2 H(\varphi_t) \varphi'_t
+\end{align*}
+since $J^\mathrm{T}J = I$ and $J^2 = -I$.
+Under the assumption that the Hessian matrix $\nabla^2 H(\varphi_t)$ is symmetric,
+this expression evaluates to zero and hence the symplectic identity is satisfied for all $t$ and we are done.
+
+$(\Leftarrow)$ Assuming that the sensitivity satisfies the symplectic identity, we want to show that the system is Hamiltonian.
+% INCOMPLETE. TODO: either formalise a proof OR cite one
+
+\end{proof}
+
 \section{Numerical and Symplectic Integrators}
 
 It is important to note at the moment that the only example we have looked at is the simple harmonic oscillator, which has a closed form solution.
@@ -527,14 +583,14 @@ where
 \end{equation*}
 An explicit Runge Kutta method is a sequence of explicit steps to gain a better approximation.
 We aim to choose the parameters such that we can reduce the order of the error for each step.
-For ease of notation, we introdue the Butcher tableau for a Runge Kutta method
+For ease of notation, we introduce the Butcher tableau for a Runge Kutta method
 \begin{equation*}
 	\begin{array}{c|ccc}
-		c_1  &a_{11} &\hdots &a_{1s} \\
+		c_1  &a_{11} &\dots &a_{1s} \\
 		\vdots &\vdots & &\vdots \\
-		c_s &a_{s1} &\hdots &a_{ss} \\
+		c_s &a_{s1} &\dots &a_{ss} \\
 		\hline
-		 &b_1 &\hdots &b_s
+		&b_1 &\dots &b_s
 	\end{array}
 \end{equation*}
 which also helps us regard the Runge Kutta method as defined by vectors and a matrix.
@@ -564,7 +620,8 @@ therefore
 		\right)h^3\lambda^3
 	\right)x_n.
 \end{align*}
-This is a polynomial on $h\lambda$, which we denote by $R(h\lambda)$.
+This coefficient term is a polynomial on $h\lambda$, which we denote by $R(h\lambda)$.
+For any explicit $k$-stage Runge-Kutta method the stability function is a polynomial.
 To ensure A-stability, we require that $|R(h\lambda)| < 0$ for $h \lambda$ in the left half of the complex plane.
 For any explicit method, the stability function is a polynomial.
 For any polynomial $p(y)$, we diverge to infinity as $|y| \rightarrow \infty$.
@@ -575,9 +632,12 @@ In general, the stability function for a Runge-Kutta method is
 	r(\lambda) = \frac{\det(I - \lambda A + \lambda eb^\mathrm{T})}{\det(I - \lambda A)}
 \end{equation*} %% cite this result
 where $A = (a_{ij})$, $b = (b_i)$ and $e$ is the vector of all ones.
-The stability function is a rational function, and is a polynomial if the concerned method is explicit.
+The stability function is a rational function in all cases.
 
+It is impossible for explicit RK methods to be A-stable, because the stability functions are polynomials which diverge to infinity as $|h\lambda| \rightarrow \infty$.
+A general Runge-Kutta method is A-stable if $r(\lambda) < 0$ for all $\lambda < 0$.
 %% more stuff go here
+
 
 \subsection{Symplectic RK Methods}
 
@@ -585,6 +645,7 @@ We have shown that all A-stable Runge-Kutta methods are necessarily implicit.
 This is also the case for all symplectic Runge-Kutta methods.
 
 \begin{theorem}
+\label{thm:symrk}
 If a Runge-Kutta method satisfies
 \begin{equation}
 	b_i a_{ij} + b_j a_{ji} - b_ b_j = 0
@@ -596,6 +657,7 @@ for all $i, j = 1, \mathellipsis, s$ then it is symplectic.
 This proof is in two parts. First, we want to show that any Runge-Kutta method must satisfy this rule in order to preserve quadratic invariants of the system.
 Then, we show that any Runge-Kutta method which preserves these invariants is in fact symplectic.
 
+\textit{Part I:}
 Start by considering the recurrence $x_1 = x_0 + h \sum_{j=1}^{s} b_i k_i$ and let $C$ be an arbitrary matrix, in which case we can express a quadratic as
 \begin{equation}
 	x_1^\intercal C x_1 = x_0^\intercal C x_0 + h \sum_{i=1}^{s} b_i k_i^\intercal C x_0 + h \sum_{j=1}^{s} b_j x_0^\intercal C k_j + h^2 \sum_{i=1}^{s} \sum_{j=1}^{s} b_i b_j k_i^\intercal C k_j
@@ -613,6 +675,37 @@ We can notice that the $x^\intercal C f(x)$ is the application of product rule d
 and this is a derivative of a quadratic term.
 % explain why these terms should change
 Therefore we require $b_i b_j - b_i a_{ij} - b_j a_{ji} = 0$ in order for the method to preserve quadratic invariants.
+
+\textit{Part II:}
+Our dynamical system is defined as $\dot{x} = f(x)$ with the initial condition $x(0) = x_0$.
+If we differentiate this problem with respect to $x_0$, we obtain
+\begin{align*}
+	\frac{\mathrm{d}}{\mathrm{d}t} \varphi'_t(x_0) &= f'(\varphi_t(x_0))\varphi'_t(x_0), \\
+	\varphi'_0(x_0) &= I
+\end{align*}
+This is similar to when we looked at demonstrating symplecticity of a regular Hamiltonian system.
+Clearly $\varphi'_0(x_0)^\intercal J \varphi'_0(x_0) = IJI = J$.
+If we differentiate $\varphi'_t(x_0)^\intercal J \varphi'_t(x_0)$ with respect to time, the expression reduces to zero.
+We already showed this when we showed that the flow of a Hamiltonian system is symplectic.
+Therefore, this expression is a first integral of the system.
+Since it is quadratic in $\varphi'_t(x_0)$, it will be conserved by the Runge-Kutta methods which satisfy the property that $b_i b_j - b_i a_{ij} - b_j a_{ji} = 0$.
+Therefore the symplectic identity is a quadratic first integral of the system, and hence these Runge-Kutta methods are symplectic.
+
+\end{proof}
+
+If we solve a dynamical system $\dot{x} = f(x)$ using a symplectic Runge-Kutta method, we get a numerical flow map $\varPhi_h(x_0)$.
+We can differentiate this with respect to the intial condition $x_0$ to obtain a sensitivity of the numerical flow $\varPhi'_h(x_0)$.
+However, this sensitivity matrix is equivalent to the numerical flow map obtained by applying a symplectic Runge-Kutta method to $\frac{\mathrm{d}}{\mathrm{d}t}\varphi'_t(x_0) = f'(\varphi_t(x_0))\varphi'_t(x_0)$,
+which is our dynamical system differentiated with respect to the initial condition. The operations are commutative.
+We will prove this in the following:
+
+\begin{theorem}
+\label{thm:commt}
+	For a dynamical system $\dot{x} = f(x)$, applying a symplectic Runge-Kutta method and differentiating the system with respect to $x_0$ are commutative operations.
+	Regardless of the order in which they are applied, we obtain a numerical flow map $\varPhi'_h(x_0)$ to the dynamical system $\frac{\mathrm{d}}{\mathrm{d}t}\varphi'_t(x_0) = f'(\varphi_t(x_0))\varphi'_t(x_0)$ on the analytical flow map.
+\end{theorem}
+\begin{proof}
+% begin proof
 \end{proof}
 
 
@@ -622,56 +715,8 @@ Therefore we require $b_i b_j - b_i a_{ij} - b_j a_{ji} = 0$ in order for the me
 
 
 
-\section{Symplecticity of a Hamiltonian System}
 
-Earlier, we looked at the symplecticity of the flow of a particular Hamiltonian system.
-We will now generalise this result to any Hamiltonian system.
-It should be noted that the symplecticity of the flow is equivalent to the system itself being Hamiltonian.
 
-\begin{theorem}
-	A dynamical system is Hamiltonian if and only if its flow is symplectic.
-\end{theorem}
-\begin{proof}
-$(\Rightarrow)$ Consider the flow at time $t=0$. By definition, $\varphi_t(x_0) = x(t)$ given $x(0) = x_0$,
-therefore $\varphi_0(x_0) = x_0$. Hence the sensitivity at $t=0$ is $\varphi'_0(x_0) = I$ the identity matrix.
-The symplectic identity is satisfied trivially: $(\varphi'_0(x_0))^\mathrm{T} J \varphi'_0(x_0) = IJI = J$.
-
-Now, instead of finding an expression of the symplectic identity at time $t$,
-we show that this quantity is unchanging in time.
-By differentiating, the expression distributes by the product rule:
-\begin{equation*}
-	\frac{\mathrm{d}}{\mathrm{d}t} \left(
-		\varphi'_t(x_0)^\mathrm{T} J \varphi'_t(x_0)
-	\right) = \left(
-		\frac{\mathrm{d}}{\mathrm{d}t} \varphi'_t(x_0)^\mathrm{T}
-	\right) J \varphi'_t(x_0) + \varphi'_t(x_0)^\mathrm{T} J \left(
-		\frac{\mathrm{d}}{\mathrm{d}t} \varphi'_t(x_0)
-	\right).
-\end{equation*}
-We can find an expression for the derivative term:
-\begin{align*}
-	\frac{\mathrm{d}}{\mathrm{d}t} \varphi'_t(x_0) &= \frac{\mathrm{d}}{\mathrm{d}t} J \nabla H(\varphi_t(x_0)) \\
-	&= J \nabla^2 H(\varphi_t(x_0)) \varphi'_t(x_0).
-\end{align*}
-Now plug this back in, becoming
-\begin{align*}
-	\frac{\mathrm{d}}{\mathrm{d}t} \left(
-		\varphi'_t(x_0)^\mathrm{T} J \varphi'_t(x_0)
-	\right) &= \left( J \nabla^2 H(\varphi_t)\varphi'_t \right)^\mathrm{T} J \varphi'_t 
-	+ \varphi'_t J \left( 
-		J \nabla^2 H(\varphi_t) \varphi'_t
-  	\right) \\
-	&= (\varphi'_t)^\mathrm{T} \nabla^2 H(\varphi_t)^\mathrm{T} J^\mathrm{T} J \varphi'_t
-	+ (\varphi'_t)^\mathrm{T} J^2 \nabla^2 H(\varphi_t) \varphi'_t(x_0) \\
-	&= (\varphi'_t)^\mathrm{T} \nabla^2 H(\varphi_t)^\mathrm{T} \varphi'_t - (\varphi'_t)^\mathrm{T} \nabla^2 H(\varphi_t) \varphi'_t
-\end{align*}
-since $J^\mathrm{T}J = I$ and $J^2 = -I$.
-Under the assumption that the Hessian matrix $\nabla^2 H(\varphi_t)$ is symmetric,
-this expression evaluates to zero and hence the symplectic identity is satisfied for all $t$ and we are done.
-
-$(\Leftarrow)$ Assuming that the sensitivity satisfies the symplectic identity, we want to show that the system is Hamiltonian.
-
-\end{proof}
 
 
 % properties required for A-stability
