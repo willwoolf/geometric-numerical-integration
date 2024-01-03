@@ -335,6 +335,7 @@ On inspection, we can perform this iteration separably: compute $p_{n+1}$ using 
 then use $q_n$ and $p_{n+1}$ to compute $q_{n+1}$.
 Important to note is that this is specifically the symplectic Euler-VT method, since we evaluate $V'$ and then $T'$,
 and the symplectic Euler-TV method is an alternative which computes in the opposite order analogously.
+This is of course assuming that the Hamiltonian is separable, which it may not be.
 For simplicity we will stick with the VT method for examples.
 We find an expression for the numerical flow:
 \begin{equation*}
@@ -500,14 +501,12 @@ $(\Leftarrow)$ Assuming that the sensitivity satisfies the symplectic identity, 
 
 \section{Numerical and Symplectic Integrators}
 
+\subsection{Forming Methods}
 It is important to note at the moment that the only example we have looked at is the simple harmonic oscillator, which has a closed form solution.
 Our results so far only serve for understanding the definition of symplecticity.
 Further on we will discuss and explore real applications of symplectic methods.
 % go into more detail of forward euler
 
-
-
-\subsection{Stability and Symplecticity}
 In contrast to our examples so far, we usually solve an ODE numerically when we cannot find a closed form solution, and we want to produce a numerical approximation with which we can analyse its behaviour.
 However, numerical integrators such as the forward Euler method do not always provide reliable solutions to the problems given.
 In oder to explore this further, we need to introduce the concept of A-stability.
@@ -521,7 +520,7 @@ A numerical method is called A-stable if, when applied to the linear test proble
 Euler's method is not A-stable, making it susceptible to long timespan error growth.
 
 We will look at the concept of the adjoint method. Given a method defined by a numerical flow $\Psi_h$,
-the adjoint $\Psi*_h$ is the method that satisfies $\Psi^*_{-h} = \Psi^{-1}_h$.
+the adjoint $\Psi^*_h$ is the method that satisfies $\Psi^*_{-h} = \Psi^{-1}_h$.
 In words, stepping backward with the adjoint method is equivalent to stepping forward with the inverse.
 Adjoint methods are very useful. Given an arbitrary method $\Psi_h$,
 the method $\Psi_{h/2} \circ \Psi_{h/2}^*$ is symmetric.
@@ -540,6 +539,7 @@ If we expand this composition, we obtain
 	&= x + h f(x) - h f\left( \Phi_{-h}^I \left( \Phi_h^E (x) \right) \right),
 \end{align*}
 and $\Phi_{-h}^I (\Phi_h^E (x)) = x$ solves this equation. Hence $(\Phi_{-h}^I)^{-1} = \Phi_h^E$.
+Note that the explicit and implicit Euler methods cannot be symmetric because they are adjoint.
 
 Other methods of note are the implicit midpoint method and the trapezium method. Implicit midpoint is the method
 \begin{equation*}
@@ -551,9 +551,50 @@ The trapezium method is similar:
 \end{equation*}
 The implicit midpoint method is symplectic, but the trapezium method is not.
 However, it can be shown that these are conjugate methods, meaning that they exhibit similar long-term behaviour.
-Two methods $\Psi, \Phi$ are conjugate if there exists a map $\chi$ such that $\Phi = \chi^{-1} \Psi \chi$.
-
+Two methods $\Psi_h, \Phi_h$ are conjugate if there exists a map $\chi$ such that $\Phi_h = \chi^{-1} \Psi_h \chi$.
+Consider applying a method $\Phi_h$ $N$ times. Conjugacy shows that
+\begin{align*}
+	\left(\Phi_h\right)^N &= \left(\chi^{-1} \Psi_h \chi\right)^N \\
+	&= \underbrace{\left(\chi^{-1} \Psi_h \chi \right)\left(\chi^{-1} \Psi_h \chi \right) \mathellipsis \left(\chi^{-1} \Psi_h \chi\right)}_{N} \\
+	&= \chi^{-1} (\Psi_h)^N \chi.
+\end{align*}
+Therefore, conjugate methods remain separated by the conjugacy map $\chi$ for an arbitrary number of iterations.
 %% find a defined inverse so that we can show conjugacy.
+
+Earlier, we looked at the Symplectic Euler method, which is a modification of the Euler methods for Hamiltonian integration.
+If the Hamiltonian is separable such that $H(q,p) = V(q) + T(p)$, then the Symplectic Euler method is explicit.
+This is because in the Symplectic Euler-VT step, we use $p_n$ and $q_n$ to compute $p_{n+1}$, then use $p_{n+1}$ and $q_n$ to compute $q_{n+1}$.
+This is exactly the method we applied in our earlier example introducing the Symplectic Euler method.
+However, the Symplectic Euler method is generally implicit because a given Hamiltonian for a problem may not be separable.
+Denote the Symplectic Euler step by $\Psi_h$. The \textit{St\"{o}rmer-Verlet} method is defined by the step $\Psi_{h/2}^* \circ \Psi_{h/2}$.
+Formally, this is
+\begin{align*}
+	p_{n+\frac{1}{2}} &= p_n - \frac{h}{2}\nabla_q H(q_n, p_{n+\frac{1}{2}}) \\
+	q_{n+1} &= \frac{h}{2}\left( \nabla_q H(q_n, p_{n+\frac{1}{2}}) + \nabla_p H(q_{n+1}, p_{n+\frac{1}{2}}) \right) \\
+	p_{n+1} &= p_{n+\frac{1}{2}} - \frac{h}{2} \nabla_q H(q_{n+1}m p_{n+\frac{1}{2}}).
+\end{align*}
+
+There are several properties of symplectic methods we have not talked about, which may be of interest now.
+We have not shown that ($1$) the adjoint of a symplectic method is symplectic, and ($2$) the composition of symplectic methods is symplectic.
+These are relatively simple properties which can be proven from the defintions, but it will help our understanding to cover these.
+First of all, the definition of the adjoint method states $\Phi^*_h = \Phi^{-1}_{-h}$.
+By algebraic manipulation,
+\begin{align*}
+	\Phi_h^\intercal J \Phi_h &= J \\
+	\Rightarrow \Phi_{-h}^\intercal J \Phi_{-h} &= J \\
+	\Rightarrow J &= (\Phi_{-h}^{-1})^\intercal J (\Phi_{-h}^{-1}) = (\Phi_h^*)^\intercal J (\Phi_h^*)
+\end{align*}
+and so clearly the adjoint is symplectic.
+The composition of symplectic maps is done similarly. Denote two symplectic maps $\Phi_h, \Psi_h$. Then
+\begin{align*}
+	\left(\Phi_h \Psi_h\right)^\intercal J \left(\Phi_h \Psi_h\right) &= \Psi_h^\intercal \Phi_h^\intercal J \Phi_h \Psi_h \\
+	&= \Psi_h^\intercal J \Psi_h \\
+	&= J.
+\end{align*}
+Therefore the composition of symplectic maps is symplectic.
+In covering both of these properties, we can be certain that the St\"{o}rmer-Verlet method is in fact symplectic.
+
+\subsection{Symplectic Integration}
 
 Symplecticity and A-stability are not linked in a sense that one implies the other, but they are similar in how both properties to provide well-behaved solutions for long timespan integrations.
 The formal definition is that a symplectic integration method maintains the form $\mathrm{d}q_i \wedge \mathrm{d}p_i$ with $i = 1, \mathellipsis, n$ for an $n$-dimensional problem.
@@ -595,7 +636,6 @@ For ease of notation, we introduce the Butcher tableau for a Runge Kutta method
 \end{equation*}
 which also helps us regard the Runge Kutta method as defined by vectors and a matrix.
 
-\subsection{Stability}
 Consider the linear test problem $\dot{x} = \lambda x$.
 We have already explored stability for the basic Euler methods.
 We will look at an explicit 3-stage method.
@@ -734,6 +774,18 @@ We will prove this in the following:
 % the commutative diagram result
 
 
+
+\section{Properties of Symplectic Methods}
+
+%this section should all be on error of symplectic methods,
+% necessity of uniform step size,
+% backward error analysis
+
+\subsection{Local Error}
+
+\subsection{Examples of Error Control}
+
+\subsection{Backward Error Analysis}
 
 
 \appendix
