@@ -375,6 +375,18 @@ Hence this method is symplectic for this example.
 
 %figure on comparison of three methods
 
+\begin{figure}
+	\centering
+	\includegraphics[width=0.75\linewidth]{figures/pendulum.eps}
+	\caption{
+		Integration of the simple pendulum as a Hamiltonian mechanics problem, plotted as a phase portrait.
+		The explicit Euler method gradually diverges, a consequence of it lacking A-stability.
+		The implicit Euler method converges to zero.
+		Using implicit midpoint, we stay on the path followed by the pendulum, since this method is symplectic.
+	}
+	\label{fig:pendulum}
+\end{figure}
+
 The simple pendulum is the one-dimensional system defined by
 \begin{equation*}
 	ml\frac{\mathrm{d}^2 \theta}{\mathrm{d}t^2} = - mg \sin(\theta)'
@@ -443,6 +455,12 @@ Finally, applying the Symplectic Euler-VT method yields
 		p_n - h k^2 \sin(q_n)
 	\end{pmatrix}
 \end{equation}
+% change this since the figure uses implicit and explicit Euler and not symplectic euler.
+
+See Figure \ref{fig:pendulum}, where we have applied three methods to the simple pendulum problem.
+Only when applying the implicit midpoint method do the oscillations remain on a loop in the phase portrait.
+This means the pendulum oscillates consistently, always returning to exactly the same point.
+In the explicit and implicit Euler methods, we observe a divergence or convergence of the bounds of oscillation respectively.
 
 \section{Symplecticity of a Hamiltonian System}
 
@@ -498,6 +516,21 @@ $(\Leftarrow)$ Assuming that the sensitivity satisfies the symplectic identity, 
 % INCOMPLETE. TODO: either formalise a proof OR cite one
 
 \end{proof}
+
+\subsection{Mechanics}
+
+% maybe send this bit to appendix
+% talk about lagrangian and hamiltonian - canonical conjugate momentum
+In many cases, a Hamiltonian system has a Hamiltonian $H$ that we can express as $H(q,p) = T(p) + V(q)$.
+The Hamiltonian is a conserved quantity of the system, such as the total energy being exchanged.
+A \textit{Lagrangian} for a system can be defined as $L(q,p) = T(p) - V(q)$,
+a difference in the energies.
+The natural conjugate momentum is defined by
+\begin{equation}
+	p_k := \dfrac{\partial L}{\partial \dot{q}_k}
+\end{equation}
+for $k = 1,\mathellipsis,n$.
+It often helps when defining and solving our own problems for the variables to be defined in this way.
 
 \section{Numerical and Symplectic Integrators}
 
@@ -690,7 +723,7 @@ This is also the case for all symplectic Runge-Kutta methods.
 \label{thm:symrk}
 If a Runge-Kutta method satisfies
 \begin{equation}
-	b_i a_{ij} + b_j a_{ji} - b_ b_j = 0
+	b_i a_{ij} + b_j a_{ji} - b_i b_j = 0
 \end{equation}
 for all $i, j = 1, \mathellipsis, s$ then it is symplectic.
 \end{theorem}
@@ -706,15 +739,20 @@ Start by considering the recurrence $x_1 = x_0 + h \sum_{j=1}^{s} b_i k_i$ and l
 \end{equation}
 by expanding. We can make a simplification by writing $k_i = f(X_i) = f\left(x_0 h \sum_{j=1}^{s}a_{ij}k_j\right)$, which is the definition of the $k_i$ evaluations.
 The $f$ is the function which defines the dynamical system.
-Our expansion becomes
-\begin{equation} %TODO: expanantion of the expansion here
-	x_1^\intercal C x_1 = x_0^\intercal C x_0 + 2h \sum_{i=1}^{s} b_i X_i^\intercal C f(X_i) + h^2 \sum_{i=1}^{s} \sum_{j=1}^{s} (b_i b_j - b_i a_{ij} - b_j a_{ji}k_i^\intercal C k_j).
-\end{equation}
-We can notice that the $x^\intercal C f(x)$ is the application of product rule differentiation, namely that
+We work out the expansion:
+\begin{align*}
+	x_1^\intercal C x_1 &= x_0^\intercal C x_0 + h \sum_{i = 1}^{s} b_i f(X_i)^\intercal C X_i - h \sum_{i=1}^{s}b_i f(X_i)^\intercal C \left( h\sum_{j=1}^{s}a_{ij} k_j \right) \\
+	&~ +h \sum_{j = 1}^{s} b_j X_j^\intercal C f(X_j) - h \sum_{j=1}^{s}b_j \left( h\sum_{i=1}^{s}a_{ji} k_i \right) C f(X_j) \\
+	&~ + h^2 \sum_{i=1}^{s} \sum_{j-1}^{s} b_i b_j k_i^\intercal C k_j \\
+	&= x_0^\intercal C x_0 + h \sum_{i=1}^{s} b_i \left(
+		\frac{\mathrm{d}}{\mathrm{d}t} X_i^\intercal C X_i
+	\right) + h^2 \sum_{i=1}^{s} \sum_{j=1}^{s} (b_i b_j - b_i a_{ij} - b_j a_{ji})k_i^\intercal C k_j
+\end{align*}
+Note the application of product rule differentiation, namely that
 \begin{equation*}
-	x^\intercal C f(x) = \frac{1}{2} \left(\frac{\mathrm{d}}{\mathrm{d}t} (x^\intercal C x) \right)
+	X^\intercal C f(X) + f(X)^\intercal C X = \frac{\mathrm{d}}{\mathrm{d}t} (X^\intercal C X)
 \end{equation*}
-and this is a derivative of a quadratic term.
+and this quadratic first integral.
 % explain why these terms should change
 Therefore we require $b_i b_j - b_i a_{ij} - b_j a_{ji} = 0$ in order for the method to preserve quadratic invariants.
 
@@ -758,7 +796,21 @@ We will prove this in the following:
 
 \subsection{Example - A Model for Phonation}
 
-This example is based on the primary model from ``Models for Phonation''.
+% figure on ODE45 vs a symplectic integrator for this problem, do the mobius-style figure
+
+\begin{figure}
+	\centering
+	\includegraphics[width = \linewidth]{figures/phonationcomp.eps}
+	\caption{
+		Integration of the two mass model for phonation for $t \in [0, 1000]$.
+		Figures show the oscillation bounds, plotting $q_2$ against $q_1$.
+		In the left figure, we observe that a symplectic method retains the bounds of oscillation,
+		whereas using \texttt{ode45()} the explicit Runge-Kutta method is not as well behaved and the bounds are not as clear. 
+	}
+	\label{fig:phon}
+\end{figure}
+
+This example is based on the two mass model from ``Models for Phonation''.
 A vocal cord is modelled by two stiffness-coupled masses, and their one-dimensional displacements are given by $u$ and $v$.
 The governing equation for motion, from Newton's law, is
 \begin{align*}
@@ -779,10 +831,16 @@ where
 Therefore, in Hamiltonian variables the coupled ODEs can be expressed as
 \begin{eqnarray*}
 	\dot{q}_1 = p_1 & ~ & \dot{q}_2 = \frac{1}{\alpha} p_2 \\
-	\dot{p_1} = F'(q_1) - \omega(q_1 - q_2) & ~ & \dot{p_2} = G'(q_2) - \omega(q_2 - q_1)
+	\dot{p}_1 = F'(q_1) - \omega(q_1 - q_2) & ~ & \dot{p_2} = G'(q_2) - \omega(q_2 - q_1)
 \end{eqnarray*}
-%...
-
+stating the problem in Hamiltonian form.
+Since the Hamiltonian is a conserved quantity, we can use it to evaluate the behaviour of the integration method.
+We can apply the Hamiltonian function to our numerical solutions, to verify that the quantity is in fact conserved by the numerical method.
+A symplectic method preserves the Hamiltonian - it will not be constant, but it will correct itself about a constant value and differ by $\mathcal{O}(h)$.
+A regular integration method, such as an explicit Runge-Kutta scheme, will fail to preserve the Hamiltonian and the constant will diverge.
+If the value changes by a significant amount, we can observe loss of qualitative behaviour.
+Observe how, in Figure \ref*{fig:phon}, we have shown an immediate comparison of the clarity of results from using a symplectic integrator,
+versus using the efficient but not as stable explicit Runge-Kutta methods applied by MATLAB's \texttt{ode45()}.
 
 
 
@@ -808,24 +866,76 @@ Instead of considering the closeness of our numerical solution to the system,
 we think of the numerical solution as an exact solution to a perturbed problem,
 and analyse the perturbation of this new problem to the original.
 
+These methods and theorems follow the methods in Chapter IX of cite{Geometric Numerical Integration}.
 We want to find a modified equation $\dot{\tilde{x}} = f_h (\tilde{x})$ which is similar to $\dot{x} = f(x)$,
 and which is exactly solved by the obtained numerical solution, i.e, $x_n = \tilde{x}(nh)$.
 We expect the perturbed problem to be of the form
 \begin{equation*}
-	\dot{\tilde{x}} = f_h(\tilde{x}) = f(\tilde{x}) + h f_1(\tilde{x}) + h^2 f_2(\tilde{x}) + \mathellipsis,
+	\dot{\tilde{x}} = f_h(\tilde{x}) = f(\tilde{x}) + h f_2(\tilde{x}) + h^2 f_3(\tilde{x}) + \mathellipsis,
 \end{equation*}
 namely as a polynomial expansion about the original problem. Important to note is that this series is not guaranteed to converge as $N \rightarrow \infty$.
-Now consider the expansion of the perturbed problem as a Taylor series. Write
+We require a truncation, which we will explore in detail later.
+We want to match this to the numerical method such that $\tilde{x}(t+h) \equiv \Phi_h(\tilde{x}(t))$.
+Now consider the expansion of the perturbed problem as a Taylor series about a fixed time $t$. Write
 \begin{equation*}
 	\tilde{x}(t+h) = \tilde{x}(t) + h \dot{\tilde{x}}(t) + \frac{h^2}{2} \ddot{\tilde{x}}(t) + \mathellipsis
 \end{equation*}
-which we can simplify using the definition of $\tilde{y}(t)$.
-%finish this bit
+and recall we have assumed that $\tilde{x}(t) = f_h(\tilde{x})$.
+We can use this to expand the first few terms for clarity:
+\begin{equation*}
+	\begin{aligned}
+		\tilde{x}(t+h) = \tilde{x}(t) &+ \left(
+			f_h(\tilde{x})
+		\right)h \\
+		&+ \left(
+			f'_h(\tilde{x})f_h(\tilde{x})
+		\right)h^2 \\
+		&+ \left(
+			(f''_h(\tilde{x})+f'_h(\tilde{x}))f'_h(\tilde{x})f_h(\tilde{x})
+		\right)h^3 \\
+		&+ \mathellipsis
+	\end{aligned}
+\end{equation*}
+However, recall from the defintion of the perturbed problem that $f_h(x)$ is a polynomial on $h$.
+Therefore, the terms expand as
+\begin{equation*}
+	\begin{aligned}
+		\tilde{x}(t+h) = \tilde{x}(t) &+ \left(
+			f(\tilde{x}) + h f_2(\tilde{x}) + h^2 f_3(\tilde{x}) + \mathellipsis
+ 		\right)h \\
+		&+ \left(
+			(f'(\tilde{x}) + h f'_2(\tilde{x})  + \mathellipsis)
+			(f(\tilde{x}) + h f_2(\tilde{x}) + \mathellipsis)
+		\right)h^2 \\
+		&+ \left(
+			((f''(\tilde{x}) + f'(\tilde{x})) + \mathellipsis)
+			(f'(\tilde{x}) + \mathellipsis)
+			(f(\tilde{x}) + \mathellipsis)
+		\right)h^3 \\
+		&+ \mathellipsis
+	\end{aligned}.
+\end{equation*}
+Now consider the numerical method. Assume that it takes the form
+\begin{equation*}
+	\Phi_h(x) = x + h f(x) + h^2 d_2(x) + h^3 d_3(x) + \mathellipsis
+\end{equation*}
+where we can find the $d_i$ functions from the defined method. In order to satisfy the eqivalence we want, we match the coefficients of $h$ in $\tilde{x}(t+h)$ and $\Phi_h(\tilde{x}(t))$:
+\begin{align*}
+	h^0 &: x=x \\
+	h^1 &: f(x) = f(x) \\
+	h^2 &: d_2(x) = f_2(x) + f'(x)f(x) \\
+	h^3 &: d_3(x) = f_3(x) + f'(x)f_2(x) + f'_2(x)f(x) + f''(x)f'(x)f(x) + f'(x)f'(x)f(x) \\
+	& \vdots
+\end{align*}
+Since we can find the $d_i$ from the numerical method, and $f(x)$ defines the system,
+we can rearrange this problem to find the functions $f_i$ which define the perturbed Hamiltonian system.
+Therefore, the perturbed Hamiltonian which is exactly solved by the numerical solution exists. 
 
 \subsection{Local Error}
 
 %this section should all be on error of symplectic methods,
 % necessity of uniform step size,
+% closeness of perturbed hamiltonian
 
 \subsection{Examples of Error Control}
 
