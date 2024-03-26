@@ -1,0 +1,297 @@
+\documentclass{report}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheoremstyle{exampstyle}
+  {\topsep} % Space above
+  {\topsep} % Space below
+  {} % Body font
+  {} % Indent amount
+  {\bfseries} % Theorem head font
+  {.} % Punctuation after theorem head
+  {.5em} % Space after theorem head
+  {} % Theorem head spec (can be left empty, meaning `normal')
+\theoremstyle{exampstyle} \newtheorem{example}[theorem]{Example}
+\theoremstyle{exampstyle} \newtheorem{remark}[theorem]{Remark}
+\theoremstyle{exampstyle} \newtheorem{definition}[theorem]{Definition}
+\theoremstyle{exampstyle} \newtheorem{lemma}[theorem]{Lemma}
+
+\usepackage[english]{babel}
+\usepackage{csquotes}
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{dsfont}
+\usepackage[width=6in, height=8in]{geometry}
+\usepackage{xcolor}
+
+\usepackage[
+backend=biber,
+natbib=true,
+url=false, 
+doi=true,
+eprint=false
+]{biblatex}
+\addbibresource{sources.bib}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\ttfamily\footnotesize,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+
+
+
+\chapter{Positivity Preservation}
+
+\section{Positive Solutions to ODEs}
+
+\subsection{Motivation}
+
+There are many problems which motivate the need for numerical methods which preserve positivity of the solution.
+For example, consider the problem of simulating a chemical reaction.
+We start with a finite amout of positive-valued species at the initial stage, and apply some numerical method to produce a result.
+Despite being able to apply methods which have high orders of accuracy, traditional methods will not preserve positivity unconditionally.
+If our numerical solution indicates that the concentrations of any number of species become negative, then our solution is not qualitatively accurate to a ``true'' solution.
+
+Consider a problem given by $\dot{x} = f(x)$, with the initial condition $x(0) = x_0$.
+For a one-dimensional problem, the true solution is positive if, given $x_0 \ge 0$, we have that $x(t) \ge 0$ for $t>0$.
+Positivity of the numerical solution can be expressed as the condition that if $x_i \ge 0$ then $x_{i+1} \ge 0$ for all $i = 1, \mathellipsis, N$ timesteps in the computation.
+Like always, $x$ may be vector-valued. If $x \in \mathds{R}^d$,
+then the condition for positivity of the numerical solution applies element-wise to each component $x_i^{(k)}$ for $k = 1, \mathellipsis, d$.
+Importantly, entries \textit{can} be zero. 
+
+Methods which preserve positivity are a current area of research. It is difficult to produce numerical methods which both preserve positivity and maintain high order accuracy.
+Moreover, it is very difficult to formulate positivity preserving methods for general problems.
+Our approach will be to consider particular cases, where we can reduce the problem $\dot{x} = f(x)$ to a particular form,
+and formulate positivity-preserving methods which are effective for these problems.
+
+\subsection{The Graph-Laplacian Matrix}
+
+Before looking at positivity-preserving methods, we will consider problems which themselves must admit positivity-preserving solutions.
+The notion of the graph-Laplacian matrix and the methods centered around it are taken from \cite{blanes_pos_2022}.
+
+Our main focus will be on problems that we can write in the form 
+\begin{equation*}
+    \dot{x} = A(x)x
+\end{equation*}
+where $A$ is a graph-Laplacian matrix.
+
+\begin{definition}
+    A graph-Laplacian matrix $A \in \mathds{R}^{d \times d}$ is a square matrix that satisfies
+    \begin{itemize}
+        \item $\mathbf{1}^\intercal A = \mathbf{0}^\intercal ~~ \text{(its column sums are zero)}.$
+        \item For all $i, j = 1, \mathellipsis, d$ where $i \ne j$ we have $A_{ij} \ge 0$.
+        \item For all $i = 1, \mathellipsis, d$ we have $A_{ii} \le 0$
+    \end{itemize}
+\end{definition}
+
+Note that here, $A$ can depend on $x$. The entries in $A(x)$ can contain entries of $x$ in any fashion, as long as the definition is satisfied.
+
+\begin{example}
+    The Robertson reaction, taken from \cite{blanes_pos_2022}, is given by the matrix equation
+    \begin{equation*}
+        \frac{\mathrm{d}}{\mathrm{d}t}\begin{pmatrix}
+            x_1 \\
+            x_2 \\
+            x_3
+        \end{pmatrix} = \begin{bmatrix}
+            -0.04 & 10^4 x_3 & 0 \\
+            0.04 & -3\times 10^7 x_2 - 10^4 x_3 & 0 \\
+            0 & 3 \times 10^7 x_2 & 0
+        \end{bmatrix} \begin{pmatrix}
+            x_1 \\
+            x_2 \\
+            x_3
+        \end{pmatrix}.
+    \end{equation*}
+    This is a matrix equation of the form $\dot{x} = A(x)x$, where $A$ is a graph-Laplacian matrix.
+    This problem describes a chemical reaction of three species.
+\end{example}
+
+The name ``graph-Laplacian'' comes from graph theory, and the definition is not universally agreed upon.
+For our needs, we consider a graph-Laplacian matrix for a directional graph to be the in-degree matrix (diagonal) minus the in-degree adjacency matrix (empty diagonal) of the graph.
+If a problem admits the reduction to graph-Laplacian form like the above,
+we can show that the solution retains positivity.
+
+\begin{theorem}
+    Solutions of $\dot{x} = A(x)x$ retain positivity if $A$ is graph-Laplacian.
+\end{theorem}
+\begin{proof}
+    Consider the solution $x(t^*)$ at time $t^*$. Assume that there are indices $k \in \{1,\mathellipsis, d\}$ where all entries $x_k(t^*)$ are zero and the rest are strictly positive.
+    Then the $k$-th equation in the matrix system is
+    \begin{equation*}
+        \dot{x}_k(t^*) = \sum_{l = 1}^{d} A_{kl}(x(t^*))x_l(t^*).
+    \end{equation*}
+    Entry $A_{kk}$ is negative, but we assumed $x_k(t^*)=0$ so the only contributions to the sum are the $A_{kl}$ and $x_l$ for $l \ne k$.
+    Some of the $x_l$ may be zero but all the rest are positive, so we have $\dot{x}_k \ge 0$.
+    Note that equality is attained if all the $x_k$ are zero which is the trivial solution. 
+    Assume instead that every entry $x_k(t^*)$ is non-zero and hence positive.
+    In this case there are no restrictions on the derivative of the $k$-th entry - the $A_{kk}$ term means this derivative can be negative.
+    The $x_k$ term can go to zero, but since the derivative is strictly non-negative at zero, we will retain positivity.
+\end{proof}
+
+We have shown that the graph-Laplacian form is a suitable structure for problems where we are concerned about positivity preservation.
+From now on, for a vector solution $x \in \mathds{R}^d$ we will write $x \ge 0$ to mean that each element $x_k \ge 0$ for $k = 1, \mathellipsis, d$.
+Before moving on to numerical methods that preserve positivity of these problems, we will consider a few points of note.
+
+\subsection{Non-autonomous Systems}
+
+Our analysis so far has focused on problems $\dot{x} = A(x)x$, which are autonomous.
+Examples in positivity preservation can often be non-autonomous, which we would write as $\dot{x} = A(x,t)x$.
+The particular details of problems involving the graph-Laplacian matrix can be easily analogised to the non-autonomous case.
+As such, we will usually only consider problems in the autonomous form, unless it is necessary to the analysis.
+
+Some problems can involve several different timescales,
+in which case time-dependence is very important to account for.
+
+\subsection{Conservation of Mass}
+
+%% how graph laplacians also maintain conservation of mass and why this is nice.
+
+When problems describe an exchange of matter, it is useful for this matter to be conserved in our solution.
+Conservation of mass is the condition that $x$ satisfies $\mathbf{1}^\top x = C$ for some constant $C$.
+Mass is conserved for graph-Laplacian problems because
+\begin{equation*}
+    \frac{\mathrm{d}}{\mathrm{d}t}\mathbf{1}^\top x = \mathbf{1}^\top \dot{x} = \mathbf{1}^\top A(x)x = \mathbf{0}^\top x = 0
+\end{equation*}
+hence clearly $\mathbf{1}^\top x$ is constant.
+In the literature we often have $C=1$ for simplicity,
+there is no loss of generality because this can be applied to some scaling of the initial condition such that $\mathbf{1}^\top x_0 = 1$.
+
+Mass preservation can be generalised to higher order problems involving inner products with the variable of interest.
+These problems concern conservation of other properties, which we will not explore in depth.
+
+\section{Positivity Preserving Methods}
+
+% maybe leave this bit for later
+\subsection{Brute force approach}
+
+Before considering the problem of positivity preserving methods in depth, we will first consider the method which we will refer to as ``fixing''.
+We use the forward Euler method $x_{i+1} = x_i + hf(x_i)$, except at every step we perform a fix by considering every entry in $x_i$ and if it is negative, we just set it to zero.
+We can write this formally as the method
+\begin{align*}
+    x_{i+1} &= x_i + h f(x_i) \\
+    x_{i+1} &= \mathcal{H}_+(x_{i+1}) 
+\end{align*}
+where $\mathcal{H}_+$ is the thresholder that sets all negative entries to zero.
+This is equivalent to a projection of $x$ to a vector subspace of lower dimension, determined by in which dimensions $x$ is positive.
+
+This method is very cheap, and it preserves positivity, so it seems like an easy choice.
+The fixing step to eliminate negative entries can be applied in general to any numerical method.
+%discuss a result
+
+Euler's method serves as a useful baseline to demonstrate experimental ideas.
+Being a first-order accurate method, it does not serve as an effective choice for general applications.
+We will instead look at different approaches to preserving positivity of the numerical solution,
+using the graph-Laplacian structure explored earlier.
+
+\subsection{General Solutions}
+
+Consider the problem $\dot{x} = Ax$, with initial condition $x(t=0) = x_0$, with a constant square matrix $A$.
+The general solution to this problem is
+\begin{equation*}
+    x(t) = \mathrm{e}^{tA} x_0
+\end{equation*}
+where the matrix exponential is analogised from the scalar case
+\begin{equation*}
+    \mathrm{e}^A = I + A + \frac{1}{2}A^2 + \frac{1}{6}A^3 + \mathellipsis = \sum_{j=0}^{\infty} \frac{A^j}{j!}.
+\end{equation*}
+We have shown that in the case where $A$ is graph-Laplacian, solutions preserve positivity.
+
+We can't immediately apply this exponential solution to the problem $\dot{x} = A(x)x$ because of the non-linear right hand side, which will lead to a different expansion via. product rule.
+To see why, we will demonstrate the expansion. Assume that the solution for the graph-Laplacian problem is $x(t) = \exp(tA(x))x_0$.
+Then
+\begin{equation*}
+    \dot{x} = \frac{\mathrm{d}}{\mathrm{d}t} \left(
+        \mathrm{e}^{A(x)t}x_0 
+    \right) = \frac{\mathrm{d}}{\mathrm{d}t} \left[
+        A(x)t
+    \right] \mathrm{e}^{A(x)t}x_0 = \left[
+        A(x) + t A'(x) A(x) x
+    \right] x
+\end{equation*}
+which does not satisfy the problem.
+Instead, we split the problem into two parts as in \cite{blanes_pos_2022} so that we can apply the solution involving the exponential of the graph-Laplacian matrix.
+
+We have the problem $\dot{x} = A(x)x$. Introduce the variable $z$ where the initial conditions for $x$ and $z$ satisfy $x(t=0) = x_0 = z_0 = z(t=0)$.
+We then write the problem in two parts as
+\begin{align*}
+    \dot{x} &= A(z)x \\
+    \dot{z} &= A(x)z.
+\end{align*}
+By separating the problem into two, we are essentially solving the problem twice.
+However, the way we have distributed $x$ and $z$ means we can decompose this into two separate problems where we solve one for $x$ and one for $z$.
+The first problem is
+\begin{equation}
+    \label{eqn:split1}
+    \begin{aligned}
+        \dot{x} &= A(z)x \\
+        \dot{z} &= 0
+    \end{aligned}
+\end{equation}
+which has solution
+\begin{align*}
+    x(t) &= \mathrm{e}^{tA(z_0)}x_0 \\
+    z(t) &= z_0
+\end{align*}
+while the second problem is of alternate form for $x$ and $z$
+\begin{equation}
+    \label{eqn:split2}
+    \begin{aligned}
+        \dot{x} &= 0 \\
+        \dot{z} &= A(x)z
+    \end{aligned}
+\end{equation}
+which has solution
+\begin{align*}
+    x(t) &= x_0 \\
+    z(t) &= \mathrm{e}^{tA(x_0)}z_0.
+\end{align*}
+It may appear confusing as to why we split the problem into two parts.
+We know that if a problem is given by $\dot{x} = A(x)x$ then its solutions preserve positivity.
+We also know that if a problem is given instead by $\dot{x} = Ax$ for any constant matrix $A$, then it has general solution given by $x(t) = \exp(tA)x_0$.
+Therefore, by splitting the problem into two problems on $x$ and $z$,
+the solutions are given by the exponential form since the matrices are fixed in each problem,
+and the solutions preserve positivity because the matrices are of graph-Laplacian form.
+Therefore these solutions preserve positivity, which we can use to begin constructing methods which maintain this.
+
+\subsection{The Second-Order Strang Splitting Method}
+
+The primary method given in \cite{blanes_pos_2022}, which is a solution to Equations \ref{eqn:split1} and \ref{eqn:split2} is given by the 
+
+%matrix exponential solution
+%strang splitting
+%
+
+
+
+
+\end{document}
