@@ -239,7 +239,51 @@ Then
     \right] x
 \end{equation*}
 which does not satisfy the problem.
-Instead, we split the problem into two parts as in \cite{blanes_pos_2022} so that we can apply the solution involving the exponential of the graph-Laplacian matrix.
+Note that this expension involves a derivative of $A(x)$. More on this later.
+
+\subsection{Exponential Euler's Method and Matrix-Vector Taylor Series}
+
+We said that we can't apply the exponential solution $x(t) = \exp(tA)x_0$ to the problem $\dot{x} = A(x)x$.
+We will show this by demonstrating what happens if we do. We propose a method of the form
+\begin{equation}
+    x_{n+1} = \mathrm{e}^{h A(x_n)}x_n.
+\end{equation}
+This method fixes $A$ for each step. Therefore, one step is equivalently providing the analytical exponential solution to the problem $\dot{x} = A(y)x$,
+where $y = x(t=0) = x_n$.
+Considering the true solution after a timestep, we want to find an expression for the \textit{truncation error}.
+We write $x(t_n) = x_n$ at the current step and look at the difference between $x(t_n + h)$ (the true value) and $x_{n+1}$ (the method).
+However, first we need to consider the Taylor expansion on $x(t + h)$
+\begin{equation*}
+    x(t+h) = x(t) + h \dot{x}(t) + \frac{h^2}{2}\ddot{x}(t) + \mathellipsis
+\end{equation*}
+which involves derivatives of the nonlinear vector function $A(x)x$
+\begin{equation*}
+    x(t+h) = x + h A(x)x + \frac{h^2}{2} \left[ A'(x)A(x)xx + A(x)^2  x \right] + \mathcal{O}(h^3)
+\end{equation*}
+writing $x = x(t)$.
+As we can see, this involves derivatives of $A(x)$, and associativity of matrix multiplication breaks.
+To clarify, multiplication following from left to right should always perform defined operations.
+Derivatives of $A(x)$ are rank-incrementing tensors: since $A \in \mathds{R}^{d \times d}$,
+the first derivative is $A'(x) \in \mathds{R}^{d \times d \times d}$.
+The $k$-th order derivative satisfies $A^{(k)}(x) \in \mathds{R}^{d^{k+2}}$.
+This analysis is essential for deriving the order of methods for problems of the form we are working with.
+
+Evaluating the truncation error of the exponential Euler method gives us the expression
+\begin{equation*}
+    \begin{aligned}
+        \tau(h) = x(t_n + h) - x_{n+1} &= x(t_n + h) - \mathrm{e}^{h A(x_n)}x_n \\
+        &= x(t_n) + h \dot{x}(t_n) + \frac{h^2}{2}\ddot{x}(t_n) + \mathcal{O(h^3)} - \mathrm{e}^{h A(x_n)}x_n \\
+        &= x_n + h A(x_n)x_n + \frac{h^2}{2}\left( A'(x_n)A(x_n)x_n x_n + A(x_n)^2 x_n \right) + \mathcal{O}(h^3)\\
+         &- \left( I + h A(x_n) + \frac{h^2}{2}A(x_n)^2 + \mathcal{O}(h^3) \right)x_n \\
+        &= \frac{h^2}{2} \left( A'(x_n) A(x_n) x_n x_n \right) + \mathcal{O}(h^3)
+    \end{aligned}
+\end{equation*}
+hence the exponential Euler method is first order accurate.
+
+\subsection{The Second-Order Strang Splitting Method}
+
+The exponential Euler method involved considering the problem with one fixed component in order to apply the exponential solution.
+We will consider the separation of components in more depth as in \cite{blanes_pos_2022} so that we can justify the construction of higher order methods.
 
 We have the problem $\dot{x} = A(x)x$. Introduce the variable $z$ where the initial conditions for $x$ and $z$ satisfy $x(t=0) = x_0 = z_0 = z(t=0)$.
 We then write the problem in two parts as
@@ -283,15 +327,94 @@ the solutions are given by the exponential form since the matrices are fixed in 
 and the solutions preserve positivity because the matrices are of graph-Laplacian form.
 Therefore these solutions preserve positivity, which we can use to begin constructing methods which maintain this.
 
-\subsection{The Second-Order Strang Splitting Method}
-
 The primary method given in \cite{blanes_pos_2022}, which is a solution to Equations \ref{eqn:split1} and \ref{eqn:split2} is given by the 
+\begin{equation}
+    \begin{aligned}
+        x_{n+\frac{1}{2}} &= \exp \left( \frac{h}{2} A(z_n) \right) x_n \\
+        z_{n+1} &= \exp \left( h A(x_{n+\frac{1}{2}}) \right) z_n \\
+        x_{n+1} &= \exp \left( \frac{h}{2} A(z_{n+1}) \right) x_{n+\frac{1}{2}}.
+    \end{aligned}
+    \label{eqn:secondorderstrangsplittingmethod}
+\end{equation}
+The solution $x_n$, $z_n$ or $(x_n + z_n)/2$ is second order accurate. We perform a half step in $x$,
+followed by a full step in $z$ and then a second half-step in $x$, similar to Verlet integration.
+In \cite{blanes_pos_2022}, it is stated that $|x_n - z_n|$ can be used as an estimate of the truncation error, for the method to be used adaptively with a variable time step. 
 
-%matrix exponential solution
-%strang splitting
-%
+%order results from this method
+%example comparing some methods
+%magnus method
 
+\subsection{Example - A Linear Problem on Two Variables}
 
+\begin{figure}
+    \centering
+    \includegraphics[width = \linewidth]{Matlab/linearproblempositivity.eps}
+    \caption{
+        Test problem on the system given by Equation \ref{eqn:alineartestproblem}.
+        The left figure uses the "ES2" method given by Equation \ref{eqn:secondorderstrangsplittingmethod} taking the values for $x$.
+        The right figure uses MATLAB's \texttt{ode45()} integrator with a reduced tolerance in order to break positivity.
+        The values used were $a=0$ with initial condition $x_0 = 0$, $y_0 = 1$ running for a timespan up to $T = 100$.
+    }
+    \label{fig:breakposlin}
+\end{figure}
 
+Consider the system given by
+\begin{equation}
+    \frac{\mathrm{d}x}{\mathrm{d}t} = y - ax,~~ \frac{\mathrm{d}y}{\mathrm{d}t} = ax - y
+    \label{eqn:alineartestproblem}
+\end{equation}
+where $a$ is a given constant. This problem is explored briefly for demonstrative purposes in \cite{broekhuizen_biochem_2008}.
+The problem admits formulation into the graph-Laplacian form
+\begin{equation*}
+    \frac{\mathrm{d}}{\mathrm{d}t}\begin{pmatrix}
+        x \\
+        y
+    \end{pmatrix} = \begin{bmatrix}
+        -a & 1 \\
+        a & -1
+    \end{bmatrix} \begin{pmatrix}
+        x \\
+        y
+    \end{pmatrix}
+\end{equation*}
+where the matrix is constant.
+
+A numerical solution is given in Figure \ref{fig:breakposlin}.
+We show that a conventional explicit method, such as the Runge-Kutta method(s) applied in MATLAB's \texttt{ode45()} integrator does not unconditionally preserve positivity.
+The formulation of the problem into graph-Laplacian form and the application of a nonnegative initial condition indicates that our solution should preserve positivity, but MATLAB's integrator does not maintain this.
+Therefore we have shown that positivity may not be maintained by conventional integrators,
+but it is succesful for the ES2 integrator which we know to unconditionally preserve positivity.
+
+\subsection{The Magnus Integrator}
+
+An alternative method suggested in \cite{blanes_pos_2022} is the second order Magnus integrator, for which the autonomous version is given by
+\begin{equation}
+    x_{n+1} = \exp\left(h A \left( \exp\left(\frac{1}{2}h A(x_n)\right) x_n \right) \right) x_n.
+    \label{eqn:secondordermagnus}
+\end{equation}
+The Magnus scheme is given as a generalised structure which can be used to construct higher order methods.
+% generalised m stage magnus integrator
+
+%% truncation error for second order magnus
+\begin{equation*}
+    \begin{aligned}
+        \tau(h) &= x(t_n+h) - \exp \left(
+            h A \left( \exp \left(
+                \frac{h}{2}A(x_n)
+            \right) x_n \right)
+        \right) x_n \\
+        &= x(t_n + h) - \left(
+            I + h A\left(
+                \exp \left( \frac{h}{2} A(x_n) \right) x_n
+            \right) x_n + \frac{h^2}{2} \left(
+                A\left(
+                    \exp \left( \frac{h}{2} A(x_n) \right) x_n
+                \right)
+            \right)^2
+        \right) x_n + \mathcal{O}(h^3)
+    \end{aligned}
+\end{equation*}
+
+% next section is approximating the exponential
 
 \end{document}
