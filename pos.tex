@@ -351,9 +351,12 @@ In \cite{blanes_pos_2022}, it is stated that $|x_n - z_n|$ can be used as an est
     \includegraphics[width = \linewidth]{Matlab/linearproblempositivity.eps}
     \caption{
         Test problem on the system given by Equation \ref{eqn:alineartestproblem}.
-        The left figure uses the "ES2" method given by Equation \ref{eqn:secondorderstrangsplittingmethod} taking the values for $x$.
-        The right figure uses MATLAB's \texttt{ode45()} integrator with a reduced tolerance in order to break positivity.
+        The left figure uses the "ES2" method given by Equation \ref{eqn:secondorderstrangsplittingmethod} taking its $x$ values as opposed to the $z$ values.
+        ES2 preserves positivity of the solution throughout.
+        The right figure uses MATLAB's \texttt{ode45()} integrator, with a reduced tolerance in order to break positivity.
         The values used were $a=0$ with initial condition $x_0 = 0$, $y_0 = 1$ running for a timespan up to $T = 100$.
+        Confusingly the MATLAB graph indexes the horizontal axis $X$ and the vertical $Y$, whereas we plot $x$ and $y$ on the vertical axis against $t$.
+        The point labels are necessary to indicate that the MATLAB integrator does not preserve positivity.
     }
     \label{fig:breakposlin}
 \end{figure}
@@ -387,15 +390,61 @@ but it is succesful for the ES2 integrator which we know to unconditionally pres
 
 \subsection{The Magnus Integrator}
 
-An alternative method suggested in \cite{blanes_pos_2022} is the second order Magnus integrator, for which the autonomous version is given by
+An alternative method suggested in \cite{blanes_pos_2022} is the second order Magnus integrator.
+We will first discuss the Magnus expansion \cite{Magnus_1954, blanesmagnus2009}, which allows us to construct this method.
+The Magnus expansion considers the linear ODE given by
+\begin{equation*}
+    \dot{x} = A(t)x
+\end{equation*}
+with initial condition $x(t=0) = x_0$.
+Since $A$ is not time-independent, the exponential solution we have discussed earlier does not hold.
+We state that the problem is linear, but the time dependence analogises to the cases we have looked at for a matrix $A(x)$ or $A(t,x)$.
+The Magnus expansion considers the solution of this problem to be of the form
+\begin{equation*}
+    x(t) = \exp(\Omega(t))x_0
+\end{equation*}
+for some matrix function $\Omega(t)$ which can be expressed in terms of the governing matrix $A$.
+We write $\Omega(t)$ as an infinite sum over $\Omega_j(t)$ functions.
+From the enclosed sources, we have formulae for these entries.
+Specifically, we write
+\begin{equation*}
+    \begin{aligned}
+        \Omega(t) &= \Omega_1(t) + \Omega_2(t) + \mathellipsis = \sum_{j = 0}^{\infty} \Omega_j (t) \\
+        \Omega_1(t) &= \int_{0}^{t} A(\tau) \mathrm{d}\tau \\
+        \Omega_n(t) &= \sum_{k=1}^{n-1} \frac{B_k}{k!} \int_{0}^{t} S_n^{(j)}(\tau) \mathrm{d}\tau \\
+    \end{aligned}
+\end{equation*}
+where $B_k$ are the Bernoulli numbers \cite{bernoulli} and the $S_n^{(j)}$ functions are defined
+\begin{equation*}
+    \begin{aligned}
+        S_n^{(1)} &= [\Omega_{n-1}, A] \\
+        S_n^{(n-1)} &= \operatorname{ad}_{\Omega_1}^{n-1}(A) \\
+        S_n^{(j)} &= \sum_{m=1}^{n-j} \left[ \Omega_m, S_{n-m}^{(j-1)} \right] ~~ \text{for}~ 2 \le j \le n-1.
+    \end{aligned} 
+\end{equation*}
+where $\left[\cdot, \cdot\right]$ is the matrix commutator $[A,B] = AB-BA$ and $\operatorname{ad}_A^{j} B = [ A, \operatorname{ad}_A^{(j-1)}B ]$ where $\operatorname{ad}_A^0 B = B$.
+We truncate the Magnus expansion to attain an approximation of the solution to a particular order.
+Taking just the first term $\Omega_1$, we obtain
+\begin{equation*}
+    x(t) = \exp\left( \int_{0}^{t} A(\tau) \mathrm{d}\tau \right)x_0
+\end{equation*}
+which we can approximate with a first order method to get
+\begin{equation*}
+    x_{n+1} = \exp\left( h A(t) \right)x_n.
+\end{equation*}
+Note that at a time $\hat{t}$, we can consider $A$ to be a function of $x$ implicitly since $x = x(t)$.
+So our previous notions of a problem $\dot{x} = A(x)x$ carry over.
+Note also that this first order method is identical to the "exponenial Euler method" we looked at earlier.
+
+The formulation for higher order methods is given in more detail by \cite{blanes_pos_2022} when considering Magnus integrators.
+They focus on a second order integrator, for which the autonomous version is given by
 \begin{equation}
     x_{n+1} = \exp\left(h A \left( \exp\left(\frac{1}{2}h A(x_n)\right) x_n \right) \right) x_n.
     \label{eqn:secondordermagnus}
 \end{equation}
-The Magnus scheme is given as a generalised structure which can be used to construct higher order methods.
-% generalised m stage magnus integrator
+This method uses the midpoint rule in order to form a second order approximation to a formulation of the solution using the first two terms of the Magnus expansion. 
 
-%% truncation error for second order magnus
+We evaluate the truncation error of the second oder Magnus integrator "EM2", to compare it to our three-exponential "ES2" method.
 \begin{equation*}
     \begin{aligned}
         \tau(h) &= x(t_n+h) - \exp \left(
@@ -416,5 +465,188 @@ The Magnus scheme is given as a generalised structure which can be used to const
 \end{equation*}
 
 % next section is approximating the exponential
+\section{Approximating the matrix exponential}
+%pade
+%the first order approximation
+%krylov methods
+
+\subsection{Challenges, series computation}
+
+The positivity preservation methods discussed so far all have one problem in common, being the use of the matrix exponential.
+Computing the matrix exponential is significantly expensive, so we hope to introduce some form of approximation by which we can retain a given order of a method.
+We might first think to compute the exponential directly from the definition:
+\begin{equation*}
+    \mathrm{e}^A = I + A + \frac{1}{2}A^2 + \frac{1}{6}A^3 + \mathellipsis = \sum_{j=0}^{\infty} \frac{A^j}{j!}.
+\end{equation*}
+If we are working in finite precision floating point arithmetic, we can assume that at some point the series will converge such that the sums to $n$ and $n+1$ are represented exactly the same.
+In this case, we take the sum to $n$
+\begin{equation*}
+    \mathrm{e}^A \approx \sum_{j = 0}^{n} \frac{A^j}{j!}.
+\end{equation*}
+using a modified Horner's form we can express this as
+\begin{align*}
+	\sum_{j = 0}^{n} \frac{A^j}{j!} &= I + A + \frac{1}{2!}A^2 + \mathellipsis + \frac{1}{n!} A^n \\
+	&= I + A\left(
+	I + \frac{1}{2} A\left(
+			I + \mathellipsis\left(
+				\mathellipsis \left( I + \frac{1}{n} A
+				\right)
+			\right)
+		\right)
+	\right).
+\end{align*}
+There are $n$ matrix additions, $n-1$ divisions of a matrix by a scalar and $n-1$ matrix multiplications required to compute this expression.
+A multiplication of two $d \times d$ matrices requires $\mathcal{O}(d^3)$\footnote{
+    For computer algebra operations, a lower order is better because we often deal with large problems.
+    In comparison, we want numerical methods to have higher order because $h$ is often very small.
+} floating point operations.
+Even with this improvement in efficiency, using this approach to compute a matrix exponential appears expensive.
+We will now show that it is also unstable.
+
+The following example is similar to the first demonstration from \cite{moler2003dubious}.
+Consider the matrix given by
+\begin{equation*}
+    A = \begin{bmatrix}
+        -121 & 60 \\
+        -160 & 79
+    \end{bmatrix}.
+\end{equation*}
+Computing the series form of the exponential directly in double-precision arithmetic sums to $N = 139$ terms, and gives us the solution
+\begin{equation*}
+    \mathrm{e}_s^A = \begin{bmatrix}
+        -2.6531 & -97.1835 \\
+        -61.9581 & -184.0359
+    \end{bmatrix}.
+\end{equation*}
+The true form of $A$ can be written as a conjugate transformation
+\begin{equation*}
+    A = \begin{bmatrix}
+        1 & 3 \\
+        2 & 4
+    \end{bmatrix} \begin{bmatrix}
+        -1 & 0 \\
+        0 & -41
+    \end{bmatrix} \begin{bmatrix}
+        1 & 3 \\
+        2 & 4
+    \end{bmatrix}^{-1}.
+\end{equation*}
+and so the exponential can be written as 
+\begin{equation*}
+    e^A = \begin{bmatrix}
+        1 & 3 \\
+        2 & 4
+    \end{bmatrix} \begin{bmatrix}
+        \mathrm{e}^{-1} & 0 \\
+        0 & \mathrm{e}^{-41}
+    \end{bmatrix} \begin{bmatrix}
+        1 & 3 \\
+        2 & 4
+    \end{bmatrix}^{-1} \approx \begin{bmatrix}
+        -0.7358 & 0.5518 \\
+        -1.4715 & 1.1036
+    \end{bmatrix}.
+\end{equation*}
+Clearly the exponential conputed via series approximation is not an adequate estimate.
+% explain the error. moler claims that terms in the sum have magnitudes greater than machine precision of opposite signs, so when adding them we gain terms greater than the final result.
+
+Since this implementation is clearly inadequate, we look for alternative methods for computing the matrix exponential.
+
+\subsection{The Pad\'e Approximation, Scaling and Squaring}
+
+The aim of the Pad\'e approximation for a scalar function $f(x)$ is to construct a rational polynomial approximation to $f$.
+The $[n,m]$ Pad\'e approximant for $f$ is the pair $p_{nm}(x), q_{nm}(x)$ which satisfy
+\begin{equation*}
+    f(x) - \frac{p_{nm}(x)}{q_{nm}(x)} = \mathcal{O}(x^{n+m+1})
+\end{equation*} 
+where $p_{nm}(x), q_{nm}(x)$ are polynomials.
+We generalise this concept to functions on matrices. Given a function $f(A)$, there is a unique $[n,m]$ Pad\'e approximant $R_{mn}(A)$ given by the pair $P_{nm}(A), Q_{nm}(A)$ and formed by $R_{nm}(A) = \left[Q_{nm}(A)\right]^{-1}P_{nm}(A)$
+Formulae for Pad\'e approximants for certain matrix functions are known, such as the exponential. 
+When computing the product $Q^{-1}P$ we always use a method to solve the system $QX=P$ rather than directly computing the inverse and product.
+
+We said that formulae for the Pad\'e approximation for the exponential are known. From \cite{moler2003dubious} again, we have
+\begin{equation}
+    \begin{aligned}
+        P_{nm}(A) &= \sum_{j=0}^{n} \frac{(n+m-j)!n!}{(n+m)!j!(n-j)!}A^j \\
+        Q_{nm}(A) &= \sum_{j=0}^{m} \frac{(n+m-j)!m!}{(n+m)!j!(m=j)!}(-A)^j.
+    \end{aligned}
+\end{equation}
+This is the approximant at zero.
+A general Pad\'e approximant is taken about a point, such that it is equal to the approximated function at that point, similar to a Taylor expansion.
+In some cases we might take the approximant about a different point, but here zero is no less suitable than anywhere else.
+
+In \cite{blanes_pos_2022} it is stated that the second order diagonal Pad\'e approximation to the exponential is positivity preserving.
+This is not true.
+This approximation is
+\begin{equation*}
+    D_{11}(A) = \left[ I - \frac{1}{2}A \right]^{-1} \left[ I + \frac{1}{2} A\right].
+\end{equation*}
+Consider the matrix given by
+\begin{equation*}
+    A = \begin{bmatrix}
+        -4 & 1 & 0 \\
+        2 & -1 & 2 \\
+        2 & 0 & -2
+    \end{bmatrix}
+\end{equation*}
+and vector
+\begin{equation*}
+    x = \begin{bmatrix}
+        3 \\
+        1 \\
+        2
+    \end{bmatrix}.
+\end{equation*}
+To four significant figures the product of the exponential with the vector is
+\begin{equation}
+    \mathrm{e}^{A} x = \begin{pmatrix}
+        0.9422 \\
+        3.8506 \\
+        1.2071
+    \end{pmatrix}
+\end{equation}
+so positivity is preserved. However if we compute the $[1,1]$ Pad\'e approximant and compute the product we obtain
+\begin{equation*}
+    \left[D_{11}(A)\right]x = \left[ I - \frac{1}{2}A \right]^{-1} \left[ I + \frac{1}{2}A \right] x = \begin{pmatrix}
+        -0.0167 \\
+        1.1500 \\
+        0.3667
+    \end{pmatrix}
+\end{equation*}
+where we fail to preserve positivity.
+A method is proposed in which we exploit the properties of the exponential by writing $A = \bar{A} + \hat{a}I$, such that $\bar{A}$ is entirely nonnegative.
+Then
+\begin{equation*}
+    \mathrm{e}^A = \mathrm{e}^{\bar{A} + \hat{a}I} = \mathrm{e}^{\hat{a}} \mathrm{e}^{\bar{A}}
+\end{equation*}
+and we compute the $[1,1]$ Pad\'e approximant for $\bar{A}$.
+In our example $\hat{a} = -4$ and
+\begin{equation*}
+    \mathrm{e}^{\hat{a}} [D_{11}(\hat{A})] x = \begin{bmatrix}
+        0.5833 \\
+        1.7500 \\
+       -0.8333
+    \end{bmatrix}.
+\end{equation*}
+So clearly the second order Pad\'e method does not preserve positivity.
+
+
+
+\section{Optimisation Methods}
+
+% mass preservation can be recovered from clipping using an optimisation algorithm
+
+% balancing the weights of a RK method - the added constraint enforces positivity
+
+
+\section{Special Cases}
+
+% the third order method from that chinese paper
+
+% backward Euler
+
+
+
+
 
 \end{document}
