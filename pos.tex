@@ -916,6 +916,7 @@ We have already looked at the order of the second order Magnus integrator in its
 
 \subsection{A Proposed Method}
 
+%unlimited figures
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth]{Matlab/padevsserieserr.eps}
@@ -986,6 +987,31 @@ We have already looked at the order of the second order Magnus integrator in its
     \label{fig:seriesorder}
 \end{figure}
 
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{Matlab/magnustriplemapk.eps}
+    \caption{
+        Visualisation of the second order Magnus integration when different approximations to the matrix exponential are used.
+        Left: EM2, using two matrix exponentials with \texttt{expm()}.
+        Middle: IP2, using a first order positivity preserving approximation and a second order Pad\'e.
+        Right: EB2, using first and second order approximations to the exponential from the series definition.
+    }
+    \label{fig:triplemagnus}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\linewidth]{Matlab/magnusapproximations.eps}
+    \caption{
+        Order of convergence for EM2, IP2 and EB2 integration methods.
+        We plot the relative error of the solution at end time $T$ against the step size $h$ used in the integration scheme.
+        The EM2 method is second order accurate \cite{blanes_pos_2022},
+        and from inspection so is the approximation IP2.
+        The error of EB2 does decrease, but not enough to be noticed in the graph.
+    }
+    \label{fig:magnusapprxorder}
+\end{figure}
+
 We propose an approximation which can be used in the context of positivity preservation.
 Theoretically, the approximations should be flexible and positivity preserving.
 We will investigate the properties of using the series definition of the exponential, while also considering the priority of positivity preservation.
@@ -1011,6 +1037,8 @@ See Figures \ref{fig:padeserieserr} and \ref{fig:padeseriesneg}, evaluating the 
 As we mentioned earlier, the computation of the matrix exponential by a series expansion can be very unstable,
 which we observe here.
 This brings attention to the first problem with this approach: the series approximation by itself is fairly poor for low order approximations, compared to Pad\'e. % more on this?
+See also Figure \ref{fig:seriesisnotgood}, which illustrates the remainders left when using order $N$ approximations to the matrix exponential.
+% The order N approximation of hA should converge if norm(hA) < 1 (strictly is useful)
 
 Consider the example given at the beginning of the discussion of the Pad\'e approximation.
 We have the matrix
@@ -1054,6 +1082,9 @@ it may be insightful to apply these methods to an integrator and compare with th
 
 Note the results given in Figure \ref{fig:seriesorder}. The convergence of these methods should, from their construction, follow steeper gradients as $N$ increases as the remainder in $\mathcal{O}(h^N)$ decreases.
 Instead we see that the first order approximation appears better than the second and fourth order methods.
+This figure generates a random graph-Laplacian matrix $A$ and random vector $x$, and then evaluates a relative error $||y-y_N||_2/||y||_2$,
+where $y = \exp(A)x$ and $y_N = T_N(A)x$.
+We can deduce that the error should be $\mathcal{O}(||A||^{N+1})$ for some subordinate matrix norm on $A$.
 Figure \ref{fig:seriesorder} also uses a value of the scaling parameter $s$ which we recognise does not guarantee positivity preservation,
 instead it has been chosen to improve the approximation in a sense of relative error.
 This demonstrates a third problem with using the series approximation: the approximation is unlikely to converge for low order $N$,
@@ -1061,6 +1092,7 @@ and the norm of the matrix plays a large role in the error of the approximation.
 Increasing the scaling parameter $s$ means we are taking the exponential of a matrix with a larger diagonal, and hence with a larger spectral norm.
 Therefore if we increase $s$ to ensure positivity, our approximation will be, in a sense of relative error, worse.
 
+We will now evaluate an experiment, considering how we can apply approximations to the matrix exponential to numerical methods.
 We will consider three methods, all of which are variations of the EM2 Magnus integrator, using
 \begin{itemize}
     \item EM2: Two matrix exponentials, computed using \texttt{expm()}.
@@ -1068,11 +1100,39 @@ We will consider three methods, all of which are variations of the EM2 Magnus in
     \item EB2: One first order and one second order approximation using the series method proposed, with scaling parameter chosen to theoretically guarantee positivity. 
 \end{itemize}
 We will examine each of these methods applied to the MAPK cascade.
+For IP2, we used the reduction $A = \bar{A} + \hat{a}I$ with $a = -s |\max(a_{ii})|$ and chose $s=1$ to adhere to the method outlined by \cite{blanes_pos_2022},
+namely that this should be positivity preserving. In our discussion on the Pad\'e approximation we showed why positivity is not necessarily preserved.
+For the EB2 method, we used first and second order series approximations while taking $A = \bar{A}$ in our reduction, essentially $s=0$.
+From our testing, this was the only positive value of $s$ where the approximation was usable.
+It would not be useful to consider negative values of $s$ since we have discussed that this is not appropriate for positivity preservation.
+% s=0 for series and pade s=1 
+First, see Figure \ref{fig:triplemagnus}. We show the behaviour of the integration from EM2, IP2 and EB2 on separate figures.
+The EM2 and IP2 integrations appear similar, which follows from the results concluded by \cite{blanes_pos_2022},
+being that the EM2 method is second order accurate.
+Furthermore, the IP2 method retains the second order accuracy of EM2, since it uses a positivity-preserving first-order approximation, followed by a second order Pad\'e approximation. 
+It is important to recall that we have shown that this Pad\'e approximation is not positivity preserving.
+With regards to the behaviour EB2,
+it is immediate that this is a much worse approximation since the dynamics of the system appear to be occuring at a different time scale to those of the other implementations.
+Ignoring the time scale, the behaviour of the integrator is consistent.
 
+Finally, observe Figure \ref{fig:magnusapprxorder}, where we show the convergences of the methods.
+Since EM2 and IP2 are both second order, they converge to the ``exact'' solution at the same rates.
+The EB2 method, however, appears to not converge at all. Any change in the relative error is not even visible on the graph since it appears as a flat line.
+This is likely because refining the timestep does not change how the method appears to solve the problem on a slower timescale - the solution will refine but it will still be fundamentally incorrect in terms of time.
+It would be interesting to explore the behaviour of EB2 if we were able to manipulate the parameters to improve accuracy,
+perhaps by optimising the method using a different diagonal offset scaling $s$, and slightly higher degree approximations to the matrix exponential.
 
+In conclusion, despite EB2 being, in theory, a cheap and positivity preserving second order method, it turns out to be extremely bad.
+The first problem is using the series definition of the exponential itself.
+In terms of error alone, ignoring the requirement of positivity, Pad\'e is almost always a better approximation.
+When we apply the reduction $A = \bar{A} + \hat{a}I$ and start working with the diagonal offset parameter $s$, we come across the second problem:
+we want $s \ge 1$ in order to guarantee positivity, but optimal error is attained out of this bound (recall Figure \ref{fig:serieslog}).
+And then if we forget about error and just focus on positivity, enforcing $s > 1$ brings about a third problem: if $s$ is sufficiently large,
+then we are increasing the norm %WHAT NORM
+of the matrix we are approximating,
+and taking a low order approximation of the exponential, from the series definition, of this matrix is going to diverge as this norm increases.
+In simpler terms, by using the series approximation and being given control of the diagonal offset, having both positivity and convergence is impossible.
 
-%% maybe actually use the second order series and second order pade methods and see how the results come out
-%% first check the order of convergence 
 
 
 %% To review the proposed method once it has been completely covered
