@@ -1,0 +1,198 @@
+\documentclass{report}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usetikzlibrary{automata}
+
+
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheoremstyle{exampstyle}
+  {\topsep} % Space above
+  {\topsep} % Space below
+  {} % Body font
+  {} % Indent amount
+  {\bfseries} % Theorem head font
+  {.} % Punctuation after theorem head
+  {.5em} % Space after theorem head
+  {} % Theorem head spec (can be left empty, meaning `normal')
+\theoremstyle{exampstyle} \newtheorem{example}[theorem]{Example}
+\theoremstyle{exampstyle} \newtheorem{remark}[theorem]{Remark}
+\theoremstyle{exampstyle} \newtheorem{definition}[theorem]{Definition}
+\theoremstyle{exampstyle} \newtheorem{lemma}[theorem]{Lemma}
+
+\usepackage[english]{babel}
+\usepackage{csquotes}
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{dsfont}
+\usepackage[width=6in, height=8in]{geometry}
+\usepackage{xcolor}
+
+\usepackage[
+backend=biber,
+natbib=true,
+url=false, 
+doi=true,
+eprint=false
+]{biblatex}
+\addbibresource{sources.bib}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\ttfamily\footnotesize,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+
+\chapter{Introduction}
+
+\section{Motivation}
+
+The goal of this project is to discuss and analyse methods for the preservation of qualitative behaviour when solving ordinary differential equations using numerical methods.
+A system of ordinary differential equations (ODEs) often arises when constructing a mathematical model to describe some sort of system: a set of variables and a description of how they change in time.
+In absolute most general form, a system of ODEs has the appearance
+\begin{equation}
+    \frac{\mathrm{d}x}{\mathrm{d}t} = f(t,x)
+\end{equation}
+where the left-hand side expresses a change of $x$ in time, while the right-hand side is some arbitrary function on $t$ and $x$.
+This is a first-order ODE, but in generality we can use this form to express ODEs of any order by considering the solution to be a vector of variables.
+Consider the example second order problem
+\begin{equation*}
+    \frac{\mathrm{d}^2 x}{\mathrm{d}t^2} = \mathrm{e}^{tx}.
+\end{equation*}
+In this case, let us write this equation in terms of a vector $\mathbf{x}$ of derivatives:
+\begin{equation*}
+    \mathbf{x} := \begin{pmatrix}
+        x \\
+        \dot{x}
+    \end{pmatrix}.
+\end{equation*}
+For compactness, we use the dot notation as a shorthand for a time derivative.
+We can write our problem as
+\begin{equation*}
+    \frac{\mathrm{d}}{\mathrm{d}t} \begin{pmatrix}
+        x \\
+        \dot{x}
+    \end{pmatrix} = \begin{pmatrix}
+        \dot{x} \\
+        \mathrm{e}^{tx}
+    \end{pmatrix}
+\end{equation*}
+which can be expressed in general as
+\begin{equation*}
+    \frac{\mathrm{d}\mathbf{x}}{\mathrm{d}t} = F(t,\mathbf{x})
+\end{equation*}
+where $F$ is an arbitrary function again, by no means linear in $\mathbf{x}$.
+This framework is fundamental to the methods we will look into for solving ODEs, hence we introduce it now.
+The problems we will look at will involve vector solutions in general, so our notation will usually instead denote the whole vector quantity of interest as $x$,
+and make sure to individually distinguish its elements if needed.
+
+Since there is a mixed $tx$ term, this is what we call a nonlinear equation.
+This means that we cannot write a solution $x(t)$ in closed form using analytical methods.
+Instead, we need to use a numerical method.
+A numerical method provides us with a sequence of values $(x_i)_{i=1}^n$ for given points in time $(t_i)_{i=1}^n$, where each $x_i$ is an approximation to the true solution $x_i \approx x(t_i)$.
+This is the ``numerical integration'' of this project.
+Numerical methods, especially the ones we will look at, are aimed at solving Initial Value Problems (IVPs), where we want to solve the ODE given an initial condition $x(t=0) = x_0$.
+Alternatively, a boundary value problem specifies conditions on the boundary of a domain. For example, consider a second order ODE\footnote{
+    A problem of order $n$ requires $n$ conditions in order to have a unique solution.
+} with constraints at $x(t=0)$ and $x(t = t_n)$.
+Numerical methods for boundary value problems are fundamentally different to the methods for initial value problems we will study, hence we will not consider them in this report.
+
+For a first example, we will consider Euler's method. This method starts by assuming a value $x(t_i) = x_i$ and considering the next value.
+We denote the \textit{step size} by $h$, being the difference $t_{i+1} - t_i$.
+Then we consider the next value by evaluating the Taylor series
+\begin{equation*}
+    x(t_i + h) = x(t_i) + h \dot{x}(t_i) + \frac{h^2}{2}\ddot{x}(t_i) + \frac{h^3}{6}\dddot{x}(t_i) + \mathellipsis = \sum_{k=0}^{\infty} \frac{h^k x^{(k)}(t_i)}{k!}.
+\end{equation*}
+On the left-hand side, the next point in time $t_{i+1}$ is the same as $t_i + h$.
+On the right-hand side, if we assume $h$ is small then we can simplify this problem by assuming that every term of $h$ of order $2$ or greater is negligibly small.
+We write this as $\mathcal{O}(h^2)$. The big-O notation means that as $h \rightarrow 0$, the expression is bounded above by some constant times $h^2$.
+The whole equation reduces to
+\begin{equation*}
+    x(t_{i+1}) = x_i + hf(t_i, x_i) + \mathcal{O}(h^2).
+\end{equation*}
+We know what $f$ is, since it defines the ODE. We also assumed a value $x_i$ for a value (or approximation) of $x(t_i)$.
+If we ignore the $\mathcal{O}(h^2)$ term, we are left with what is generally referred to as the forward Euler method
+\begin{equation}
+    x_{i+1} = x_i + h f(t_i, x_i)
+\end{equation}
+for solving an ODE.
+
+One element that we will focus on is the concept of error and accuracy of a numerical method.
+It turns out that ignoring the $\mathcal{O}(h^2)$ in order to obtain Euler's method was not a fantastic idea.
+Euler's method is what we refer to as first-order accurate.
+This means that the expressions for the true solution (by Taylor series) and the approximation (by the method) are the same up to and including the term in $h$ of order $1$.
+Here we define the concept of truncation error as $\tau(h) = x(t_i) - x_i$, being the error between the true solution and the approximation for a single step of size $h$.
+As we have seen, the local truncation error of Euler's method is $\mathcal{O}(h^2)$.
+We also want to consider the concept of global truncation error, which is the error accumulated over an entire numerical solution.
+This is important because each step comes from a previous point, and only the initial value is given as exact. % the next bit is VERY HANDWAVY
+The local error of Euler's method is $\mathcal{O}(h^2)$, and assume it requires $N$ timesteps in order to compute a numerical solution.
+Then the global error is $\mathcal{O}(Nh^2)$. But $N$ is proportional to $1/h$ since $h = (t_n - t_0)/N$, and so the global error is $\mathcal{O}(h)$.
+This argument can be generalised to any method with uniform timestep.
+
+The problem of global error analysis arises when considering how we may need a computation to match a certain tolerance.
+Assume we need the global error of a numerical solution to be below $\epsilon$.
+This means we need the sum of the truncation errors across the whole computation to be below this threshold.
+Ignore how we compute or estimate the truncation error, which we will explore later.
+Assume we perform a computation and our global error is less than or equal to $8 \epsilon$.
+We need to divide the global error by $8$. For a method with global truncation error $\mathcal{O}(h^3)$,
+we can half the step size and run the computation again to match this tolerance, since if $C h^3 \approx 8 \epsilon$ then $C (h/2)^3 \approx \epsilon$.
+Whereas for a lower order method, this would be much more expensive, perhaps prohibitively more so.
+
+If we want to improve error, we may start by considering a Runge-Kutta method.
+These are methods given by
+\begin{equation*}
+	x_{n+1} = x_n + h \left( \sum_{i = 1}^{s} b_i k_i \right)
+\end{equation*}
+where the $b_i$ are coefficients and the $k_i$ are ``guesses'' of the form
+\begin{equation*}
+	k_i = f \left( t_n + c_i h,~ x_n + h\sum_{j = 1}^{s} a_{ij}k_j \right).	
+\end{equation*}
+By using linear combinations of the $k_i$, we want to reduce the truncation error to a certain order.
+For compactness, a Runge-Kutta method is often expressed as its Butcher tableau
+\begin{equation*}
+	\begin{array}{c|ccc}
+		c_1  &a_{11} &\dots &a_{1s} \\
+		\vdots &\vdots & &\vdots \\
+		c_s &a_{s1} &\dots &a_{ss} \\
+		\hline
+		&b_1 &\dots &b_s
+	\end{array}.
+\end{equation*}
+Runge-Kutta methods are extremely popular choices for higher order integrators.
+
+
+
+
+
+
+
+
+
+\end{document}
