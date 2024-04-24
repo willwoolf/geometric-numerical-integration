@@ -74,8 +74,50 @@ eprint=false
 
 \section{Motivation}
 
-The goal of this project is to discuss and analyse methods for the preservation of qualitative behaviour when solving ordinary differential equations using numerical methods.
-A system of ordinary differential equations (ODEs) often arises when constructing a mathematical model to describe some sort of system: a set of variables and a description of how they change in time.
+The aim of this project is to discuss and analyse methods for the preservation of qualitative behaviour when solving ordinary differential equations (ODEs)  numerically.
+We wish to provide the reader with an understanding of how numerical methods can be formulated with the goal of qualitative preservation,
+which involves exploring the formulation and modification of problems themselves in order to be solved in these ways.
+As we will find, methods relevant to our interests are explored and derived using fundamentally different approaches to the design of conventional methods.
+The term ``geometric'' refers to an inherent quality of some system.
+For example, we might have a mathematical model describing the motion of some object over the surface of a sphere.
+The ``geometric'' property of this model is that its solutions must describe a point on this surface.
+The term ``numerical integration'' refers to numerical methods which are used to approximate solutions of, for our purposes, ordinary differential equations.
+
+We will discuss properties of numerical methods and how the motivation for geometric numerical integration arises.
+The popular numerical integration schemes that we will explore provide a numerical approximation to the solution of an ODE,
+by knowing the definition of the problem in its most general form.
+The classical methods are general, and will provide a numerical solution to any defined problem, however these methods are not designed for preservation of anything beyond the definition of the derivative itself.
+This is not to say these methods need improving in any way, as their formulation is arguably the correct approach for developing a general purpose numerical integration scheme for solving ODEs.
+If we have some general problem and no notion of its invariant properties, we can use a classical scheme to solve it numerically.
+If we have a different problem, and some definite qualities that we wish to preserve, we can use these same classical methods to obtain a numerical solution.
+However this is an approximation and has no guarantee of actually preserving our properties of interest.
+The alternative would be to propose an integrator specifically with qualitative preservation in mind.
+If we then wanted to solve another problem \textit{without} any notion of geometric preservation, then we need a general ``classical'' method anyway.
+We will develop an understanding of these methods themselves and their properties before our discussion on geometric numerical integration.
+For reference, when speaking of ``classical'' integration schemes, we mean methods such as Euler or the popular multi-stage Runge-Kutta methods we see in MATLAB.
+
+One interesting facet of geometric numerical integration is that in general, we cannot simply modify a popular method in order to preserve geometric qualities.
+Rather, we must define a method which requires information on that quality itself.
+For example, the positivity preserving methods we will study later require the formulation of problem as an equation which we know preserves positivity itself.
+The key here is that not only must the method be specially designed for geometric preservation,
+but the problem itself must be expressed in this less general form, which itself analytically admits preservation of this same quality.
+This is what allows these geometric integration schemes to preserve these quantities, which is our goal, as well as actually integrating the system in the same fashion as classical methods.
+
+This is not to say that popular classical integrators do not preserve qualitative behaviour, but the distinction is that they do not do so unconditionally.
+This problem mostly arises in long timespan integrations.
+When solving a problem using a popular integrator, it is possible to accrue enough error such that the behaviour of the system changes.
+Our goal is to investigate specialised numerical integration schemes which preserve quality, regardless of all the other parameters given to the method.
+
+Geometric numerical integration methods can be summarised as more specialised integrators for more specialised problems.
+This report explores two facets of geometric numerical integration.
+The first is symplectic integration, where the flow map defined by a method must preserve area, or the $n$-dimensional equivalent of ``area'',
+when acting on any region in the phase plane.
+The second is positivity, where all the variables of interest are inherently positive quantities.
+
+\section{An Introduction to Numerical Methods}
+
+To start, we will give a brief discussion of explicit numerical methods.
+A system of ordinary differential equations often arises when constructing a mathematical model to describe some sort of system: a set of variables and a description of how they change in time.
 In absolute most general form, a system of ODEs has the appearance
 \begin{equation}
     \frac{\mathrm{d}x}{\mathrm{d}t} = f(t,x)
@@ -143,6 +185,7 @@ If we ignore the $\mathcal{O}(h^2)$ term, we are left with what is generally ref
     x_{i+1} = x_i + h f(t_i, x_i)
 \end{equation}
 for solving an ODE.
+This is an example of what we call an explicit method, coming from how the next term is obtained using only information which is immediately available.
 
 One element that we will focus on is the concept of error and accuracy of a numerical method.
 It turns out that ignoring the $\mathcal{O}(h^2)$ in order to obtain Euler's method was not a fantastic idea.
@@ -165,7 +208,7 @@ We need to divide the global error by $8$. For a method with global truncation e
 we can half the step size and run the computation again to match this tolerance, since if $C h^3 \approx 8 \epsilon$ then $C (h/2)^3 \approx \epsilon$.
 Whereas for a lower order method, this would be much more expensive, perhaps prohibitively more so.
 
-If we want to improve error, we may start by considering a Runge-Kutta method.
+If we want to improve error, we may start by considering a Runge-Kutta (RK) method.
 These are methods given by
 \begin{equation*}
 	x_{n+1} = x_n + h \left( \sum_{i = 1}^{s} b_i k_i \right)
@@ -183,12 +226,228 @@ For compactness, a Runge-Kutta method is often expressed as its Butcher tableau
 		c_s &a_{s1} &\dots &a_{ss} \\
 		\hline
 		&b_1 &\dots &b_s
-	\end{array}.
+	\end{array}
+\end{equation*}
+which is just an expression of matrices and vectors, analogous to
+\begin{equation*}
+    \begin{array}{c|c}
+		c  &A \\
+		\hline
+		&b^\top
+	\end{array}
 \end{equation*}
 Runge-Kutta methods are extremely popular choices for higher order integrators.
+Consider a two stage RK method
+\begin{equation*}
+    x_{n+1} = x_n + h (b_1 k_1 + b_2 k_2)
+\end{equation*}
+with the $k_i$ defined
+\begin{equation*}
+    \begin{aligned}
+        k_1 &= f \left( t_n, x_n \right) \\
+        k_2 &= f \left( t_n + c_2 h, x_n + h a_{21}k_1 \right)
+    \end{aligned}
+\end{equation*}
+from their defintions. Note that the expressions are simplified, coming from how $k_i$ does not use any information from $k_j$.
+This is required in order for the method to be explicit.
+The necessary conditions \cite{iserles2009rk} are $b_1 + b_2 = 1$, $b_2 c_2 = 1/2$ and $a_{21} = c_2$ for the method to be second order accurate.
+These conditions are underdetermined, so there are several configurations to choose from.
+A popular choice for a second order RK method is also referred to as the \textit{explicit trapezium method}
+\begin{equation*}
+    \begin{array}{c|cc}
+		0 \\
+        1  &1 \\
+		\hline
+		&\frac{1}{2} &\frac{1}{2}
+	\end{array}
+\end{equation*}
+where $c_1 = 0, c_2 = 1$ corresponds to evaluating $k_1$ at the initial point and using $k_1$ to make a forward Euler estimate of $x_{n+1}$, to use in computing $k_2$.
+We then take an average of the two, hence the ``trapezium'' name.
+Written out in full, the method is
+\begin{equation*}
+    x_{n+1} = x_n + \frac{h}{2} \left(
+        f(t_n, x_n) + f(t_n + h, x_n + h f(t_n, x_n))
+    \right)
+\end{equation*}
 
+\section{Structure Preservation}
 
+The methods discussed, particularly the Runge-Kutta methods, are excellent choices when we may be crudely looking for an approximate solution without any regard to the concept of an ``invariant''.
+Many systems admit invariant quantities.
+Dynamical systems describing the motion of rigid bodies admits conservation of energy.
+Chemical reaction systems admit conservation of mass.
+However, in no part of our discussion on numerical methods did we acknowledge this requirement.
+Methods such as Euler and the explicit Runge-Kutta schemes we have established are designed in order to provide an approximate solution in the sense of having a particular truncation error.
+There is no guarantee that these methods will preserve any invariants of a system.
+This is not to say they are guaranteed not to do so,
+and we will see methods only slightly generalised from those already discussed, which do manage to behave well in terms of qualitative preservation.
 
+However, before we begin introducing structure-preserving qualities, we will first establish more results and provide discussions on the behaviour of numerical methods.
+We have only discussed explicit methods so far, whereas a lot can be gained from the introduction of implicit methods.
+We introduce these properties now since they are important later on when developing more powerful methods in terms of preservation of structure.
+
+\section{Implicit Methods, Stability}
+
+% Give an example of a-stability and lead to implicit methods, including implicit Rk methods.
+
+Now that we have an understanding of some numerical methods, let us consider their use.
+The \textit{linear test problem} is the ODE and initial condition given by
+\begin{equation*}
+    \begin{aligned}
+        \frac{\mathrm{d}x}{\mathrm{d}t} &= \lambda x \\
+        x(0) &= x_0.
+    \end{aligned}
+\end{equation*}
+If $\lambda$ is real and negative, then $x$ goes to zero as $t \rightarrow \infty$.
+Consider the forward Euler method applied to this problem. The iteration is
+\begin{align*}
+    x_{n+1} &= x_n + h f(t_n, x_n) \\
+    &= x_n + h \lambda  x_n \\
+    &= (1 + h \lambda) x_n.
+\end{align*}
+Admittedly, we wouldn't be using this example if it was going to work perfectly.
+We can see that if we repeatedly apply the method, we get the expression
+\begin{equation*}
+    x_n = (1 + h \lambda)^n x_0.
+\end{equation*}
+The numerical solution goes to zero if $|1 + h \lambda| < 1$. 
+Therefore, suppose the true solution goes to zero, meaning $\lambda$ must be negative.
+The numerical solution goes to zero if $-2 < h \lambda < 0$.
+For values of the timestep $h$ where $h > 2/|\lambda|$, this behaviour is not respected.
+This concept is called A-stability.
+The definition itself extends to complex values of $h \lambda$, which we will state, however for all our concerns we are only interested in real values.
+
+\begin{definition}
+    A numerical method is A-stable if the numerical solution of $\dot{x} = \lambda x$ goes to zero for all values of $h \lambda $ in the left half of the complex plane.    
+\end{definition}
+
+Euler's method is not A-stable because even if $h \lambda$ is negative, there are values of $h$ for which the numerical solution does not decay.
+If we considered the explicit trapezium method from earlier, we would find that this method is also not A-stable.
+In fact, there are no explicit Runge-Kutta methods which are A-stable\footnote{
+    We will not prove this now, but it will be justified later.
+}.
+For our purposes, we need to introduce the concept of an \textit{implicit} method.
+The simplest of these is the implicit (backward) Euler method
+\begin{equation}
+    x_{n+1} = x_n + f(x_{n+1}).
+\end{equation}
+This method requires knowing the value of $x_{n+1}$ in order to compute $x_{n+1}$.
+A step starts at $x_n$ and integrates using the tangent of the curve $f$ at $x_{n+1}$ instead of $x_n$.
+In actual implementation, the backward Euler method involves solving the equation $y = x + f(y)$ for $x_{n+1} = y$, which is potentially non-linear.
+In general, implementing an implicit method can be expected to involve solving a system of nonlinear equations at each step.
+Iterative methods for solving nonlinear equations often use descent methods to converge to a solution, and stop when the change in the iteration is within a given tolerance.
+These iterative methods are not expected to solve a nonlinear equation in a given finite number of steps.
+As such, implementing implicit methods can be expensive.
+
+Notions of computational cost aside, we are able to achieve better results in terms of stability when considering implicit methods.
+Consider the backward Euler method applied to the linear test problem:
+\begin{align*}
+    x_{n+1} &= x_n + f(x_{n+1}) \\
+    &= x_n + h\lambda x_{n+1}.
+\end{align*}
+Rearranging, the equation becomes
+\begin{equation*}
+    (1 - h \lambda)x_{n+1} = x_n
+\end{equation*}
+or equivalently
+\begin{equation*}
+    x_{n+1} = \frac{1}{1- h \lambda} x_n.
+\end{equation*}
+In order for the numerical solution to go to zero,
+we need this expression on the right-hand side to be less than $1$ in modulus,
+which is the same as requiring $|1 - h \lambda| > 1$.
+Considering that $h$ must be real and positive,
+this inequality is not satisfied only for $0 < h \lambda < 2$.
+If we consider problems where $\lambda$ is negative, then this is impossible, and so the backward Euler method is clearly A-stable.
+This is a huge improvement on the forward Euler method, which very easily failed to respect decay of the solution.
+
+We can also notice, however, that it is possible for backward Euler to decay when the actual solution does not.
+This is because there are positive values of $h \lambda$ which satisfy the inequality required for the backward Euler solution to decay to zero.
+As a final example on A-stability, we introduce the \textit{implicit midpoint} method, given by
+\begin{equation}
+    x_{n+1} = x_n + h f \left(
+        \frac{x_n + x_{n+1}}{2}
+    \right).
+\end{equation} 
+applying to the linear test problem again we obtain
+\begin{equation*}
+    x_{n+1} = x_n + h \lambda \frac{x_{n+1} + x_n}{2}
+\end{equation*}
+which rearranges to
+\begin{equation*}
+    \left( 1 - \frac{h \lambda}{2} \right) x_{n+1} = \left( 1 + \frac{h \lambda}{2} \right) x_n
+\end{equation*}
+and so the numerical solution goes to zero if
+\begin{equation*}
+    \left| \frac{2 + h \lambda}{2 - h \lambda} \right| < 1.
+\end{equation*}
+This inequality is satisfied if $h \lambda$ is closer to $-2$ than to $2$, hence the regions of growth and decay are exactly the right and left halves of the complex plane.
+Therefore this method is not only A-stable, but also respects if the solution does not decay.
+See Figure {figure} for the decay regions for all three methods.
+Clearly, the implicit midpoint method attains better qualities for respect of growth or decay of the true solution.
+
+The reader may notice that the implicit midpoint method we have examined is similar in appearance to the explicit trapezium method from earlier,
+in that the evaluation of the right hand side involves a combination of the point $x_n$ and a second stage.
+The implicit method uses $x_{n+1}$ directly, while the explicit method uses a guess in the form of a forward Euler estimate.
+The trapezium scheme uses an average of exaluations of $f$, while the midpoint evaluates $f$ at the midpoint (average) of the two points.
+For linear ODEs such as the linear test problem, trapezium and midpoint schemes are identical.
+
+We have explored how modifications of general methods are able to respect A-stability.
+The next step is to begin introducing more general qualities of ODE systems which we preserve, and the methods that are capable of preserving them.
+The reason we have given such a rigorous introduction is that A-stability is strongly related to symplecticity, which we will soon begin discussing.
+We also want to make sure we have a strong understanding of some basic numerical methods, not just in terms of error, but also in terms of their cost to implement.
+For example, we have already discussed how explicit methods are much more appealing in terms of their cost.
+We may want to consider how much a method improves by introducing implicit components, and how much it may justify the increased cost of the method.
+This problem can be further generalised to the differences inherent in geometric methods.
+
+\section{Utility and Cost of Qualitative Preservation}
+
+% is it worth using a geometric integrator or should we just use an explicit method with a very high tolerance
+
+For many problems we will explore in this report, we want to evaluate the accuracy of a method.
+In order to do this, we might wish to evaluate an error metric by comparing an approximation to an exact solution.
+For problems where we cannot write a solution analytically, we don't have an exact solution and will need to use a really good approximation instead.
+The easiest way to do this is to use a standard integrator with a really low error tolerance.
+For our purposes, computations are implemented in MATLAB using the \texttt{ode45()} function.
+This scheme uses a pair\footnote{
+    The difference between two approximations can be used to estimate the true error
+} of order $4$ and $5$ Runge-Kutta methods, which are not geometric methods.
+Therefore it seems like a poor decision to put all this work into investigating geometric methods,
+and then when we need to analyse them we compare their solutions to methods that completely ignore the desire for these properties.
+The question to consider is that in practice, it may or may not be worth developing structure preserving methods when the solution from a standard integrator will suffice.
+This is a problem we will occasionally come back to.
+
+\section{Literature Review}
+
+The first large chapter of this project focuses on symplectic integration.
+An introduction to symplecticity and Hamiltonian dynamics is given in the book ``Numerical Hamiltonian Problems'' by Sanz-Serna and Calvo \cite{sanz2018hamiltonian}, originally published in 1994.
+The authors give an overview of Hamiltonian mechanics, aiming to give readers an accessible introduction to the topic, and is one of the earlier texts in the field.
+Plenty of theory is consistent between the work we cover and the theory explored in this text.
+
+The book ``Geometric Numerical Integration'' by Hairer, Lubich and Wanner \cite{gni2006} was originally published in $2002$, and gives an extremely robust review of the theory of geometric integration.
+The authors explore symplectic integration of Hamiltonian systems, as well as integrators that preserve time symmetry, first integrals and Lie group structure.
+A rigorous understanding of the theory behind these methods is given, as well as plenty of visual demonstrations on the behaviour of these geometric integrators as compared to schemes such as Euler and explicit Runge-Kutta.
+The book serves as an excellent reference text for the subject, and provides several results in symplectic integration which we will look into.
+
+Our second subject of interest is positivity preservation.
+The research paper on ``Positivity-Preserving Methods for Ordinary Differential Equations'' \cite{blanes_pos_2022} is the basis for the methods we explore in the later part of this project.
+The discussion was published in $2022$, and is the first to explore problems considering the graph-Laplacian matrix.
+The authors give some examples of positivity-preserving integrators for these problems, as well as discussing potential approximations for expensive computations.
+Positivity preservation, while part of the subject of geometric numerical integration, is a much more recent field of study.
+The integrators proposed by the paper are novel, and provide interest in the development of the subject. 
+
+\section{Structure}
+
+We have already introduced the theory of numerical methods and their properties.
+The rest of this project is presented in two chapters where we explore the theory of geometric numerical integration and its applications.
+The first chapter focuses on the symplectic integration of systems that can be described in Hamiltonian dynamics.
+We explore some of the theory for symplectic integration schemes and analyse their effectiveness when applied to particular problems.
+
+The second of these chapters introduces positivity preservation.
+We investigate integration methods in this area, and consider how new schemes could be developed.
+However, we also delve further into the properties of the integration schemes proposed in \cite{blanes_pos_2022}, and how they could be improved.
+A large section of analysis is dedicated to the methods of approximation available, such that the order of these methods can be preserved.
+Aside from discussing methods of approximation, we also propose our own adjustments to current numerical integration methods for positivity preservation.
 
 
 
