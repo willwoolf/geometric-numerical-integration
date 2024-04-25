@@ -1,75 +1,3 @@
-\documentclass{report}
-
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{amsthm}
-\usepackage{tikz}
-\usetikzlibrary{positioning}
-\usetikzlibrary{automata}
-
-
-\newtheorem{theorem}{Theorem}[chapter]
-\newtheoremstyle{exampstyle}
-  {\topsep} % Space above
-  {\topsep} % Space below
-  {} % Body font
-  {} % Indent amount
-  {\bfseries} % Theorem head font
-  {.} % Punctuation after theorem head
-  {.5em} % Space after theorem head
-  {} % Theorem head spec (can be left empty, meaning `normal')
-\theoremstyle{exampstyle} \newtheorem{example}[theorem]{Example}
-\theoremstyle{exampstyle} \newtheorem{remark}[theorem]{Remark}
-\theoremstyle{exampstyle} \newtheorem{definition}[theorem]{Definition}
-\theoremstyle{exampstyle} \newtheorem{lemma}[theorem]{Lemma}
-
-\usepackage[english]{babel}
-\usepackage{csquotes}
-\usepackage{graphicx}
-\usepackage{verbatim}
-\usepackage{listings}
-\usepackage{float}
-\usepackage{dsfont}
-\usepackage[width=6in, height=8in]{geometry}
-\usepackage{xcolor}
-
-\usepackage[
-backend=biber,
-natbib=true,
-url=false, 
-doi=true,
-eprint=false
-]{biblatex}
-\addbibresource{sources.bib}
-
-\definecolor{codegreen}{rgb}{0,0.6,0}
-\definecolor{codegray}{rgb}{0.5,0.5,0.5}
-\definecolor{codepurple}{rgb}{0.58,0,0.82}
-\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
-
-\lstdefinestyle{mystyle}{
-	backgroundcolor=\color{backcolour},   
-	commentstyle=\color{codegreen},
-	keywordstyle=\color{magenta},
-	numberstyle=\tiny\color{codegray},
-	stringstyle=\color{codepurple},
-	basicstyle=\ttfamily\footnotesize,
-	breakatwhitespace=false,         
-	breaklines=true,                 
-	captionpos=b,                    
-	keepspaces=true,                 
-	numbers=left,                    
-	numbersep=5pt,                  
-	showspaces=false,                
-	showstringspaces=false,
-	showtabs=false,                  
-	tabsize=2
-}
-
-\lstset{style=mystyle}
-
-\begin{document}
-
 
 
 \chapter{Positivity Preservation}
@@ -454,7 +382,7 @@ The Magnus expansion considers the solution of this problem to be of the form
 \end{equation*}
 for some matrix function $\Omega(t)$ which can be expressed in terms of the governing matrix $A$.
 We write $\Omega(t)$ as an infinite sum over $\Omega_j(t)$ functions.
-From the enclosed sources, we have formulae for these entries.
+From the literature, we have formulae for these entries.
 Specifically, we write
 \begin{equation*}
     \begin{aligned}
@@ -463,7 +391,7 @@ Specifically, we write
         \Omega_n(t) &= \sum_{k=1}^{n-1} \frac{B_k}{k!} \int_{0}^{t} S_n^{(j)}(\tau) \mathrm{d}\tau \\
     \end{aligned}
 \end{equation*}
-where $B_k$ are the Bernoulli numbers \cite{bernoulli} and the $S_n^{(j)}$ functions are defined
+where $B_k$ are the Bernoulli numbers \cite{bernoulli} and the $S_n^{(j)}$ matrices are defined
 \begin{equation*}
     \begin{aligned}
         S_n^{(1)} &= [\Omega_{n-1}, A] \\
@@ -479,11 +407,13 @@ Taking just the first term $\Omega_1$, we obtain
 \end{equation*}
 which we can approximate with a first order method to get
 \begin{equation*}
-    x_{n+1} = \exp\left( h A(t) \right)x_n.
+    x_{n+1} = \exp\left( h A(t_n) \right)x_n.
 \end{equation*}
-Note that at a time $\hat{t}$, we can consider $A$ to be a function of $x$ implicitly since $x = x(t)$.
-So our previous notions of a problem $\dot{x} = A(x)x$ carry over.
-Note also that this first order method is identical to the ``exponenial Euler method'' we looked at earlier.
+Note that we are given $A = A(t)$ in the definition of the Magnus expansion,
+while problems we are interested in have $A=A(x)$ or $A=A(x,t)$.
+The use of the Magnus expansion is in being able to express the solution to the time-dependent matrix ODE as something computable.
+By taking the first order term in the expansion and forming a first order approximation, we construct a first-order method which is the same as the ``exponential Euler method''  we saw earlier.
+This outlines an idea for constructing better approximations, by taking higher order Magnus expansions and higher order approximations.
 
 The formulation for higher order methods is given in more detail by \cite{blanes_pos_2022} when considering Magnus integrators.
 They focus on a second order integrator, for which the autonomous version is given by
@@ -795,14 +725,41 @@ The denominator matrix is itself a first order approximation to the matrix expon
 However the numerator matrix has no guarantee of positivity: if $\hat{a}$ is the entry in $A$ of maximum absolute value,
 then this matrix has at least one negative entry for $h > 2/|\hat{a}|$.
 For the example we have given, $\hat{a} = -4$ by inspection.
-Alternatively, recall $A = \bar{A} + \hat{a}I$ and consider the second order approximation involving only $\bar{A}$
+Alternatively, recall $A = \bar{A} + \hat{a}I$ and consider the second order approximation involving only $\bar{A}$.
 This is the same as $\exp(A)$ up to scaling, as shown earlier.
 Since $\bar{A}$ is entirely nonnegative the numerator matrix must be nonnegative.
 However this time there is no condition on the positivity of the denominator matrix.
-We can give an informal proof: assume that the $i$-th row in $I-(h/2)A$ is entirely negative with some non-zero elements.
-If its inverse, the denominator matrix, is positive then clearly its $i$-th column is entirely positive.
-Consider entry $ii$ of the product $[I - (h/2)A][I-(h/2)A]^{-1}$. Either it is zero or negative by our assumptions on the signs of the entries.
-But since this is the product of a matrix and its inverse, this entry must be $1$. Having obtained a contradiction we know that the denominator matrix is not guaranteed to be positive.
+We can give an informal proof:
+assume $\bar{A}$ is entirely positive, with at least one zero on the diagonal.
+Then consider $I - h\bar{A}$. This has at least one positive entry on the diagonal, but only has entirely positive diagonal for $h$ less than $(\max(\bar{a}_{ii}))^{-1}$.
+Entries in $I - h\bar{A}$ not on the diagonal will be negative. Assuming the bound is \textit{not} satisfied, there will be one row in $I - h\bar{A}$ which is entirely negative.
+For example,
+\begin{equation*}
+    I - h\bar{A} = \begin{bmatrix}
+        1 & - & - \\
+        - & - & - \\
+        - & - & ?
+    \end{bmatrix}.
+\end{equation*}
+The `?' entry cannot be greater than $1$, it is only included for generality.
+Now assume its inverse is entirely positive. This is the denominator matrix, so we are hoping this is true.
+Consider their product:
+\begin{equation*}
+    \left[I - h\bar{A}\right] \left[I - h\bar{A}\right]^{-1} = \begin{bmatrix}
+        1 & - & - \\
+        - & - & - \\
+        - & - & ?
+    \end{bmatrix} \begin{bmatrix}
+        + & + & + \\
+        + & + & + \\
+        + & + & +
+    \end{bmatrix}
+\end{equation*}
+Consider their product. Because this is the product of a matrix and its inverse, it should form the identity matrix.
+However we assumed that the $i$-th row in $[I - h\bar{A}]$ is negative, and the $i$-th column in its inverse is positive (because we assumed the whole matrix is positive).
+Therefore the entry $ii$ of their product, which is the identity matrix, is either zero or negative. This is a contradiction since entry $ii$ of the identity matrix is $1$.
+Therefore it is not guaranteed that $[I - h\bar{A}]$ to be positive.
+
 The explanation for the error could lie in both approximations. If we are approximating $\exp{hA}$, then the denominator matrix is entirely positive, but we cannot say the same for the numerator.
 If we instead use the decomposition $A = \bar{A} + \hat{a}I$ and take the exponenial of $\bar{A}$, then the numerator matrix is guaranteed to be positive but the denominator may be negative.
 
@@ -817,7 +774,7 @@ Figure \ref{fig:mcpadeneg} evaluates negativity, clearly isolating a region of s
 In MATLAB, the matrix exponential can be computed using the \texttt{expm()} function.
 This implementation is very stable, due to the implementation of the scaling and squaring method \cite{higham2005scaling,moler2003dubious}.
 Given some number $m$, for a square matrix $A$ we have that $\exp(A) = \left[\exp\left(\frac{A}{m}\right)\right]^m$.
-The method takes $m$ to be a given power of $2$, such that an approximation of $\exp(A/m)$ has norm $1$, and then repeatedly squares the result to get an approximation for $\exp(A)$.
+The method takes $m$ to be a given power of $2$, such that an approximation of $\exp(A/m)$ is stable by $A/m$ having a norm bounded below a threshold, and then repeatedly squares the result to get an approximation for $\exp(A)$.
 This process provides much more stability in using the Pad\'e approximation, or even the series definition, of the matrix exponential.
 
 \subsection{A first-order approximation}
@@ -838,12 +795,27 @@ First, note that when looking at the Pad\'e approximation we considered the posi
 What is interesting is that both $Q^{-1}$ and $P$ in this Pad\'e approximation are themselves first order approximations of $\exp((h/2)A)$.
 
 The proof of positivity involves Gershgorin's theorem for the eigenvalues of a matrix.
-Gershgorin's theorem states that the eigenvalues of a matrix $A$ lie in the union of the $n$ discs $\mathcal{D}_i$ where
-\begin{equation*}
-    \mathcal{D}_i = \left\{ z \in \mathds{C}: |z - a_{ii}| \leq \sum_{
-        j = 1, j \ne i
-    }^{n} |a_{ij}| \right\}.
-\end{equation*}
+\begin{theorem}{Gershgorin}
+    The eigenvalues of a matrix $A$ lie in the union of the $n$ discs $\mathcal{D}_i$ where
+    \begin{equation*}
+        \mathcal{D}_i = \left\{ z \in \mathds{C}: |z - a_{ii}| \leq \sum_{
+            j = 1, j \ne i
+        }^{n} |a_{ij}| \right\}.
+    \end{equation*}    
+\end{theorem}
+\begin{proof}
+    We give a brief proof. Let $\lambda,x$ be an eigenpair of $x$ and assume $|x_k| = ||x||_\infty$.
+    The $k$-th equation in the system is
+    \begin{equation*}
+        \sum_{j=1}^{d}a_{kj}x_j = \lambda x_k.
+    \end{equation*}
+    which rearranges to
+    \begin{equation*}
+        (a_{kk} - \lambda) x_k = \sum_{j=1, j \neq k}^{d} a_{kj}x_j.
+    \end{equation*}
+    Take absolute values, recognise that for all $j$ we have $|x_j| \leq |x_k|$, apply the triangle inequality and we get the required result on $\lambda$
+\end{proof}
+
 Gershgorin's theorem is a very useful bound on the eigenvalues - the disc $D_i$ is centered at $a_{ii}$ and its radius is the sum of the absolute values of the non-diagonal entries in the rest of the column.
 This means that for a graph-Laplacian matrix, the discs containing the eigenvalues are centered at negative values on the real axis, and because a graph-Laplacian matrix has a zero column sum, these discs are restrained to the left half of the complex plane.
 % next I-tA and its inverse
@@ -852,8 +824,41 @@ Since the eigenvalues of the inverse matrix are the inverses of the eigenvalues,
     For matrix $M$ and eigenpair $\mu, y$, $y = M^{-1} My = M^{-1} \mu y$ and divide by $\mu$.
 } the eigenvalues of $[I-hA]^{-1}$ are $1/(1-h \lambda)$.
 From Gershgorin's theorem, the eigenvalues of $A$ have strictly negative real part,
-so these eigenvalues of the first order exponential approximation belong to the strictly positive half of the complex plane.
-Therefore this approximation is positivity preserving.
+so these eigenvalues of the first order exponential approximation belong to the strictly positive half of the complex plane. % this does not mean it works!
+
+There is another result regarding the expression of this inverse in terms of a series.
+\begin{lemma}
+    If $A$ is a matrix which satisfies $||A||_2 < 1$, we can write the inverse of $[I-A]$ as
+    \begin{equation*}
+        \left[ I - A \right]^{-1} = \sum_{k=0}^{\infty} A^k.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    The condition on the norm $||A||_2 < 1$ is required in order for the series to converge.
+    Define the series up to $N$ by $U_N:$
+    \begin{equation*}
+        U_N := \sum_{k=0}^{N} A^k.
+    \end{equation*}
+    Then multiply $[I-A]$ by this series
+    \begin{align*}
+        U_N \left[ I-A \right] &= \left[ I + A + A^2 + \mathellipsis + A^{N-1} + A^N \right] \left[ I - A \right] \\
+        &= [I-A] + \left[ A-A^2 \right] + \mathellipsis + \left[ A^{N-1} - A^N \right] + \left[ A^N - A^{N+1} \right] \\
+        &= I + [A-A] + \left[ A^2 - A^2 \right] + \mathellipsis + \left[ A^N - A^N \right] - A^{N+1} \\
+        &= I - A^{N+1}.
+    \end{align*}
+    As $N \rightarrow \infty$, $A^N$ tends to the zero matrix because $||A||_2 < 1$ as assumed.
+    Hence this product converges to the identity and we have an expression for the inverse.
+    Thus,
+    \begin{equation*}
+        \left[ I - A \right]^{-1} = \lim_{N\rightarrow \infty}U_N = \sum_{k=0}^{\infty} A^k.
+    \end{equation*}
+\end{proof}
+This result is especially useful when considering the reduction $A = \bar{A} + \hat{a}I$.
+We have $\bar{A}$ is entirely positive by definition.
+If we also have this bound on the spectral norm of $\bar{A}$,
+then we know that the inverse of $[I-\bar{A}]$ is the series on powers of $A$, all of which must be positive.
+Therefore, the inverse of $[I-\bar{A}]$ is positive.
+In this context, we can guarantee that this approximation is positivity preserving.
 
 The positivity preserving methods from Equations \ref{eqn:secondorderstrangsplittingmethod,eqn:secondordermagnus} retain positivity and second order when some of the matrix exponentials are replaced with this first order substitution.
 We evaluate the truncation error of the second order Magnus integrator when substituting the inside exponential with an approximation.
@@ -910,10 +915,6 @@ We consider the exponential term and how the internal Taylor expansion brings th
 We can take the $\mathcal{O}(h^3)$ out to show that this is clearly the regular second order Magnus method plus a remainder in $h^3$ and hence is second order.
 We have already looked at the order of the second order Magnus integrator in its original form. 
 
-\subsection{Krylov methods}
-
-
-
 \subsection{A Proposed Method}
 
 %unlimited figures
@@ -939,7 +940,7 @@ We have already looked at the order of the second order Magnus integrator in its
     \centering
     \includegraphics[width=\linewidth]{Matlab/padevsseriesneg.eps}
     \caption{
-        Results exploring relative negativity of the approximation of the matrix exponential as in Figure \ref{fig:padeseriesneg}
+        Results exploring relative negativity of the approximation of the matrix exponential, as in Figure \ref{fig:padeserieserr}.
         Top row: approximation using the series definition of the matrix exponential.
         Bottom row: approximation using the Pad\'e method.
         The orders of approximations used are not the same as the previous figure, since we stick to diagonal Pad\'e approximations.
@@ -966,16 +967,17 @@ We have already looked at the order of the second order Magnus integrator in its
     \label{fig:serieslog}
 \end{figure}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=0.75\linewidth]{Matlab/serieserrorwithn.eps}
-    \caption{
-        Visualisation of the convergence of the approximation of the matrix exponential from the series definition using a Monte-Carlo estimate with $500$ samples of random $10 \times 10$ systems.
-        We compute the relative error of the actual product $y = \exp(A)x$ and $y_m = X(A)x$ where $X$ is an approximation using the series up to the term of power $N$.
-        The diagonal offset used was $s=0.4$, which appears to be an approximate minimiser for low order approximations using the series, as shown in Figure \ref{fig:serieslog}
-    }
-    \label{fig:seriesisnotgood}
-\end{figure}
+% I think this figure is useless, fig:seriesorder shows enough of it being an approximation
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=0.75\linewidth]{Matlab/serieserrorwithn.eps}
+%     \caption{
+%         Visualisation of the convergence of the approximation of the matrix exponential from the series definition using a Monte-Carlo estimate with $500$ samples of random $10 \times 10$ systems.
+%         We compute the relative error of the actual product $y = \exp(A)x$ and $y_m = X(A)x$ where $X$ is an approximation using the series up to the term of power $N$.
+%         The diagonal offset used was $s=0.4$, which appears to be an approximate minimiser for low order approximations using the series, as shown in Figure \ref{fig:serieslog}
+%     }
+%     \label{fig:seriesisnotgood}
+% \end{figure}
 
 \begin{figure}
     \centering
@@ -1006,8 +1008,8 @@ We have already looked at the order of the second order Magnus integrator in its
         Order of convergence for EM2, IP2 and EB2 integration methods.
         We plot the relative error of the solution at end time $T$ against the step size $h$ used in the integration scheme.
         The EM2 method is second order accurate \cite{blanes_pos_2022},
-        and from inspection so is the approximation IP2.
-        The error of EB2 does decrease, but not enough to be noticed in the graph.
+        and IP2 is also second order since their gradients match.
+        EB2 is tested for both $s=0$ and $s=1$.
     }
     \label{fig:magnusapprxorder}
 \end{figure}
@@ -1037,7 +1039,7 @@ See Figures \ref{fig:padeserieserr} and \ref{fig:padeseriesneg}, evaluating the 
 As we mentioned earlier, the computation of the matrix exponential by a series expansion can be very unstable,
 which we observe here.
 This brings attention to the first problem with this approach: the series approximation by itself is fairly poor for low order approximations, compared to Pad\'e. % more on this?
-See also Figure \ref{fig:seriesisnotgood}, which illustrates the remainders left when using order $N$ approximations to the matrix exponential.
+% See also Figure \ref{fig:seriesisnotgood}, which illustrates the remainders left when using order $N$ approximations to the matrix exponential.
 % The order N approximation of hA should converge if norm(hA) < 1 (strictly is useful)
 
 Consider the example given at the beginning of the discussion of the Pad\'e approximation.
@@ -1060,7 +1062,7 @@ and vector
 We evaluate $y = \exp(A)x$ in MATLAB using \texttt{expm()} and provide an approximation $y_m = T_N(\hat{a})T_N(\bar{A})x$ given the required order $N$.
 For $N=2$ we select values for $s$ to minimise the error $||y-y_m||_2$.
 We obtain data on the norms
-\begin{table}[h!]
+\begin{table}[h!]  % this and on needs to be redone
     \centering
     \begin{tabular}{c | c | c | c}
     $N$   & $s=0$ & $s=s_\mathrm{min}$ & $s=1$ \\ \hline
@@ -1080,8 +1082,7 @@ Despite this, we continue.
 Instead of comparing the convergence of different order approximations to the matrix exponential,
 it may be insightful to apply these methods to an integrator and compare with the methods and approximations have already been established.
 
-Note the results given in Figure \ref{fig:seriesorder}. The convergence of these methods should, from their construction, follow steeper gradients as $N$ increases as the remainder in $\mathcal{O}(h^N)$ decreases.
-Instead we see that the first order approximation appears better than the second and fourth order methods.
+Note the results given in Figure \ref{fig:seriesorder}. The convergence of these methods follow steeper gradients as $N$ increases as the remainder in $\mathcal{O}(h^N)$ decreases.
 This figure generates a random graph-Laplacian matrix $A$ and random vector $x$, and then evaluates a relative error $||y-y_N||_2/||y||_2$,
 where $y = \exp(A)x$ and $y_N = T_N(A)x$.
 We can deduce that the error should be $\mathcal{O}(||A||^{N+1})$ for some subordinate matrix norm on $A$.
@@ -1097,13 +1098,14 @@ We will consider three methods, all of which are variations of the EM2 Magnus in
 \begin{itemize}
     \item EM2: Two matrix exponentials, computed using \texttt{expm()}.
     \item IP2: One first order approximation using $[I-hA]^{-1}$ and one second order diagonal Pad\'e approximation.
-    \item EB2: One first order and one second order approximation using the series method proposed, with scaling parameter chosen to theoretically guarantee positivity. 
+    \item EB2: One first order and one second order approximation using the series method proposed, with scaling parameter chosen to consider positivity preservation. 
 \end{itemize}
 We will examine each of these methods applied to the MAPK cascade.
 For IP2, we used the reduction $A = \bar{A} + \hat{a}I$ with $a = -s |\max(a_{ii})|$ and chose $s=1$ to adhere to the method outlined by \cite{blanes_pos_2022},
 namely that this should be positivity preserving. In our discussion on the Pad\'e approximation we showed why positivity is not necessarily preserved.
 For the EB2 method, we used first and second order series approximations while taking $A = \bar{A}$ in our reduction, essentially $s=0$.
 From our testing, this was the only positive value of $s$ where the approximation was usable.
+We found that increasing $s$ makes the computation of EB2 far more expensive, and unusable for moderate $h$.
 It would not be useful to consider negative values of $s$ since we have discussed that this is not appropriate for positivity preservation.
 % s=0 for series and pade s=1 
 First, see Figure \ref{fig:triplemagnus}. We show the behaviour of the integration from EM2, IP2 and EB2 on separate figures.
@@ -1111,29 +1113,39 @@ The EM2 and IP2 integrations appear similar, which follows from the results conc
 being that the EM2 method is second order accurate.
 Furthermore, the IP2 method retains the second order accuracy of EM2, since it uses a positivity-preserving first-order approximation, followed by a second order Pad\'e approximation. 
 It is important to recall that we have shown that this Pad\'e approximation is not positivity preserving.
-With regards to the behaviour EB2,
-it is immediate that this is a much worse approximation since the dynamics of the system appear to be occuring at a different time scale to those of the other implementations.
-Ignoring the time scale, the behaviour of the integrator is consistent.
+The EB2 method, using series exponentials, is surprisingly accurate to EM2.
 
 Finally, observe Figure \ref{fig:magnusapprxorder}, where we show the convergences of the methods.
 Since EM2 and IP2 are both second order, they converge to the ``exact'' solution at the same rates.
-The EB2 method, however, appears to not converge at all. Any change in the relative error is not even visible on the graph since it appears as a flat line.
-This is likely because refining the timestep does not change how the method appears to solve the problem on a slower timescale - the solution will refine but it will still be fundamentally incorrect in terms of time.
-It would be interesting to explore the behaviour of EB2 if we were able to manipulate the parameters to improve accuracy,
-perhaps by optimising the method using a different diagonal offset scaling $s$, and slightly higher degree approximations to the matrix exponential.
+We have graphed EB2 choosing both $s=0$ and $s=1$. For $s=0$, the approximation is not guaranteed to preserve positivity,
+but the approximation follows the order of EM2 closer than the IP2 approximation.
+Choosing $s=1$ means we are approximating the exponential in a way that guarantees positivity.
+However, the approximation becomes prohibitively expensive, and IP2 is a better method for timesteps $h > 10^{-3}$.
+In fact, for timesteps $h > 10^{-2}$ the error of the approximation is so large that the method is unusable. 
+For extremely small timesteps $h \approx 10^{-4}$ EB2 is only ever as good as IP2.
+Essentially, the error between EM2 and EB2 is that we can save on computing matrix exponentials with EB2,
+but we may need to perform a thousand timesteps instead of one.
 
-In conclusion, despite EB2 being, in theory, a cheap and positivity preserving second order method, it turns out to be extremely bad.
-The first problem is using the series definition of the exponential itself.
-In terms of error alone, ignoring the requirement of positivity, Pad\'e is almost always a better approximation.
-When we apply the reduction $A = \bar{A} + \hat{a}I$ and start working with the diagonal offset parameter $s$, we come across the second problem:
+The main problem with EB2 is that when we apply the reduction $A = \bar{A} + \hat{a}I$ and start working with the diagonal offset parameter $s$,
 we want $s \ge 1$ in order to guarantee positivity, but optimal error is attained out of this bound (recall Figure \ref{fig:serieslog}).
-And then if we forget about error and just focus on positivity, enforcing $s > 1$ brings about a third problem: if $s$ is sufficiently large,
-then we are increasing the norm %WHAT NORM
-of the matrix we are approximating,
-and taking a low order approximation of the exponential, from the series definition, of this matrix is going to diverge as this norm increases.
-In simpler terms, by using the series approximation and being given control of the diagonal offset, having both positivity and convergence is impossible.
+This problem gets worse when we look at how the diagonal offset affects $\bar{A}$, because if $s$ is sufficiently large then it scales with the spectral radius of $\bar{A}$,
+and taking a low order sereis approximation of the exponential of this matrix is going to be less accurate as this increases.
+In simpler terms, by using the series approximation and being given control of the diagonal offset, it is challenging to have both positivity and convergence.
 
 
+
+
+
+% And then if we forget about error and just focus on positivity, enforcing $s > 1$ brings about a third problem: if $s$ is sufficiently large,
+% then we are increasing the norm %WHAT NORM
+% of the matrix we are approximating,
+% and taking a low order approximation of the exponential, from the series definition, of this matrix is going to diverge as this norm increases.
+% In simpler terms, by using the series approximation and being given control of the diagonal offset, having both positivity and convergence is impossible.
+
+% The EB2 method, however, appears to not converge at all. Any change in the relative error is not even visible on the graph since it appears as a flat line.
+% This is likely because refining the timestep does not change how the method appears to solve the problem on a slower timescale - the solution will refine but it will still be fundamentally incorrect in terms of time.
+% It would be interesting to explore the behaviour of EB2 if we were able to manipulate the parameters to improve accuracy,
+% perhaps by optimising the method using a different diagonal offset scaling $s$, and slightly higher degree approximations to the matrix exponential.
 
 %% To review the proposed method once it has been completely covered
 % first introduce the series approximation and the guarantee of positivity under certain values of s
@@ -1141,6 +1153,8 @@ In simpler terms, by using the series approximation and being given control of t
 % problem 2: optimal value of s is not in the bound s >= 1
 % problem 3: large values of s theoretically guarantees positivity, however this increases the norm of the matrix which makes the series even more unusable
 % "by using the series approximation with diagonal offset, having both positivity and convergence is impossible"
+
+\subsection{Krylov methods}
 
 \section{Optimisation Methods}
 
@@ -1156,7 +1170,3 @@ In simpler terms, by using the series approximation and being given control of t
 % backward Euler
 
 
-
-
-
-\end{document}
