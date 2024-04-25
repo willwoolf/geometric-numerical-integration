@@ -1,0 +1,1196 @@
+\documentclass{report}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheoremstyle{exampstyle}
+  {\topsep} % Space above
+  {\topsep} % Space below
+  {} % Body font
+  {} % Indent amount
+  {\bfseries} % Theorem head font
+  {.} % Punctuation after theorem head
+  {.5em} % Space after theorem head
+  {} % Theorem head spec (can be left empty, meaning `normal')
+\theoremstyle{exampstyle} \newtheorem{example}[theorem]{Example}
+\theoremstyle{exampstyle} \newtheorem{remark}[theorem]{Remark}
+\theoremstyle{exampstyle} \newtheorem{definition}[theorem]{Definition}
+\theoremstyle{exampstyle} \newtheorem{lemma}[theorem]{Lemma}
+\theoremstyle{exampstyle} \newtheorem{proposition}[theorem]{Proposition}
+
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{dsfont}
+\usepackage[width=6in, height=8in]{geometry}
+\usepackage{xcolor}
+\usepackage{csquotes}
+
+\usepackage[
+backend=biber,
+natbib=true,
+url=false, 
+doi=true,
+eprint=false
+]{biblatex}
+\addbibresource{sources.bib}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\ttfamily\footnotesize,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+
+\chapter{Symplectic Integration}
+
+\section{Hamiltonian Systems and Numerical Methods}
+
+\subsection{Hamiltonian Dynamics}
+
+A Hamiltonian system on $(q,p)$ is given by
+\begin{align*}
+	&\dot{q} = \dfrac{\partial H}{\partial p}
+	&
+	\dot{p} = \dfrac{-\partial H}{\partial q}&.	
+\end{align*}
+We use $q$ to denote position, and $p$ to denote momentum.
+This is a special form of a general system of ODEs $\dot{x} = f(t,x)$.
+For this part of our discussion, we will primarily be concerned with \textit{autonomous} systems of the form $\dot{x} = f(x)$.
+
+The Hamiltonian $H(q,p)$ is a first integral of the system, used to denote the total energy.
+We can write the system as
+\begin{equation}
+	\dfrac{\mathrm{d}}{\mathrm{d}t}\begin{pmatrix}
+		q \\
+		p
+	\end{pmatrix} = \begin{bmatrix}
+		\strut 0 & \strut 1 \\
+		\strut -1 & \strut 0
+	\end{bmatrix}\begin{bmatrix}
+	\dfrac{\strut \partial H}{\strut\partial q} \\
+	\dfrac{\strut \partial H}{\strut\partial p}
+	\end{bmatrix}.
+\end{equation}
+If we write $x = (q,p)^\mathrm{T}$ and denote the matrix as $J$,
+then the statement of a Hamiltonian system is of the form 
+\begin{equation}
+	\mathbf{\dot{x}} = \mathbf{J}\nabla H(\mathbf{x}).
+	\label{eqn:hdyn}
+\end{equation}
+We call $J$ the \textit{symplectic matrix}.
+
+For a $d$-dimensional problem,
+we instead denote the variables $q_1, \mathellipsis, q_n, p_1, \mathellipsis, p_n$ as the position and momentum in the directions of each basis vector respectively.
+Write $x = (q_1, \mathellipsis, q_n, p_1, \mathellipsis, p_n)$.
+Define $J$ to be the matrix defined in blocks
+\begin{equation}
+	J = \begin{bmatrix}
+		{0}_n & {I}_n \\
+		-{I}_n & {0}_n
+	\end{bmatrix}
+\end{equation}
+and the problem can be written as ${\dot{x}} = {J}\nabla H({x})$.
+This is the general form for a Hamiltonian system.
+Note that for a problem in $d$ dimensions,
+$x$ belongs to $\mathds{R}^{2d}$.
+The $\nabla$ operator is specifically defined in the $(q,p)$ order for our purposes
+\begin{equation*}
+	\nabla = \begin{pmatrix}
+		\frac{\partial}{\partial q_1} \\
+		\vdots \\
+		\frac{\partial}{\partial q_d} \\
+		\frac{\partial}{\partial p_1} \\
+		\vdots \\
+		\frac{\partial}{\partial q_d}
+	\end{pmatrix}
+\end{equation*}
+
+\subsection{The Simple Harmonic Oscillator}
+
+Given an ODE $\dot{\mathbf{x}} = f(\mathbf{x})$, a numerical method is an iteration of the form $\mathbf{x}_{n+1} = \mathbf{x}_n + F(t_n, \mathbf{x}_n; h)$
+We can write a step as the map $\Phi: \mathbf{x}_n \rightarrow \mathbf{x}_{n+1}$. The map $\Phi$ is the numerical flow:
+rather than mapping from the initial condition to a point at time $t$, we map the solution from one point $t_n$ to the next in a discretised time interval.
+
+Consider the forward Euler method: for $\dot{\mathbf{x}} = f(\mathbf{x})$, the iteration is $\mathbf{x}_{n+1} = \mathbf{x}_n + hf(\mathbf{x}_n)$.
+We can apply the Euler method to examples in order to evaluate its properties.
+
+First, we look at the simple harmonic oscillator $m \ddot{x} = -k x$.
+In Hamiltonian variables this is
+\begin{equation*}
+	\begin{aligned}
+		&\dot{q} = \frac{p}{m}, &\dot{p} = m\ddot{q} = -kq.
+	\end{aligned}
+\end{equation*}
+A suitable Hamiltonian is
+\begin{equation*}
+	H = \frac{1}{2m}p^2 + \frac{1}{2}kq^2.
+\end{equation*}
+Applying the forward Euler method to the problem, we get
+\begin{equation*}
+	\begin{aligned}
+		q_{n+1} &= q_n + h\frac{\partial H}{\partial p}(q_n, p_n) &= q_n + \frac{p_n}{m}\\
+		p_{n+1} &= p_n - h\frac{\partial H}{\partial q}(q_n, p_n) &= p_n - kq_n
+	\end{aligned}
+\end{equation*}
+which can be written as a matrix equation
+\begin{equation*}
+	\begin{pmatrix}
+		q_{n+1} \\
+		p_{n+1}
+	\end{pmatrix} = \begin{bmatrix}
+		1 & 1/m \\
+		-k & 1
+	\end{bmatrix} \begin{pmatrix}
+		q_n \\
+		p_n
+	\end{pmatrix}.
+\end{equation*}
+The matrix defines a map from one value of the numerical solution to the next.
+We can consider a similar concept for the true solution of the problem, called the \textit{flow}.
+
+\subsection{The Flow Map}
+
+\begin{definition}
+	The flow $\varphi_t$ is a map of the system from an initial time to the time $t$.
+	Specifically, we write $\varphi_t(\alpha) = \mathbf{x}(t)$ given the initial condition $\mathbf{x}(t=0) = \alpha$. Hence the flow $\varphi_t:\mathds{R}^{2n}\rightarrow \mathds{R}^{2n}$ is a map from the initial point of the system to the time $t$.
+\end{definition}
+The Jacobian matrix $\varphi'_t({\alpha})$ is often called the sensitivity of the flow.
+It describes the relative change in the problem per change in initial conditions.
+We show the element-wise expression: %marcus said to change this
+\begin{align*}
+	\left. \varphi'_t(\alpha) \right)_i &= \left. \frac{\partial}{\partial \alpha} \varphi_t(\alpha) \right)_i \\
+	&= \frac{\partial}{\partial \alpha} x_i(t) \\
+	&= \begin{bmatrix}
+		\frac{\partial x_i}{\partial \alpha_1}, & \mathellipsis, & \frac{\partial x_i}{\partial \alpha_{2n}}
+	\end{bmatrix},
+\end{align*}
+which is the Jacobian.
+\begin{definition}
+	A flow is symplectic if it satisfies $\varphi'_t(\alpha)^\mathrm{T} \mathbf{J} \varphi'_t(\alpha) = \mathbf{J}.$
+\end{definition}
+Along with the flow of the system, we must consider the \textit{numerical flow},
+which is the map from $x_n$ to $x_{n+1}$ defined by a numerical method.
+\begin{definition}
+	A numerical method defines a flow map $\Psi_h$ by
+	\begin{equation*}
+		x_{n+1} = \Psi_h(x_n).
+	\end{equation*}
+\end{definition}
+
+\subsection{Symplectic Flow}
+
+The flow of a Hamiltonian system is, by definition, symplectic.
+Recall the example of the simple harmonic oscillator.
+We can demonstrate symplecticity with the actual flow map. Note the general closed form solution:
+\begin{equation*}
+	\begin{aligned}
+		q(t) &= A\cos\left( \sqrt{\frac{k}{m}} t \right) + B \sin\left( \sqrt{\frac{k}{m}}t \right) \\
+		p(t) &= B\sqrt{km} \cos\left( \sqrt{\frac{k}{m}} t \right) -A\sqrt{km} \sin\left( \sqrt{\frac{k}{m}}t \right) 
+	\end{aligned}
+\end{equation*}
+for arbitrary constants $A$ and $B$.
+Impose initial conditions:
+suppose $q(t=0) = q_0,~ p(t=0) = p_0.$
+Define $\omega = \sqrt{k/m}$ for shorthand, and apply the initial conditions to find that the coefficients are $A = q_0,~ B = p_0/m \omega$
+Hence the particular solution is
+\begin{equation*}
+	\begin{aligned}
+		q(t) &= q_0 \cos\left( \omega t \right) + \frac{p_0}{m\omega} \sin\left( \omega t \right) \\
+		p(t) &= p_0 \cos\left( \omega t \right) - q_0 m\omega \sin\left( \omega t \right).
+	\end{aligned}
+\end{equation*}
+We are in the position to evaluate the Jacobian entry-wise.
+\begin{equation*}
+	\varphi'_t \begin{pmatrix}
+		q_0 \\
+		p_0
+	\end{pmatrix} = \begin{bmatrix}
+		\frac{\partial q}{\partial q_0} & \frac{\partial q}{\partial p_0} \\
+		\frac{\partial p}{\partial q_0} & \frac{\partial p}{\partial p_0}
+	\end{bmatrix} = \begin{bmatrix}
+		\cos(\omega t) & \frac{1}{m\omega} \sin(\omega t) \\
+		-m\omega \sin(\omega t) & \cos(\omega t)
+	\end{bmatrix},
+\end{equation*}
+and if we now plug this into the symplectic identity we get
+\begin{align*}
+	\varphi'_t(x_0)^\mathrm{T} \mathbf{J} \varphi'_t(x_0) &= \begin{bmatrix}
+		\cos(\omega t) & -m\omega \sin(\omega t) \\
+		\frac{1}{m\omega} \sin(\omega t) & \cos(\omega t)
+	\end{bmatrix} \begin{bmatrix}
+		0 & 1 \\
+		-1 & 0
+	\end{bmatrix} \begin{bmatrix}
+		\cos(\omega t) & \frac{1}{m\omega} \sin(\omega t) \\
+		-m\omega \sin(\omega t) & \cos(\omega t)
+	\end{bmatrix} \\
+	&= \begin{bmatrix}
+		m \omega \sin(\omega t) & \cos(\omega t) \\
+		-\cos(\omega t) & \frac{1}{m \omega} \sin(\omega t)
+	\end{bmatrix} \begin{bmatrix}
+		\cos(\omega t) & \frac{1}{m\omega} \sin(\omega t) \\
+		-m\omega \sin(\omega t) & \cos(\omega t)
+	\end{bmatrix} \\
+	&= \begin{bmatrix}
+		m \omega \sin(\omega t) \cos(\omega t) - m \omega \sin(\omega t) \cos(\omega t)  & \sin^2(\omega t) + \cos^2(\omega t) \\
+		-\cos^2(\omega t) - \sin^2(\omega t) & -\frac{1}{m\omega}\cos(\omega t)\sin(\omega t) + \frac{1}{m \omega}\cos(\omega t)\sin(\omega t)
+	\end{bmatrix} \\
+	&= \begin{bmatrix}
+		0 & 1 \\
+		-1 & 0
+	\end{bmatrix} = \mathbf{J}.
+\end{align*}
+Hence the flow is symplectic.
+
+\subsection{A symplectic integrator}
+
+With symplectic integration, we are interested in numerical methods for which the numerical flow also attains symplecticity.
+One such example is the symplectic Euler method
+\begin{equation*}
+	\begin{pmatrix}
+		q_{n+1} \\
+		p_{n+1} 
+	\end{pmatrix} = \begin{pmatrix}
+		q_{n} \\
+		p_{n}
+	\end{pmatrix} + h \nabla H(q_{n}, p_{n+1}).
+\end{equation*}
+For an arbitrary problem this method is implicit. However, many problems have a separate Hamiltonian that allows the iteration to be performed in two explicit steps. 
+The simple harmonic oscillator has a Hamiltonian $H(q, p) = \frac{1}{2m}p^2 + \frac{1}{2}kq^2$ which can be written as $H(q, p) = V(q) + T(p)$, where $V(q)$ represents kinetic energy and $T(p)$ represents potential energy of the system.
+We expand out the method as
+\begin{equation*}
+	\begin{pmatrix}
+		q_{n+1} \\
+		p_{n+1} 
+	\end{pmatrix} = \begin{pmatrix}
+		q_{n} \\
+		p_{n}
+	\end{pmatrix} + h \mathbf{J} \begin{pmatrix}
+		V'(q_n) \\
+		T'(p_{n+1})
+	\end{pmatrix} = \begin{pmatrix}
+		q_{n} + \frac{h}{m}p_{n+1} \\
+		p_{n} - hk q_n
+	\end{pmatrix}.
+\end{equation*}
+On inspection, we can perform this iteration separably: compute $p_{n+1}$ using $p_n$ and $q_n$,
+then use $q_n$ and $p_{n+1}$ to compute $q_{n+1}$.
+Important to note is that this is specifically the symplectic Euler-VT method, since we evaluate $V'$ and then $T'$,
+and the symplectic Euler-TV method is an alternative which computes in the opposite order analogously.
+This is of course assuming that the Hamiltonian is separable, which it may not be.
+For simplicity we will stick with the VT method for examples.
+We find an expression for the numerical flow:
+\begin{equation*}
+	\begin{aligned}
+		\begin{pmatrix}
+			q_{n+1} \\
+			p_{n+1} 
+		\end{pmatrix} &= \begin{pmatrix}
+			q_{n} + \frac{h}{m} \left( p_{n} - h \omega q_n \right) \\
+			p_{n} - h \omega q_n
+		\end{pmatrix} \\
+		&= \begin{bmatrix}
+			1 - \frac{h^2 k}{m} & \frac{h}{m} \\
+			-hk & 1
+		\end{bmatrix} \begin{pmatrix}
+			q_n \\
+			p_n
+		\end{pmatrix} \equiv \Phi_h \begin{pmatrix}
+			q_n \\
+			p_n
+		\end{pmatrix}
+	\end{aligned}
+\end{equation*}
+and just like before, test the symplectic identity
+\begin{equation*}
+	\Phi^\mathrm{T}\mathbf{J}\Phi = \begin{bmatrix}
+		\left(1-\frac{h^2 k}{m}\right)(-hk) + \left(\frac{h^2 k}{m}-1\right)(-hk) & 1 - \frac{h^2 k}{m} + \frac{h^2 k}{m} \\
+		-\frac{h^2 k}{m} + \frac{h^2 k}{m} -1 & \frac{h}{m} - \frac{h}{m}
+	\end{bmatrix} = \begin{bmatrix}
+		0 & 1 \\
+		-1 & 0
+	\end{bmatrix} = \mathbf{J}.
+\end{equation*}
+Hence this method is symplectic for this example.
+
+\section{Further Hamiltonian Dynamics}
+
+\subsection{Derivatives of Flow Maps}
+
+The flow map $\varphi_t: \mathbf{x}_0 \rightarrow \mathbf{x}(t)$ gives us powerful insights into the behaviour of Hamiltonian integration.
+Before giving a result on the symplecticity of Hamiltonian systems, we need some results on flow maps.
+We will show expressions for the time derivatives of $\varphi_t(\alpha)$ and $\varphi'_t(\alpha)$.
+Starting with the flow, its time derivative is
+\begin{align*}
+	\frac{\mathrm{d}}{\mathrm{d}t} \left( \varphi_t(\mathbf{x}_0) \right) &= \frac{\mathrm{d}}{\mathrm{d}t} \mathbf{x}(t) \\
+	&= \dot{\mathbf{x}}(t) \\
+	&= \mathbf{J}\nabla H(\mathbf{x}(t)) \\
+	&= \mathbf{J}\nabla H \left( \varphi_t(\mathbf{x}_0) \right).
+\end{align*}
+We have a similar form for the time derivative of the sensitivity:
+\begin{align*}
+	\frac{\mathrm{d}}{\mathrm{d}t} \left( \varphi'_t(\mathbf{x}_0) \right) &= \frac{\partial}{\partial \mathbf{x}_0} \frac{\mathrm{d}}{\mathrm{d}t} \varphi_t(\mathbf{x}_0) \\
+	&= \frac{\partial}{\partial \mathbf{x}_0} \frac{\mathrm{d}}{\mathrm{d}t} \mathbf{x}(t) \\
+	&= \frac{\partial}{\partial \mathbf{x}_0} \dot{\mathbf{x}}(t) \\
+	&= \frac{\partial}{\partial \mathbf{x}_0} \mathbf{J}\nabla H(\mathbf{x}(t)) \\
+	&= J \nabla^2 H(\mathbf{x}(t)) \left(\frac{\partial}{\partial \mathbf{x}_0} \mathbf{x}(t)\right) \\
+	&= J \nabla^2 H(\varphi_t(\mathbf{x}_0))\varphi'_t(\mathbf{x}_0).
+\end{align*}
+
+\subsection{Symplectic Flow of a Hamiltonian System}
+
+Earlier, we looked at the symplecticity of the flow of a particular Hamiltonian system.
+We will now generalise this result to any Hamiltonian system.
+Symplecticity of the flow is equivalent to the system itself being Hamiltonian.
+
+\begin{theorem}
+\label{thm:hamil}
+A dynamical system is Hamiltonian if and only if its flow is symplectic.
+\end{theorem}
+\begin{proof}
+$(\Rightarrow)$ Consider the flow of a Hamiltonian system at time $t=0$. By definition, $\varphi_t(x_0) = x(t)$ given $x(0) = x_0$,
+therefore $\varphi_0(x_0) = x_0$. Hence the sensitivity at $t=0$ is $\varphi'_0(x_0) = I$ the identity matrix.
+The symplectic identity is satisfied trivially: $(\varphi'_0(x_0))^\mathrm{T} J \varphi'_0(x_0) = IJI = J$.
+
+Now, instead of finding an expression of the symplectic identity at time $t$,
+we show that this quantity is unchanging in time.
+By differentiating, the expression distributes by the product rule:
+\begin{equation*}
+	\frac{\mathrm{d}}{\mathrm{d}t} \left(
+		\varphi'_t(x_0)^\mathrm{T} J \varphi'_t(x_0)
+	\right) = \left(
+		\frac{\mathrm{d}}{\mathrm{d}t} \varphi'_t(x_0)^\mathrm{T}
+	\right) J \varphi'_t(x_0) + \varphi'_t(x_0)^\mathrm{T} J \left(
+		\frac{\mathrm{d}}{\mathrm{d}t} \varphi'_t(x_0)
+	\right).
+\end{equation*}
+We can find an expression for the derivative term:
+\begin{align*}
+	\frac{\mathrm{d}}{\mathrm{d}t} \varphi'_t(x_0) &= \frac{\mathrm{d}}{\mathrm{d}t} J \nabla H(\varphi_t(x_0)) \\
+	&= J \nabla^2 H(\varphi_t(x_0)) \varphi'_t(x_0).
+\end{align*}
+Now plug this back in, becoming
+\begin{align*}
+	\frac{\mathrm{d}}{\mathrm{d}t} \left(
+		\varphi'_t(x_0)^\mathrm{T} J \varphi'_t(x_0)
+	\right) &= \left( J \nabla^2 H(\varphi_t)\varphi'_t \right)^\mathrm{T} J \varphi'_t 
+	+ \varphi'_t J \left( 
+		J \nabla^2 H(\varphi_t) \varphi'_t
+  	\right) \\
+	&= (\varphi'_t)^\mathrm{T} \nabla^2 H(\varphi_t)^\mathrm{T} J^\mathrm{T} J \varphi'_t
+	+ (\varphi'_t)^\mathrm{T} J^2 \nabla^2 H(\varphi_t) \varphi'_t(x_0) \\
+	&= (\varphi'_t)^\mathrm{T} \nabla^2 H(\varphi_t)^\mathrm{T} \varphi'_t - (\varphi'_t)^\mathrm{T} \nabla^2 H(\varphi_t) \varphi'_t
+\end{align*}
+since $J^\mathrm{T}J = I$ and $J^2 = -I$.
+Under the assumption that the Hessian matrix $\nabla^2 H(\varphi_t)$ is symmetric,
+this expression evaluates to zero and hence the symplectic identity is satisfied for all $t$ and we are done.
+
+$(\Leftarrow)$ Assuming that the sensitivity satisfies the symplectic identity, we want to show that the system is Hamiltonian.
+For a general system, we have $\dot{x} = f(x)$. We want to show that we can write $f(x) = J \nabla H(x)$ for some function $x$, in order for the system to be Hamiltonian.
+The flow is symplectic, so it satisfies
+\begin{equation*}
+	\varphi'_t(x_0)^\top J \varphi'_t(x_0) = J. 
+\end{equation*}
+Differentiating this expression gives, similar to earlier,
+\begin{equation*}
+	\varphi'_t(x_0)^\top \frac{\partial f}{\partial x_0}(\varphi_t(x_0))^\top J \varphi'_t(x_0) + \varphi'_t(x_0)^\top J \frac{\partial f}{\partial x_0}(\varphi_t(x_0)) \varphi'_t(x_0) = 0.
+\end{equation*}
+By taking factors on the left and right, this is
+\begin{equation*}
+	\varphi'_t(x_0)^\top \left[ \frac{\partial f}{\partial x_0}(\varphi_t(x_0))^\top J + J \frac{\partial f}{\partial x_0}(\varphi_t(x_0)) \right] \varphi'_t(x_0) = 0.
+\end{equation*}
+This must be true for all $t$, so if we set $t=0$ the sensitivity matrix appearing on both the right and left is the identity.
+Because $J = -J^\top$, we have that
+\begin{equation*}
+	\left[ J \frac{\partial f}{\partial x_0} \right]= \left[ J \frac{\partial f}{\partial x_0} \right]^\top
+\end{equation*}
+i.e. the matrix is symmetric. 
+The required result is given in \cite{gni2006}, namely that $f(x)$ can be written in the form $J \nabla H(x)$.
+\end{proof}
+
+We now properly understand the link between Hamiltonian mechanics and symplectic integration.
+The formal definition for a symplectic integrator is that the method maintains the form $\mathrm{d}q_i \wedge \mathrm{d}p_i$ with $i = 1, \mathellipsis, n$ for an $n$-dimensional problem.
+The form is an infinitesimal area generated by the infinitesimals in $q, p$.
+For a one-dimensional problem, we can produce the phase portrait by plotting $p$ against $q$.
+A single point in the phase portrait represents the state of the dynamical system at a fixed point in time.
+The flow and the numerical flow are maps between points in the phase portrait.
+If we think of the phase portrait as a solution space for a one-dimensional dynamical system, we can say that symplectic methods preserve the area of the solution space.
+This is the paradigm of symplectic integration: by maintaining area of the phase space under mapping of the numerical flow, we maintain qualitative behaviour of the ODE over long timespans.
+Furthermore, the conservation of area is equivalent to a symplectic method maintaining a first integral of the system, which is the Hamiltonian $H$.
+
+In order to apply a symplectic integration method to a problem, we need an expression for the Hamiltonian of that problem,
+and we need a numerical method for which the symplecticity of the flow is preserved.
+
+\subsection{The Simple Pendulum}
+
+%figure on comparison of three methods
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.75\linewidth]{figures/pendulum.eps}
+	\caption{
+		Integration of the simple pendulum as a Hamiltonian mechanics problem, plotted as a phase portrait.
+		The explicit Euler method gradually diverges, a consequence of it lacking A-stability.
+		The implicit Euler method converges to zero.
+		Using implicit midpoint, we stay on the path followed by the pendulum, since this method is symplectic.
+	}
+	\label{fig:pendulum}
+\end{figure}
+
+The simple pendulum is the one-dimensional system defined by
+\begin{equation*}
+	ml\frac{\mathrm{d}^2 \theta}{\mathrm{d}t^2} = - mg \sin(\theta)'
+\end{equation*}
+For this problem, we define $q = \theta$, $p = \dot{\theta}$ and the Hamiltonian
+\begin{equation*}
+	H(q,p) = \frac{1}{2}p^2 + k^2(1-\cos(q))
+\end{equation*}
+where $k^2 = g/l$.
+This Hamiltonian can be obtained by integrating the system, and is therefore a conserved quantity.
+We will look at a selection of numerical methods applied to this problem.
+Recall Euler's method, which takes the form $x_{n+1} = x_n + h \mathbf{J} \nabla H(x_n)$ for a Hamiltonian system.
+This expands to:
+\begin{equation*}
+	\begin{pmatrix}
+		q_{n+1} \\
+		p_{n+1}
+	\end{pmatrix}^E = \begin{pmatrix}
+		q_n \\
+		p_n
+	\end{pmatrix} + h \begin{bmatrix}
+		0 & 1 \\
+		-1 & 0
+	\end{bmatrix} \begin{pmatrix}
+		k^2 \sin(q_n) \\
+		p_n
+	\end{pmatrix} = \begin{pmatrix}
+		q_n + h p_n \\
+		p_n - h k^2 \sin(q_n)
+	\end{pmatrix}.
+\end{equation*}
+The Implicit Midpoint method gives us
+\begin{equation*}
+	\begin{pmatrix}
+		q_{n+1} \\
+		p_{n+1}
+	\end{pmatrix}^M = \begin{pmatrix}
+		q_n \\
+		p_n
+	\end{pmatrix} + h \begin{bmatrix}
+		0 & 1 \\
+		-1 & 0
+	\end{bmatrix} \begin{pmatrix}
+		k^2 \sin \left(\dfrac{q_n + q_{n+1}}{2}\right) \\
+		\dfrac{p_n + p_{n+1}}{2}
+	\end{pmatrix} = \begin{pmatrix}
+		q_n + h \left( \dfrac{p_n + p_{n+1}}{2} \right) \\
+		p_n - h k^2 \sin \left( \frac{q_n + q_{n+1}}{2} \right)
+	\end{pmatrix}.
+\end{equation*}
+Finally, applying the Symplectic Euler-VT method yields
+\begin{equation}
+	\begin{pmatrix}
+		q_{n+1} \\
+		p_{n+1}
+	\end{pmatrix}^S = \begin{pmatrix}
+		q_n \\
+		p_n
+	\end{pmatrix} + h \begin{bmatrix}
+		0 & 1 \\
+		-1 & 0
+	\end{bmatrix} \begin{pmatrix}
+		k^2 \sin(q_n) \\
+		p_{n+1}
+	\end{pmatrix} = \begin{pmatrix}
+		q_n + h p_{n+1} \\
+		p_n - h k^2 \sin(q_n)
+	\end{pmatrix}
+\end{equation}
+% change this since the figure uses implicit and explicit Euler and not symplectic euler.
+
+See Figure \ref{fig:pendulum}, where we have applied three methods to the simple pendulum problem.
+Only when applying the implicit midpoint method do the oscillations remain on a loop in the phase portrait.
+The Symplectic Euler method is not shown, since it is identical to the result obtained from the implicit midpoint method.
+The implicit midpoint method is a symplectic method, and probably the simplest to demonstrate.
+
+Symplectic methods preserve the oscillation of the pendulum.
+This means the pendulum oscillates consistently, always returning to exactly the same point.
+In the explicit and implicit Euler methods, we observe a divergence or convergence of the bounds of oscillation respectively.
+% not rigorous, ideally we prove that these methods are symplectic
+
+It is important to note at the moment that the only examples we have looked at have closed form solutions.
+Our results so far only serve for understanding the definition of symplecticity.
+We now look at some stronger results about numerical methods.
+
+\subsection{The Adjoint Flow Map}
+
+We may now want to look at forming higher order symplectic methods. In order to do so, we need to consider generalised properties of flow maps which define these methods.
+One such property is the \textit{adjoint} map.
+
+\begin{definition}
+	Given a method defined by a numerical flow $\Psi_h$,
+	the adjoint $\Psi^*_h$ is the method that satisfies
+	\begin{equation*}
+		\Psi^*_{-h} = \Psi^{-1}_h.
+	\end{equation*}
+\end{definition}
+
+In words, stepping backward with the adjoint method is equivalent to stepping forward with the inverse.
+Adjoint methods are very useful. Given an arbitrary method $\Psi_h$,
+the method $\Psi_{h/2} \circ \Psi_{h/2}^*$ is symmetric.
+A symmetric method is a method that satisfies $\Psi_h^{-1} = \Psi_{-h}$.
+This means if we integrate forwards in time by a particular step, and then integrate back,
+we return to the original value since we are equivalently applying the inverse.
+Time symmetric methods are geometric integrators themselves, preserving time symmetry,
+however this is not something we will explore in depth.
+
+We can show that the implicit Euler method is the adjoint of explicit Euler.
+First, let $\Psi_h^I$ denote the implicit method and let $\Psi_h^E$ denote the explicit method.
+We want to show that $\Psi_h^E = (\Psi_{-h}^I)^{-1}$.
+This is equivalent to $\Psi_{-h}^I \circ \Psi_h^E (x) = x$.
+If we expand this composition, we obtain
+\begin{align*}
+	\Phi_{-h}^I \left( \Phi_j^E  (x) \right) &= \Phi_{-h}^I \left( x + h f(x) \right) \\
+	&= x + h f(x) - h f\left( \Phi_{-h}^I \left( x + h f(x) \right) \right) \\
+	&= x + h f(x) - h f\left( \Phi_{-h}^I \left( \Phi_h^E (x) \right) \right),
+\end{align*}
+and $\Phi_{-h}^I (\Phi_h^E (x)) = x$ solves this equation. Hence $(\Phi_{-h}^I)^{-1} = \Phi_h^E$.
+Note that the explicit and implicit Euler methods cannot be symmetric because they are adjoint.
+
+There are several properties of symplectic methods which may be of interest now.
+We have not shown that ($1$) the adjoint of a symplectic method is symplectic, and ($2$) the composition of symplectic methods is symplectic.
+These are relatively simple properties which can be proven from the defintions, but it will help our understanding to cover these.
+\begin{proposition}
+	The adjoint of a symplectic method is symplectic.
+\end{proposition}
+\begin{proof}
+	First of all, the definition of the adjoint method states $\Phi^*_h = \Phi^{-1}_{-h}$.
+	By algebraic manipulation,
+	\begin{align*}
+		\Phi_h^\intercal J \Phi_h &= J \\
+		\Rightarrow \Phi_{-h}^\intercal J \Phi_{-h} &= J \\
+		\Rightarrow J &= (\Phi_{-h}^{-1})^\intercal J (\Phi_{-h}^{-1}) = (\Phi_h^*)^\intercal J (\Phi_h^*)
+	\end{align*}
+	and so clearly the adjoint is symplectic.
+\end{proof}
+This result will be used in tandem with the composition of maps.
+\begin{proposition}
+	If $\Phi_h$ and $\Psi_h$ are two symplectic maps, then their composition $\Phi_h \circ \Psi_h$ is symplectic.
+\end{proposition}
+\begin{proof}
+	This is done similarly. We have
+	\begin{align*}
+		\left(\Phi_h \Psi_h\right)^\intercal J \left(\Phi_h \Psi_h\right) &= \Psi_h^\intercal \Phi_h^\intercal J \Phi_h \Psi_h \\
+		&= \Psi_h^\intercal J \Psi_h \\
+		&= J.
+	\end{align*}
+	Therefore the composition of symplectic maps is symplectic.	
+\end{proof}
+
+We can now introduce a new method using these results.
+
+\subsection{The St\"ormer-Verlet Method}
+
+Earlier, we looked at the Symplectic Euler method, which is a modification of the Euler methods for Hamiltonian integration.
+If the Hamiltonian is separable such that $H(q,p) = V(q) + T(p)$, then the Symplectic Euler method is explicit.
+This is because in the Symplectic Euler-VT step, we use $p_n$ and $q_n$ to compute $p_{n+1}$, then use $p_{n+1}$ and $q_n$ to compute $q_{n+1}$.
+This is exactly the method we applied in our earlier example introducing the Symplectic Euler method.
+However, the Symplectic Euler method is generally implicit because a given Hamiltonian for a problem may not be separable.
+Denote the Symplectic Euler step by $\Psi_h$. The \textit{St\"ormer-Verlet} method is defined by the step $\Psi_{h/2}^* \circ \Psi_{h/2}$.
+Formally, this is
+\begin{align*}
+	p_{n+\frac{1}{2}} &= p_n - \frac{h}{2}\nabla_q H \left( q_n, p_{n+\frac{1}{2}} \right) \\
+	q_{n+1} &= q_n + \frac{h}{2}\left( \nabla_p H \left( q_n, p_{n+\frac{1}{2}} \right) + \nabla_p H \left(q_{n+1}, p_{n+\frac{1}{2}} \right) \right) \\
+	p_{n+1} &= p_{n+\frac{1}{2}} - \frac{h}{2} \nabla_q H \left( q_{n+1}, p_{n+\frac{1}{2}} \right).
+\end{align*}
+
+\subsection{Mechanics}
+
+% maybe send this bit to appendix
+% talk about lagrangian and hamiltonian - canonical conjugate momentum
+Before the next example, it helps to define context around the mechanics of Hamiltonian system,
+In many cases, a Hamiltonian system has a Hamiltonian $H$ that we can express as $H(q,p) = T(p) + V(q)$.
+The Hamiltonian is a conserved quantity of the system, such as the total energy being exchanged.
+A \textit{Lagrangian} for a system can be defined as $L(q,p) = T(p) - V(q)$,
+a difference in the energies.
+The natural conjugate momentum is defined by
+\begin{equation}
+	p_k := \dfrac{\partial L}{\partial \dot{q}_k}
+\end{equation}
+for $k = 1,\mathellipsis,n$.
+If we have a problem formulated generally, position is usually already defined.
+Natural conjugate momentum means we can obtain an expression for momentum which aligns with the properties of Hamiltonian dynamics.
+It often helps when defining and solving our own problems for the variables to be defined in this way.
+
+\subsection{A Model for Phonation}
+
+% figure on ODE45 vs a symplectic integrator for this problem, do the mobius-style figure
+
+\begin{figure}
+	\centering
+	\includegraphics[width = \linewidth]{figures/phonationcomp.eps}
+	\caption{
+		Integration of the two mass model for phonation for $t \in [0, 1000]$.
+		Figures show the oscillation bounds, plotting $q_2$ against $q_1$.
+		In the left figure, we observe that a symplectic method retains the bounds of oscillation,
+		whereas using \texttt{ode45()} the explicit Runge-Kutta method is not as well behaved and the bounds are not as clear. 
+	}
+	\label{fig:phon}
+\end{figure}
+
+This example is based on the two mass model from ``Models for Phonation''.
+A vocal cord is modelled by two stiffness-coupled masses, and their one-dimensional displacements are given by $u$ and $v$.
+The governing equation for motion, from Newton's law, is
+\begin{align*}
+	\dfrac{\mathrm{d}^2 u}{\mathrm{d}t^2} &= 1 - u + \beta \left(1 - \dfrac{1}{u^2}\right) + \omega (v - u) \\
+	\alpha \dfrac{\mathrm{d}^2 v}{\mathrm{d}t^2} &= \lambda(1 - v) + \beta \left(1 - \dfrac{1}{v^2}\right) + \omega (u - v) \\
+\end{align*}
+We first express this as a Hamiltonian problem. Denote $q_1 = u$, $q_2 = v$.
+We define momentum $p_1 = \dot{q}_1$, $p_2 = \alpha \dot{q}_2$.
+A Hamiltonian, obtained by integrating the system, is
+\begin{equation*}
+	H = \frac{1}{2} \left( p_1^2 + \frac{1}{\alpha} p_2^2 \right) + \frac{\omega}{2}(q_1 - q_2)^2 - F(q_1) - G(q_2)
+\end{equation*}
+where
+\begin{align*}
+	F(q_1) &= q_1 - \frac{1}{2}q_1^2 + \beta \left( q_1 + \frac{1}{q_1} \right) \\
+	G(q_2) &= \lambda \left(q_2 - \frac{1}{2}q_2^2 \right) + \beta \left( q_2 + \frac{1}{q_2} \right). \\
+\end{align*}
+Therefore, in Hamiltonian variables the coupled ODEs can be expressed as
+\begin{eqnarray*}
+	\dot{q}_1 = p_1 & ~ & \dot{q}_2 = \frac{1}{\alpha} p_2 \\
+	\dot{p}_1 = F'(q_1) - \omega(q_1 - q_2) & ~ & \dot{p_2} = G'(q_2) - \omega(q_2 - q_1)
+\end{eqnarray*}
+stating the problem in Hamiltonian form.
+Since the Hamiltonian is a conserved quantity, we can use it to evaluate the behaviour of the integration method.
+We can apply the Hamiltonian function to our numerical solutions, to verify that the quantity is in fact conserved by the numerical method.
+A symplectic method does not preserve the Hamiltonian, but it preserves a particular Hamiltonian.
+The closeness of this Hamiltonian can be shown via backward error analysis.
+A regular integration method, such as an explicit Runge-Kutta scheme, will fail to preserve the Hamiltonian and the constant will diverge.
+If the value changes by a significant amount, we can observe loss of qualitative behaviour.
+Observe how, in Figure \ref{fig:phon}, we have shown an immediate comparison of the clarity of results from using a symplectic integrator,
+versus using the efficient but not as stable explicit Runge-Kutta methods applied by MATLAB's \texttt{ode45()} integrator.
+
+\section{Generalised Symplectic Methods}
+
+\subsection{Conjugacy}
+
+Before looking at more symplectic methods, we will cover a brief result on conjugacy of methods.
+Consider the implicit midpoint and trapezium methods. Implicit midpoint is the method
+\begin{equation*}
+	\Phi_h^M (x_n) = x_{n+1} = x_n + hf\left(\frac{x_n + x_{n+1}}{2}\right).
+\end{equation*}
+The trapezium method is similar:
+\begin{equation*}
+	\Phi_j^T (x_n) = x_{n+1} = x_n + h \left(\frac{f(x_n) + f(x_{n+1})}{2}\right)
+\end{equation*}
+The implicit midpoint method is symplectic, but the trapezium method is not.
+Interestingly, the trapezium method has excellent behaviour in preserving phase-space volume, despite not being a symplectic method.
+It can be shown that these are conjugate methods, meaning that they exhibit similar long-term behaviour.
+Two methods $\Psi_h, \Phi_h$ are conjugate if there exists a map $\chi$ such that $\Phi_h = \chi^{-1} \Psi_h \chi$.
+Consider applying a method $\Phi_h$ $N$ times. Conjugacy shows that
+\begin{align*}
+	\left(\Phi_h\right)^N &= \left(\chi^{-1} \Psi_h \chi\right)^N \\
+	&= \underbrace{\left(\chi^{-1} \Psi_h \chi \right)\left(\chi^{-1} \Psi_h \chi \right) \mathellipsis \left(\chi^{-1} \Psi_h \chi\right)}_{N} \\
+	&= \chi^{-1} (\Psi_h)^N \chi.
+\end{align*}
+Therefore, conjugate methods remain separated by the conjugacy map $\chi$ for an arbitrary number of iterations.
+%% find a defined inverse so that we can show conjugacy.
+
+\subsection{A-Stability}
+
+Show that all symplectic methods must be a-stable.
+This justifies that we don't care about any methods that aren't A-stable.
+
+\subsection{Runge-Kutta Methods}
+
+These are methods of the form
+\begin{equation*}
+	x_{n+1} = x_n + h \left( \sum_{i = 1}^{s} b_i k_i \right)
+\end{equation*}
+as defined in the introduction, equivalently defined by the Butcher tableau
+\begin{equation*}
+	\begin{array}{c|ccc}
+		c &A \\
+		\hline
+		&b^\top .
+	\end{array}
+\end{equation*}
+We will first consider A-stability.
+In general, the stability function for a Runge-Kutta method \cite{iserles2009rk} is
+\begin{equation*}
+	r(\lambda) = \frac{\det(I - \lambda A + \lambda eb^\mathrm{T})}{\det(I - \lambda A)}
+\end{equation*}
+where $A = (a_{ij})$, $b = (b_i)$ and $e$ is the vector of all ones.
+The stability function is a rational function in all cases.
+
+Consider the linear test problem $\dot{x} = \lambda x$.
+We have already explored stability for the basic Euler methods.
+We will look at an explicit 3-stage method.
+First, find expressions for the $k_i$:
+\begin{align*}
+	k_1 &= \lambda x_n, \\
+	k_2 &= \lambda\left( x_n + h a_{21}k_1 \right) \\
+	&= \left( \lambda + h a_{21}\lambda^2 \right)x_n, \\
+	k_3 &= \lambda \left( x_n + h a_{31}k_1 + h a_{32}k_2 \right) \\
+	&= \lambda \left( x_n + h a_{31} \lambda x_n + h a_{32}\left( \lambda + h a_{21} \lambda^2 \right) x_n \right) \\
+	&= \left( \lambda + h a_{31}\lambda^2 + h a_{32}\lambda^2 + h^2 a_{32}a_{21}\lambda^3 \right) x_n.
+\end{align*}
+therefore
+\begin{align*}
+	x_{n+1} &= x_n + h \left( b_1 k_1 + b_2 k_2 + b_3 k_3 \right) \\
+	&= x_n + h b_1 \lambda x_n + h b_2 \left(\lambda + h a_{21} \lambda^2\right)x_n + hb_3 \left( \lambda + h a_{31} \lambda^2 + h a_{32} \lambda ^2 + h^2 a_{32} a_{21} \lambda^3\right)x_n \\
+	&= \left(
+		1 + \left( b_1 + b_2 + b_3 \right) h\lambda + \left(
+			b_2 a_{21} + b_3 (a_{31} + a_{32})
+		\right)h^2\lambda^2 + \left(
+			b_3 a_{32} a_{21}
+		\right)h^3\lambda^3
+	\right)x_n.
+\end{align*}
+This coefficient term is a polynomial on $h\lambda$, which we denote by $R(h\lambda)$.
+For any explicit $k$-stage Runge-Kutta method the stability function is a polynomial.
+To ensure A-stability, we require that $|R(h\lambda)| < 0$ for $h \lambda$ in the left half of the complex plane.
+For any explicit method, the stability function is a polynomial.
+For any polynomial $p(y)$, we diverge to infinity as $|y| \rightarrow \infty$.
+Hence it is impossible for any explicit Runge-Kutta method to be A-stable.
+
+It is impossible for explicit RK methods to be A-stable, because the stability functions are polynomials which diverge to infinity as $|h\lambda| \rightarrow \infty$.
+Hence the region of convergence cannot contain the left half-plane.
+A general Runge-Kutta method is A-stable if $r(\lambda) < 0$ for all $\lambda < 0$.
+
+\subsection{Symplectic Runge-Kutta Methods}
+
+We have shown that all A-stable Runge-Kutta methods are necessarily implicit.
+This is also the case for all symplectic Runge-Kutta methods.
+
+\begin{theorem}
+\label{thm:symrk}
+If a Runge-Kutta method satisfies
+\begin{equation}
+	b_i a_{ij} + b_j a_{ji} - b_i b_j = 0
+\end{equation}
+for all $i, j = 1, \mathellipsis, s$ then it is symplectic.
+\end{theorem}
+\begin{proof}
+
+This proof is in two parts. First, we want to show that any Runge-Kutta method must satisfy this rule in order to preserve quadratic invariants of the system.
+Then, we show that any Runge-Kutta method which preserves these invariants is in fact symplectic.
+
+\textit{Part I:}
+Start by considering the recurrence $x_1 = x_0 + h \sum_{j=1}^{s} b_i k_i$ and let $C$ be an arbitrary matrix, in which case we can express a quadratic as
+\begin{equation}
+	x_1^\intercal C x_1 = x_0^\intercal C x_0 + h \sum_{i=1}^{s} b_i k_i^\intercal C x_0 + h \sum_{j=1}^{s} b_j x_0^\intercal C k_j + h^2 \sum_{i=1}^{s} \sum_{j=1}^{s} b_i b_j k_i^\intercal C k_j
+\end{equation} % is the simplification correct?
+by expanding. We can make a simplification by writing $k_i = f(X_i) = f\left(x_0 + h \sum_{j=1}^{s}a_{ij}k_j\right)$, which is the definition of the $k_i$ evaluations.
+The $f$ is the function which defines the dynamical system.
+We work out the expansion:
+\begin{align*}
+	x_1^\intercal C x_1 &= x_0^\intercal C x_0 + h \sum_{i = 1}^{s} b_i f(X_i)^\intercal C X_i - h \sum_{i=1}^{s}b_i f(X_i)^\intercal C \left( h\sum_{j=1}^{s}a_{ij} k_j \right) \\
+	&~ +h \sum_{j = 1}^{s} b_j X_j^\intercal C f(X_j) - h \sum_{j=1}^{s}b_j \left( h\sum_{i=1}^{s}a_{ji} k_i \right) C f(X_j) \\
+	&~ + h^2 \sum_{i=1}^{s} \sum_{j-1}^{s} b_i b_j k_i^\intercal C k_j \\
+	&= x_0^\intercal C x_0 + h \sum_{i=1}^{s} b_i \left(
+		\frac{\mathrm{d}}{\mathrm{d}t} X_i^\intercal C X_i
+	\right) + h^2 \sum_{i=1}^{s} \sum_{j=1}^{s} (b_i b_j - b_i a_{ij} - b_j a_{ji})k_i^\intercal C k_j
+\end{align*}
+Note the application of product rule differentiation, namely that
+\begin{equation*}
+	X^\intercal C f(X) + f(X)^\intercal C X = \frac{\mathrm{d}}{\mathrm{d}t} (X^\intercal C X)
+\end{equation*}
+and this quadratic first integral.
+% explain why these terms should change
+Therefore we require $b_i b_j - b_i a_{ij} - b_j a_{ji} = 0$ in order for the method to preserve quadratic invariants.
+
+\textit{Part II:}
+Our dynamical system is defined as $\dot{x} = f(x)$ with the initial condition $x(0) = x_0$.
+If we differentiate this problem with respect to $x_0$, we obtain
+\begin{equation}
+\begin{aligned}
+	\frac{\mathrm{d}}{\mathrm{d}t} \varphi'_t(x_0) &= f'(\varphi_t(x_0))\varphi'_t(x_0), \\
+	\varphi'_0(x_0) &= I
+\end{aligned}
+\label{eqn:vari}
+\end{equation}
+This is a differential equation involving the analytical flow map $\varphi_t(x_0)$.
+We will use the result that differentiating with respect to the initial condition and applying a symplectic RK method are commutative:
+either way we apply these operations, we end with the same result \cite{gni2006}.
+The analytic symplecticity criterion is $\varphi_t^\intercal J \varphi_t = J$, which is a quadratic invariant of the system.
+Assuming that $\Psi$ denotes a symplectic RK method, we have $\Psi_n^\intercal J \Psi_n$ as the numerical approximation of the symplecticity constant.
+If we apply a symplectic RK method to the original problem, we obtain the numerical flow $\Psi_n$.
+Equivalently, if we apply a symplectic RK method to the variational equation \ref{eqn:vari}, we have a numerical sensitivity $\Psi'_n$.
+Because the operations are commutative, applying a symplectic RK method to the variational equation respects the symplecticity condition.
+This is because this operation has the same result as applying the symplectic RK method first,
+and then differentiating with respect to $x_0$.
+Therefore, Runge-Kutta methods which preserve quadratic first integrals are symplectic.\end{proof} % this is probably fine
+
+% This is similar to when we looked at demonstrating symplecticity of a regular Hamiltonian system.
+% Clearly $\varphi'_0(x_0)^\intercal J \varphi'_0(x_0) = IJI = J$.
+% If we differentiate $\varphi'_t(x_0)^\intercal J \varphi'_t(x_0)$ with respect to time, the expression reduces to zero.
+% We already showed this when we showed that the flow of a Hamiltonian system is symplectic.
+% Therefore, this expression is a first integral of the system.
+% Since it is quadratic in $\varphi'_t(x_0)$, it will be conserved by the Runge-Kutta methods which satisfy the property that $b_i b_j - b_i a_{ij} - b_j a_{ji} = 0$.
+% Therefore the symplectic identity is a quadratic first integral of the system, and hence these Runge-Kutta methods are symplectic. \end{proof}
+% one theorem is that if the method satisfies the implicit criterion then it preserves quadratic integrals
+% another result shows that RK methods that preserve quadratic integrals are symplectic
+
+% we can prove the commutativity result if we want to but the proofs are a bit rubbish
+% If we solve a dynamical system $\dot{x} = f(x)$ using a symplectic Runge-Kutta method, we get a numerical flow map $\varPhi_h(x_0)$.
+% We can differentiate this with respect to the intial condition $x_0$ to obtain a sensitivity of the numerical flow $\varPhi'_h(x_0)$.
+% However, this sensitivity matrix is equivalent to the numerical flow map obtained by applying a symplectic Runge-Kutta method to $\frac{\mathrm{d}}{\mathrm{d}t}\varphi'_t(x_0) = f'(\varphi_t(x_0))\varphi'_t(x_0)$,
+% which is our dynamical system differentiated with respect to the initial condition. The operations are commutative.
+% We will prove this in the following:
+
+% \begin{theorem}
+% \label{thm:commt}
+% 	For a dynamical system $\dot{x} = f(x)$, applying a symplectic Runge-Kutta method and differentiating the system with respect to $x_0$ are commutative operations.
+% 	Regardless of the order in which they are applied, we obtain a numerical flow map $\varPhi'_h(x_0)$ to the dynamical system $\frac{\mathrm{d}}{\mathrm{d}t}\varphi'_t(x_0) = f'(\varphi_t(x_0))\varphi'_t(x_0)$ on the analytical flow map.
+% \end{theorem}
+% \begin{proof}
+% % begin proof
+% \end{proof}
+
+% symplectic RK methods preserving quadratic first integrals
+% the commutative diagram result
+
+Symplectic Runge-Kutta methods are popular choices for symplectic integration.
+We are able to construct symplectic RK methods to a given order, like traditional RK methods.
+A known class of symplectic Runge-Kutta methods are Gauss-Legendre Runge-Kutta methods, which satisfy the identity from Theorem \ref{thm:symrk}.
+The fourth-order GLRK method is given by the following Butcher tableau:
+\begin{equation*}
+	\begin{array}{c|cc}
+		\frac{1}{2} - \frac{1}{6}\sqrt{3}  &\frac{1}{4} &\frac{1}{4} - \frac{1}{6}\sqrt{3} \\
+		\frac{1}{2} + \frac{1}{6}\sqrt{3}  &\frac{1}{4} + \frac{1}{6}\sqrt{3} &\frac{1}{4} \\
+		\hline
+		&\frac{1}{2} &\frac{1}{2}.
+	\end{array}
+\end{equation*}
+The Gauss-Legendre Runge-Kutta method on two stages is fourth order \cite{iserles2009rk}.
+Hence this must be a fourth-order symplectic method.
+
+
+\subsection{Consideration}
+
+We need implicit runge kutta methods for symplectic runge kutta methods
+can we also find conjugate symplectic methods that are easy to compute.
+
+
+\section{Analysis of Symplectic Methods}
+
+\subsection{Backward Error Analysis}
+
+When we perform numerical integration on a dynamical system given by $\dot{x} = f(x)$,
+we obtain a numerical solution in the form of the iteration $x_{n+1} = \Phi_h(x_n)$,
+where $\Phi$ is a method of our choice.
+This is a numerical solution, which may converge to the exact solution as $h \rightarrow 0$,
+but it is not exact.
+In backward error analysis, we look at the problem from another perspective.
+Instead of considering the closeness of our numerical solution to the system,
+we think of the numerical solution as an exact solution to a perturbed problem,
+and analyse the perturbation of this new problem to the original.
+
+These methods and theorems follow the methods in Chapter IX of \cite{gni2006}.
+We want to find a modified equation $\dot{\tilde{x}} = f_h (\tilde{x})$ which is similar to $\dot{x} = f(x)$,
+and which is exactly solved by the obtained numerical solution, i.e, $x_n = \tilde{x}(nh)$.
+We expect the perturbed problem to be of the form
+\begin{equation*}
+	\dot{\tilde{x}} = f_h(\tilde{x}) = f(\tilde{x}) + h f_2(\tilde{x}) + h^2 f_3(\tilde{x}) + \mathellipsis,
+\end{equation*}
+namely as a polynomial expansion about the original problem. Important to note is that this series is not guaranteed to converge as $N \rightarrow \infty$.
+% We require a truncation, which we will explore in detail later.
+Instead, we require a truncation of the series.
+We perform the truncation such that the value of the series is minimised.
+We want to match this expression to the numerical method such that $\tilde{x}(t+h) \equiv \Phi_h(\tilde{x}(t))$.
+Now consider the expansion of the perturbed problem as a Taylor series about a fixed time $t$. Write
+\begin{equation*}
+	\tilde{x}(t+h) = \tilde{x}(t) + h \dot{\tilde{x}}(t) + \frac{h^2}{2} \ddot{\tilde{x}}(t) + \mathellipsis
+\end{equation*}
+and recall we have assumed that $\tilde{x}(t) = f_h(\tilde{x})$.
+We can use this to expand the first few terms for clarity:
+\begin{equation*}
+	\begin{aligned}
+		\tilde{x}(t+h) = \tilde{x}(t) &+ \left(
+			f_h(\tilde{x})
+		\right)h \\
+		&+ \left(
+			f'_h(\tilde{x})f_h(\tilde{x})
+		\right)h^2 \\
+		&+ \left(
+			(f''_h(\tilde{x})+f'_h(\tilde{x}))f'_h(\tilde{x})f_h(\tilde{x})
+		\right)h^3 \\
+		&+ \mathellipsis
+	\end{aligned}
+\end{equation*}
+However, recall from the defintion of the perturbed problem that $f_h(x)$ is a polynomial on $h$.
+Therefore, the terms expand as
+\begin{equation*}
+	\begin{aligned}
+		\tilde{x}(t+h) = \tilde{x}(t) &+ \left(
+			f(\tilde{x}) + h f_2(\tilde{x}) + h^2 f_3(\tilde{x}) + \mathellipsis
+ 		\right)h \\
+		&+ \frac{1}{2!}\left(
+			(f'(\tilde{x}) + h f'_2(\tilde{x})  + \mathellipsis)
+			(f(\tilde{x}) + h f_2(\tilde{x}) + \mathellipsis)
+		\right)h^2 \\
+		&+ \frac{1}{3!}\left(
+			((f''(\tilde{x}) + f'(\tilde{x})) + \mathellipsis)
+			(f'(\tilde{x}) + \mathellipsis)
+			(f(\tilde{x}) + \mathellipsis)
+		\right)h^3 \\
+		&+ \mathellipsis
+	\end{aligned}.
+\end{equation*}
+Now consider the numerical method. Assume that it takes the form
+\begin{equation*}
+	\Phi_h(x) = x + h f(x) + h^2 d_2(x) + h^3 d_3(x) + \mathellipsis
+\end{equation*}
+where we can find the $d_i$ functions from the defined method. In order to satisfy the eqivalence we want, we match the coefficients of $h$ in $\tilde{x}(t+h)$ and $\Phi_h(\tilde{x}(t))$:
+\begin{align*}
+	h^0 &: x=x \\
+	h^1 &: f(x) = f(x) \\
+	h^2 &: d_2(x) = f_2(x) + \frac{1}{2!}f'(x)f(x) \\
+	h^3 &: d_3(x) = f_3(x) + \frac{1}{2!}(f'(x)f_2(x) + f'_2(x)f(x)) + \frac{1}{3!}(f''(x)f'(x)f(x) + f'(x)f'(x)f(x)) \\
+	& \vdots
+\end{align*}
+Since we can find the $d_i$ from the numerical method, and $f(x)$ defines the system,
+we can rearrange this problem to find the functions $f_i$ which define the perturbed Hamiltonian system.
+Therefore, the perturbed Hamiltonian which is exactly solved by the numerical solution exists. 
+
+We next want to find an expression for this perturbed Hamiltonian in terms of its closeness to the original.
+
+\subsection{The Perturbed Hamiltonian}
+
+\begin{figure}
+	\centering
+	\includegraphics[width = 0.5\linewidth]{figures/phonationerr.eps}
+	\caption{
+		Evaluating the Hamiltonian for the model for phonation, integrated using the St\"ormer-Verlet method.
+		Initial conditions are the same as that of Figure \ref{fig:phon}.
+		The error of the method is shown to be $\mathcal{O}(h^2)$ in evaluating the Hamiltonian.
+	}
+	\label{fig:phonhamil}
+\end{figure}
+
+We move on to discuss results on the closeness of the Hamiltonian that corresponds to the problem solved by the numerical method.
+This is an interesting result from backward error analysis.
+If we can deduce that the modified Hamiltonian is sufficiently close to the original,
+this merits the numerical solution in terms of preservation of quality.
+
+Before considering the modified Hamiltonian, we need to introduce the concept of a generating function.
+This methodology is covered in \cite{Casas_2016} in a wider analysis.
+These are important when considering a change of coordinates.
+First, recall Hamilton's equations
+\begin{align*}
+	&\dot{q}_i = \frac{\partial H}{\partial p_i}, &\dot{p}_i = \frac{- \partial H}{\partial q_i}.
+\end{align*}
+Define a new coordinate pair $Q_i = Q_i(q,p,t)$ and $P_i = P_i(q,p,t)$.
+There must be another Hamiltonian $\tilde{H}$ which describes these transformed coordinates
+\begin{align*}
+	&\dot{Q}_i = \frac{\partial \tilde{H}}{\partial P_i}, &\dot{P}_i = \frac{- \partial \tilde{H}}{\partial Q_i}.
+\end{align*}
+This modified Hamiltonian tells us about the behaviour of the solution in this new coordinate system.
+The motivation for this transformation is the aim of describing the behaviour of the system in a potentially simpler form using a different coordinate system. %is it?
+There is a relation between these coordinates which is given by
+\begin{equation*}
+	\sum_{i=1}^{d} p_i \mathrm{d}q_i - H \mathrm{d}t = \sum_{i=1}^{d} P_i \mathrm{d}Q_i - \tilde{H} \mathrm{d}t + \mathrm{d}F(q,p).
+\end{equation*}
+This is an equation involving differential forms $\mathrm{d}q_i, \mathrm{d}t$, etc. but the key takeaway is the relationship involving the expression $\mathrm{d}F$ between coordinate systems.
+The relationship between the Hamiltonians themselves is
+\begin{equation*}
+	\tilde{H}(Q,P,t) = H(q,p,t) + \frac{\partial F}{\partial t}.
+\end{equation*}
+We call $F$ a generating function. This is because the definition of $F$ can be used to reconstruct the coordinate transformation.
+Note also that we wrote $\mathrm{d}F(q,p)$ on the original coordinates above, but if we know the transformation then we can write $F(q,p)$ and $F(Q,P)$ analogously by inverting the transformation.
+This is because $F(q,p) = F(Q(q,p),P(q,p))$.
+We now introduce a result on the modified Hamiltonian.
+
+\begin{theorem}{\cite{gni2006, Casas_2016}}
+Consider a generating function for a numerical method $\Phi_h(q,p)$ given by
+\begin{equation}
+	F(q,P,h) = h F_1(q,P) + h^2 F_2(q,P) + \mathellipsis
+	\label{eqn:methodgen}
+\end{equation}
+where the functions $F_i$ are defined on some domain $D$ which is an open set.
+The modified Hamilton's equations are 
+\begin{align*}
+	&\dot{q}_i = \frac{\partial \tilde{H}}{\partial p_i}, &\dot{p}_i = \frac{- \partial \tilde{H}}{\partial q_i}.
+\end{align*}
+where the modified Hamiltonian is
+\begin{equation}
+	\tilde{H}(q,p) = H(q,p) + h H_2(q,p) + h^2 H_3(q,p) + \mathellipsis
+	\label{eqn:powerham}	
+\end{equation}
+where if the method is order $p$, then $H_i = 0$ for $i \leq p$.
+The $H_i$ are defined and smooth on $D$.
+Therefore, the closeness of the modified Hamiltonian to the original is $\mathcal{O}(h^p)$.
+\end{theorem}
+
+If this domain $D$ is the entire space of points $q,P$ then this result is globally defined, but over some restricted domain the result still holds but only locally.
+A proof is given in \cite{gni2006}, but the result features in both and \cite{Casas_2016} gives examples.
+The proof makes use of mixed-variable generating functions. If we have a generating function $F$ on $(q,P)$,
+then
+\begin{align*}
+	&Q = \frac{\partial F}{\partial P}(q,P), &p = \frac{\partial F}{\partial q}(q,P).
+\end{align*}
+Furthermore, the proof requires a particular kind of generating function, being the function $\tilde{F}$ obtained from the solution of the Hamilton-Jacobi partial differential equation
+\begin{equation*}
+	\frac{\partial \tilde{F}}{\partial t}(q,P,t) = \tilde{H} \left(
+		P, q + \frac{\partial \tilde{F}}{\partial P}(q,P,t)
+	\right)
+\end{equation*}
+with initial condition $\tilde{S}(q,P,0) = 0$.
+This detail is necessary, and more detail is given in \cite{gni2006}.
+We now consider the proof for this result.
+\begin{proof}
+	Let $P,Q$ be the coordinates for the exact solution of the modified equation defined by the perturbed Hamiltonian $\tilde{H}$.
+	We first want a generating function $\tilde{F}(q,P,t)$ defining the coordinate transformation.
+	It is given (in the text) that if $\tilde{F}$ is a solution to the Hamilton-Jacobi PDE, then it is a unique solution which defines the map
+	\begin{align*}
+		&Q = q + \frac{\partial \tilde{F}}{\partial P}(q,P,t), &p = P + \frac{\partial \tilde{F}}{\partial q}(q,P,t).
+	\end{align*}
+	This is an expression involving $t$, and our numerical method is developed using the parameter $h$.
+	We want $\tilde{F}$ here to match the expression $F(q,P,h)$ given in the statement of the theorem at $t=h$.
+	We can start by considering $\tilde{F}$ as a series expansion around $t=h$, which will take the form
+	\begin{equation*}
+		\tilde{F}(q,P,t) = t \tilde{F}_1 (q,P,h) + t^2 \tilde{F}_2 (q,P,h) + \mathellipsis
+	\end{equation*}
+	If we plug this into the Hamilton-Jacobi PDE, we can compare powers of $t$ to obtain expressions for the terms in the series.
+	The results come out by Taylor expansion in one dimension since $\tilde{H}$ evaluates at $P$.
+	The first few terms are
+	\begin{equation}
+		\begin{aligned}
+			\tilde{F}_1(q,P,h) &= \tilde{H}(q,P) \\
+			2 \tilde{F}_2(q,P,h) &= \frac{\partial \tilde{H}}{\partial q}(q,P,h) \cdot \frac{\partial \tilde{F}_1}{\partial P}(q,P,h) \\
+			\mathellipsis
+		\end{aligned}
+		\label{eqn:genh}
+	\end{equation}
+	The notation on the arguments is not important since these are just functions,
+	but we stick with $(q,P)$ for consistency.
+	We have expressions for $\tilde{F}_j$ in terms of derivatives of $\tilde{H}$,
+	and we also have an expression for $\tilde{H}$ about $H$ in powers of $h$.
+	If we let $\tilde{F}_j$ be \textit{another} series of the form
+	\begin{equation*}
+		\tilde{F}_j(q,P,h) = \tilde{F}_{j1}(q,P) + h \tilde{F}_{j2}(q,P) + h^2\tilde{F}_{j3}(q,P) + \mathellipsis
+	\end{equation*}
+	then we can use this expansion, and the expansion of $\tilde{H}$ in Equation \ref{eqn:powerham},
+	both in powers of $h$,
+	and match coefficients by plugging the terms into the entries in Equation \ref{eqn:genh}.
+	Trivially, $\tilde{F}_{1k}(q,P) = H_k(q,P)$ from the first entry, so we have the original Hamiltonian plus a series in powers of $h$.
+	For $j=2$, we get terms such as
+	\begin{align*}
+		2 \tilde{F}_{21}(q,P) &= \frac{\partial H}{\partial q}(q,P) \cdot \frac{\partial H}{\partial P}(q,P) \\
+		2 \tilde{F}_{22}(q,P) &= \frac{\partial H_2}{\partial q}(q,P) \cdot \frac{\partial H}{\partial P}(q,P) + \frac{\partial H}{\partial q}(q,P) \cdot \frac{\partial H_2}{\partial q}(q,P) \\
+		\mathellipsis
+	\end{align*}
+	In general for $j > 1$ we have that $\tilde{F}_{jk}(q,P)$ is a function depending on derivatives of $H_l$ for $l \leq k$\footnote{
+		The book states $l < k$, however equality is attained, for example $\tilde{F}_{22}$ involves derivatives of $H_2$.
+	}.
+	Finally, recall the purpose of the generating function.
+	The function $F(q,P)$ defines the numerical method.
+	Therefore $\tilde{F}(q,P,h)$ needs to match $F(q,P,h)$ as defined in Equation \ref{eqn:methodgen}.
+	We get the requirements
+	\begin{align*}
+		F_1(q,P) &= \tilde{F}_{11}(q,P) \\
+		F_2(q,P) &= \tilde{F}_{12}(q,P) + \tilde{F}_{21}(q,P) \\
+		\mathellipsis
+	\end{align*}
+	from comparing coefficients of $h$.
+	Recall that we have $\tilde{F}_{1k}(q,P) = H_k(q,P)$ from the first row of Equation \ref{eqn:genh}.
+	Therefore, the generating expression does contain the original Hamiltonian and we have
+	\begin{equation*}
+		F_j(q,P) = H_j(q,P) + \mathcal{D}_j(H_k(q,P))
+	\end{equation*}
+	where $\mathcal{D}_j$ is some function of derivatives of $H_k$ for $k \leq j$.
+	This expression allows us to determine the $H_j$ given a generating function. %TODO: the logic here is awful
+	If the numerical method defined by the generating function is $\mathcal{O}(h^p)$,
+	then $F_j = H_j$ for $j = 1, \mathellipsis, p$, and hence the closeness of the modified Hamiltonian is $\mathcal{O}(h^{p+1})$.
+	Furthermore, since the $F_j$ are defined in terms of $H_j$, they must be defined on the same domain $D$.
+\end{proof}
+
+The direct implication is that a higher order method will converge faster to the true \textit{qualitative behaviour}.
+Figure \ref{fig:phonhamil} shows the phonation problem from earlier.
+We evaluate the Hamiltonian using its closed form expression using the numerical solution generated by the St\"ormer-Verlet scheme.
+As we can see, the perturbed Hamiltonian approaches the unmodified Hamiltonian by $\mathcal{O}(h^2)$, the order of the method.
+
+\section{Applications}
+
+\subsection{Example - The Three-Body Problem}
+
+The three-body problem \cite{musielak2014three} is a huge point of interest in celestial mechanics.
+It describes the motion of three point-masses in a closed system which move under gravitational acceleration to each other.
+An important subclass is the \textit{restricted} three-body problem, in which one mass is relatively large in magnitude, and can be regarded as fixed compared to the other two bodies.
+The restricted three-body problem can be used to model the motion of the earth and moon relative to the sun.
+
+The classical form of the dynamics for the three-body problem is
+\begin{equation*}
+	\begin{aligned}
+		\ddot{x}_1 &= -G m_2 \frac{x_1 - x_2}{|x_1 - x_2|^3} - -G m_3 \frac{x_1 - x_3}{|x_1 - x_3|^3} \\
+		\ddot{x}_2 &= -G m_3 \frac{x_2 - x_3}{|x_2 - x_3|^3} - -G m_1 \frac{x_2 - x_1}{|x_2 - x_1|^3} \\
+		\ddot{x}_3 &= -G m_1 \frac{x_3 - x_1}{|x_3 - x_1|^3} - -G m_2 \frac{x_3 - x_2}{|x_3 - x_2|^3}
+	\end{aligned}
+\end{equation*} 
+where $x_i$ is the vector position of the point-mass particle with mass $m_i$.
+In Hamiltonian form, this is the problem
+\begin{align*}
+	&\dot{q}_i = \frac{\partial H}{\partial p_i}, &\dot{p}_i = \frac{- \partial H}{\partial q_i}.
+\end{align*}
+where
+\begin{equation*}
+	H(q,p) = - \frac{G m_1 m_2}{|q_1 - q_2|} - \frac{G m_2 m_3}{|q_2 - q_3|} - \frac{G m_3 m_1}{|q_3 - q_1|} + \frac{p_1^2}{2m_1} + \frac{p_2^2}{2m_2} + \frac{p_3^2}{2m_3}.
+\end{equation*}
+for particles with position $q_i$ and momentum $p_i$.
+
+
+\subsection{Review}
+
+bla bla
+
+% error control on explicit method versus symplectic method - what is the cost
+
+\section{Appendicitis}
+
+
+% begin positivity preservation
+
+
+\appendix
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
