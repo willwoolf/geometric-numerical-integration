@@ -28,6 +28,7 @@
 \usepackage{dsfont}
 \usepackage[width=6in, height=8in]{geometry}
 \usepackage{xcolor}
+\usepackage{csquotes}
 
 \usepackage[
 backend=biber,
@@ -79,7 +80,7 @@ The most general way to define a dynamical system is to denote position by the v
 \end{equation}
 for an arbitrary function $f$, using dot notation for time derivative.
 This can express any dynamical system from reduction to a first order vector equation.
-In this project, we will primarily be concerned with \textit{autonomous} systems of the form $\dot{x} = f(x)$.
+For this part of our discussion, we will primarily be concerned with \textit{autonomous} systems of the form $\dot{x} = f(x)$.
 
 For a Hamiltonian system in one dimension, we denote position by the variable $q$, and momentum by $p$.
 The Hamiltonian $H(q,p)$ is a first integral of the system, used to denote the total energy.
@@ -192,6 +193,7 @@ The trapezium method:
 \end{equation}
 
 \section{Examples}
+
 \subsection{Forward Euler Method - Simple Harmonic Oscillator}
 
 If a problem has a closed-form solution, then we can find an explicit expression for the flow.
@@ -516,9 +518,27 @@ Under the assumption that the Hessian matrix $\nabla^2 H(\varphi_t)$ is symmetri
 this expression evaluates to zero and hence the symplectic identity is satisfied for all $t$ and we are done.
 
 $(\Leftarrow)$ Assuming that the sensitivity satisfies the symplectic identity, we want to show that the system is Hamiltonian.
-% INCOMPLETE. TODO: either formalise a proof OR cite one
-
-\end{proof}
+For a general system, we have $\dot{x} = f(x)$. We want to show that we can write $f(x) = J \nabla H(x)$ for some function $x$, in order for the system to be Hamiltonian.
+The flow is symplectic, so it satisfies
+\begin{equation*}
+	\varphi'_t(x_0)^\top J \varphi'_t(x_0) = J. 
+\end{equation*}
+Differentiating this expression gives, similar to earlier,
+\begin{equation*}
+	\varphi'_t(x_0)^\top \frac{\partial f}{\partial x_0}(\varphi_t(x_0))^\top J \varphi'_t(x_0) + \varphi'_t(x_0)^\top J \frac{\partial f}{\partial x_0}(\varphi_t(x_0)) \varphi'_t(x_0) = 0.
+\end{equation*}
+By taking factors on the left and right, this is
+\begin{equation*}
+	\varphi'_t(x_0)^\top \left[ \frac{\partial f}{\partial x_0}(\varphi_t(x_0))^\top J + J \frac{\partial f}{\partial x_0}(\varphi_t(x_0)) \right] \varphi'_t(x_0) = 0.
+\end{equation*}
+This must be true for all $t$, so if we set $t=0$ the sensitivity matrix appearing on both the right and left is the identity.
+Because $J = -J^\top$, we have that
+\begin{equation*}
+	\left[ J \frac{\partial f}{\partial x_0} \right]= \left[ J \frac{\partial f}{\partial x_0} \right]^\top
+\end{equation*}
+i.e. the matrix is symmetric. 
+The required result is given in \cite{gni2006}, namely that $f(x)$ can be written in the form $J \nabla H(x)$.
+\end{proof} %yay
 
 \subsection{Mechanics}
 
@@ -605,9 +625,9 @@ However, the Symplectic Euler method is generally implicit because a given Hamil
 Denote the Symplectic Euler step by $\Psi_h$. The \textit{St\"{o}rmer-Verlet} method is defined by the step $\Psi_{h/2}^* \circ \Psi_{h/2}$.
 Formally, this is
 \begin{align*}
-	p_{n+\frac{1}{2}} &= p_n - \frac{h}{2}\nabla_q H(q_n, p_{n+\frac{1}{2}}) \\
-	q_{n+1} &= \frac{h}{2}\left( \nabla_q H(q_n, p_{n+\frac{1}{2}}) + \nabla_p H(q_{n+1}, p_{n+\frac{1}{2}}) \right) \\
-	p_{n+1} &= p_{n+\frac{1}{2}} - \frac{h}{2} \nabla_q H(q_{n+1}m p_{n+\frac{1}{2}}).
+	p_{n+\frac{1}{2}} &= p_n - \frac{h}{2}\nabla_q H \left( q_n, p_{n+\frac{1}{2}} \right) \\
+	q_{n+1} &= q_n + \frac{h}{2}\left( \nabla_p H \left( q_n, p_{n+\frac{1}{2}} \right) + \nabla_p H \left(q_{n+1}, p_{n+\frac{1}{2}} \right) \right) \\
+	p_{n+1} &= p_{n+\frac{1}{2}} - \frac{h}{2} \nabla_q H \left( q_{n+1}, p_{n+\frac{1}{2}} \right).
 \end{align*}
 
 There are several properties of symplectic methods we have not talked about, which may be of interest now.
@@ -714,7 +734,7 @@ For any explicit method, the stability function is a polynomial.
 For any polynomial $p(y)$, we diverge to infinity as $|y| \rightarrow \infty$.
 Hence it is impossible for any explicit Runge-Kutta method to be A-stable.
 
-In general, the stability function for a Runge-Kutta method is
+In general, the stability function for a Runge-Kutta method \cite{iserles2009rk} is
 \begin{equation*}
 	r(\lambda) = \frac{\det(I - \lambda A + \lambda eb^\mathrm{T})}{\det(I - \lambda A)}
 \end{equation*} %% cite this result
@@ -780,14 +800,15 @@ If we differentiate this problem with respect to $x_0$, we obtain
 \end{equation}
 This is a differential equation involving the analytical flow map $\varphi_t(x_0)$.
 We will use the result that differentiating with respect to the initial condition and applying a symplectic RK method are commutative:
-either way we apply these operations, we end with the same result. \cite{}.
+either way we apply these operations, we end with the same result \cite{gni2006}.
 The analytic symplecticity criterion is $\varphi_t^\intercal J \varphi_t = J$, which is a quadratic invariant of the system.
 Assuming that $\Psi$ denotes a symplectic RK method, we have $\Psi_n^\intercal J \Psi_n$ as the numerical approximation of the symplecticity constant.
-Now recall that the operations are commutative, so if we apply a symplectic RK method to Equation \ref{eqn:vari},
-we preserve $\Psi_n^\intercal J \Psi_n = J$.
-Showing that the equality holds is identical to when we showed the symplecticity of an analytical flow for a Hamiltonian system,
-first by showing equality at $n=0$ and then showing that the quantity is unchanging.
-Therefore, Runge-Kutta methods which preserve quadratic first integrals are symplectic. \end{proof}
+If we apply a symplectic RK method to the original problem, we obtain the numerical flow $\Psi_n$.
+Equivalently, if we apply a symplectic RK method to the variational equation \ref{eqn:vari}, we have a numerical sensitivity $\Psi'_n$.
+Because the operations are commutative, applying a symplectic RK method to the variational equation respects the symplecticity condition.
+This is because this operation has the same result as applying the symplectic RK method first,
+and then differentiating with respect to $x_0$.
+Therefore, Runge-Kutta methods which preserve quadratic first integrals are symplectic.\end{proof} % this is probably fine
 
 % This is similar to when we looked at demonstrating symplecticity of a regular Hamiltonian system.
 % Clearly $\varphi'_0(x_0)^\intercal J \varphi'_0(x_0) = IJI = J$.
@@ -820,6 +841,18 @@ Therefore, Runge-Kutta methods which preserve quadratic first integrals are symp
 
 Symplectic Runge-Kutta methods are popular choices for symplectic integration.
 We are able to construct symplectic RK methods to a given order, like traditional RK methods.
+A known class of symplectic Runge-Kutta methods are Gauss-Legendre Runge-Kutta methods, which satisfy the identity from Theorem \ref{thm:symrk}.
+The fourth-order GLRK method is given by the following Butcher tableau:
+\begin{equation*}
+	\begin{array}{c|cc}
+		\frac{1}{2} - \frac{1}{6}\sqrt{3}  &\frac{1}{4} &\frac{1}{4} - \frac{1}{6}\sqrt{3} \\
+		\frac{1}{2} + \frac{1}{6}\sqrt{3}  &\frac{1}{4} + \frac{1}{6}\sqrt{3} &\frac{1}{4} \\
+		\hline
+		&\frac{1}{2} &\frac{1}{2}.
+	\end{array}
+\end{equation*}
+The Gauss-Legendre Runge-Kutta method on two stages is fourth order \cite{iserles2009rk}.
+Hence this must be a fourth-order symplectic method.
 
 \subsection{Example - A Model for Phonation}
 
@@ -863,7 +896,8 @@ Therefore, in Hamiltonian variables the coupled ODEs can be expressed as
 stating the problem in Hamiltonian form.
 Since the Hamiltonian is a conserved quantity, we can use it to evaluate the behaviour of the integration method.
 We can apply the Hamiltonian function to our numerical solutions, to verify that the quantity is in fact conserved by the numerical method.
-A symplectic method preserves the Hamiltonian - it will not be constant, but it will correct itself about a constant value and differ by $\mathcal{O}(h)$.
+A symplectic method does not preserve the Hamiltonian, but it preserves a particular Hamiltonian.
+The closeness of this Hamiltonian can be shown via backward error analysis.
 A regular integration method, such as an explicit Runge-Kutta scheme, will fail to preserve the Hamiltonian and the constant will diverge.
 If the value changes by a significant amount, we can observe loss of qualitative behaviour.
 Observe how, in Figure \ref{fig:phon}, we have shown an immediate comparison of the clarity of results from using a symplectic integrator,
@@ -883,7 +917,7 @@ Instead of considering the closeness of our numerical solution to the system,
 we think of the numerical solution as an exact solution to a perturbed problem,
 and analyse the perturbation of this new problem to the original.
 
-These methods and theorems follow the methods in Chapter IX of cite{Geometric Numerical Integration}.
+These methods and theorems follow the methods in Chapter IX of \cite{gni2006}.
 We want to find a modified equation $\dot{\tilde{x}} = f_h (\tilde{x})$ which is similar to $\dot{x} = f(x)$,
 and which is exactly solved by the obtained numerical solution, i.e, $x_n = \tilde{x}(nh)$.
 We expect the perturbed problem to be of the form
@@ -891,8 +925,10 @@ We expect the perturbed problem to be of the form
 	\dot{\tilde{x}} = f_h(\tilde{x}) = f(\tilde{x}) + h f_2(\tilde{x}) + h^2 f_3(\tilde{x}) + \mathellipsis,
 \end{equation*}
 namely as a polynomial expansion about the original problem. Important to note is that this series is not guaranteed to converge as $N \rightarrow \infty$.
-We require a truncation, which we will explore in detail later.
-We want to match this to the numerical method such that $\tilde{x}(t+h) \equiv \Phi_h(\tilde{x}(t))$.
+% We require a truncation, which we will explore in detail later.
+Instead, we require a truncation of the series.
+We perform the truncation such that the value of the series is minimised.
+We want to match this expression to the numerical method such that $\tilde{x}(t+h) \equiv \Phi_h(\tilde{x}(t))$.
 Now consider the expansion of the perturbed problem as a Taylor series about a fixed time $t$. Write
 \begin{equation*}
 	\tilde{x}(t+h) = \tilde{x}(t) + h \dot{\tilde{x}}(t) + \frac{h^2}{2} \ddot{\tilde{x}}(t) + \mathellipsis
@@ -950,28 +986,110 @@ Therefore, the perturbed Hamiltonian which is exactly solved by the numerical so
 
 We next want to find an expression for this perturbed Hamiltonian in terms of its closeness to the original.
 
-\subsection{Local Error}
+\subsection{The Perturbed Hamiltonian}
 
 \begin{figure}
 	\centering
-	\includegraphics[width = 0.75\linewidth]{figures/phonationerr.eps}
+	\includegraphics[width = 0.5\linewidth]{figures/phonationerr.eps}
 	\caption{
-		Evaluating the Hamiltonian for the model for phonation, integrated using the Stormer-Verlet method.
+		Evaluating the Hamiltonian for the model for phonation, integrated using the St\"ormer-Verlet method.
 		Initial conditions are the same as that of Figure \ref{fig:phon}.
 		The error of the method is shown to be $\mathcal{O}(h^2)$ in evaluating the Hamiltonian.
 	}
 	\label{fig:phonhamil}
 \end{figure}
 
-%this section should all be on error of symplectic methods,
-% necessity of uniform step size,
-% closeness of perturbed hamiltonian
+We move on to discuss results on the closeness of the Hamiltonian that corresponds to the problem solved by the numerical method.
+This is an interesting result from backward error analysis.
+If we can deduce that the modified Hamiltonian is sufficiently close to the original,
+this merits the numerical solution in terms of preservation of quality.
+
+Before considering the modified Hamiltonian, we need to introduce the concept of a generating function.
+This methodology is covered in \cite{Casas_2016} in a wider analysis.
+These are important when considering a change of coordinates.
+First, recall Hamilton's equations
+\begin{align*}
+	&\dot{q}_i = \frac{\partial H}{\partial p_i}, &\dot{p}_i = \frac{- \partial H}{\partial q_i}.
+\end{align*}
+Define a new coordinate pair $Q_i = Q_i(q,p,t)$ and $P_i = P_i(q,p,t)$.
+There must be another Hamiltonian $\tilde{H}$ which describes these transformed coordinates
+\begin{align*}
+	&\dot{Q}_i = \frac{\partial \tilde{H}}{\partial P_i}, &\dot{P}_i = \frac{- \partial \tilde{H}}{\partial Q_i}.
+\end{align*}
+This modified Hamiltonian tells us about the behaviour of the solution in this new coordinate system.
+The motivation for this transformation is the aim of describing the behaviour of the system in a potentially simpler form using a different coordinate system. %is it?
+There is a relation between these coordinates which is given by
+\begin{equation*}
+	\sum_{i=1}^{d} p_i \mathrm{d}q_i - H \mathrm{d}t = \sum_{i=1}^{d} P_i \mathrm{d}Q_i - \tilde{H} \mathrm{d}t + \mathrm{d}F(q,p).
+\end{equation*}
+This is an equation involving differential forms $\mathrm{d}q_i, \mathrm{d}t$, etc. but the key takeaway is the relationship involving the expression $\mathrm{d}F$ between coordinate systems.
+The relationship between the Hamiltonians themselves is
+\begin{equation*}
+	\tilde{H}(Q,P,t) = H(q,p,t) + \frac{\partial F}{\partial t}.
+\end{equation*}
+We call $F$ a generating function. This is because the definition of $F$ can be used to reconstruct the coordinate transformation.
+Note also that we wrote $\mathrm{d}F(q,p)$ on the original coordinates above, but if we know the transformation then we can write $F(q,p)$ and $F(Q,P)$ analogously by inverting the transformation.
+This is because $F(q,p) = F(Q(q,p),P(q,p))$.
+We now introduce a result on the modified Hamiltonian.
+
+\begin{theorem}{\cite{gni2006, Casas_2016}}
+Consider a generating function for a numerical method $\Phi_h(q,p)$ given by
+\begin{equation*}
+	f(q,P,h) = h F_1(q,P) + h^2 F_2(q,P) + \mathellipsis
+\end{equation*}
+where the functions $F_i$ are defined on some domain $D$ which is an open set.
+The modified Hamilton's equations are 
+\begin{align*}
+	&\dot{q}_i = \frac{\partial \tilde{H}}{\partial p_i}, &\dot{p}_i = \frac{- \partial \tilde{H}}{\partial q_i}.
+\end{align*}
+where the modified Hamiltonian is
+\begin{equation*}
+	\tilde{H}(q,p) = H(q,p) + h H_2(q,p) + h^2 H_3(q,p) + \mathellipsis
+\end{equation*}
+where if the method is order $p$, then $H_i = 0$ for $i \leq p$.
+The $H_i$ are defined and smooth on $D$.
+Therefore, the closeness of the modified Hamiltonian to the original is $\mathcal{O}(h^p)$.
+\end{theorem}
+
+If this domain $D$ is the entire space of points $q,P$ then this result is globally defined, but over some restricted domain the result still holds but only locally.
+A proof is given in \cite{gni2006}, but the result features in both and \cite{Casas_2016} gives examples.
+The direct implication is that a higher order method will converge faster to the true \textit{qualitative behaviour}.
+Figure \ref{fig:phonhamil} shows the phonation problem from earlier.
+We evaluate the Hamiltonian using its closed form expression using the numerical solution generated by the St\"ormer-Verlet scheme.
+As we can see, the perturbed Hamiltonian approaches the unmodified Hamiltonian by $\mathcal{O}(h^2)$, the order of the method.
+
+\section{Applications}
+
+\subsection{Example - The Three-Body Problem}
+
+The three-body problem \cite{musielak2014three} is a huge point of interest in celestial mechanics.
+It describes the motion of three point-masses in a closed system which move under gravitational acceleration to each other.
+An important subclass is the \textit{restricted} three-body problem, in which one mass is relatively large in magnitude, and can be regarded as fixed compared to the other two bodies.
+The restricted three-body problem can be used to model the motion of the earth and moon relative to the sun.
+
+The classical form of the dynamics for the three-body problem is
+\begin{equation*}
+	\begin{aligned}
+		\ddot{x}_1 &= -G m_2 \frac{x_1 - x_2}{|x_1 - x_2|^3} - -G m_3 \frac{x_1 - x_3}{|x_1 - x_3|^3} \\
+		\ddot{x}_2 &= -G m_3 \frac{x_2 - x_3}{|x_2 - x_3|^3} - -G m_1 \frac{x_2 - x_1}{|x_2 - x_1|^3} \\
+		\ddot{x}_3 &= -G m_1 \frac{x_3 - x_1}{|x_3 - x_1|^3} - -G m_2 \frac{x_3 - x_2}{|x_3 - x_2|^3}
+	\end{aligned}
+\end{equation*} 
+where $x_i$ is the vector position of the point-mass particle with mass $m_i$.
+In Hamiltonian form, this is the problem
+\begin{align*}
+	&\dot{q}_i = \frac{\partial H}{\partial p_i}, &\dot{p}_i = \frac{- \partial H}{\partial q_i}.
+\end{align*}
+where
+\begin{equation*}
+	H(q,p) = - \frac{G m_1 m_2}{|q_1 - q_2|} - \frac{G m_2 m_3}{|q_2 - q_3|} - \frac{G m_3 m_1}{|q_3 - q_1|} + \frac{p_1^2}{2m_1} + \frac{p_2^2}{2m_2} + \frac{p_3^2}{2m_3}.
+\end{equation*}
+for particles with position $q_i$ and momentum $p_i$.
 
 
+\subsection{Review}
 
-\subsection{Examples of Error Control}
-
-To be continued.
+bla bla
 
 % error control on explicit method versus symplectic method - what is the cost
 
