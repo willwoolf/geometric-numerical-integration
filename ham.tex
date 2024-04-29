@@ -33,7 +33,7 @@ We can write the system as
 If we write $x = (q,p)^\mathrm{T}$ and denote the matrix as $J$,
 then the statement of a Hamiltonian system is of the form 
 \begin{equation}
-	\mathbf{\dot{x}} = \mathbf{J}\nabla H(\mathbf{x}).
+	{\dot{x}} = {J}\nabla H({x}).
 	\label{eqn:hdyn}
 \end{equation}
 We call $J$ the \textit{symplectic matrix}.
@@ -135,6 +135,7 @@ which is the map from $x_n$ to $x_{n+1}$ defined by a numerical method.
 		x_{n+1} = \Psi_h(x_n).
 	\end{equation*}
 \end{definition}
+The sensitivity of the numerical flow is instead
 
 \subsection{Symplectic Flow}
 
@@ -854,10 +855,10 @@ We expect the perturbed problem to be of the form
 \begin{equation*}
 	\dot{\tilde{x}} = f_h(\tilde{x}) = f(\tilde{x}) + h f_2(\tilde{x}) + h^2 f_3(\tilde{x}) + \mathellipsis,
 \end{equation*}
-namely as a polynomial expansion about the original problem. Important to note is that this series is not guaranteed to converge as $N \rightarrow \infty$.
+namely as a polynomial expansion about the original problem. Important to note is that this series is not guaranteed to converge as an infinite sum.
 % We require a truncation, which we will explore in detail later.
-Instead, we require a truncation of the series.
-We perform the truncation such that the value of the series is minimised.
+Instead, we require a truncation of the series,
+which we perform by identifying bounds on the functions $f_i$, and truncate such that an infinimum of upper bounds is attained \cite{Casas_2016}.
 We want to match this expression to the numerical method such that $\tilde{x}(t+h) \equiv \Phi_h(\tilde{x}(t))$.
 Now consider the expansion of the perturbed problem as a Taylor series about a fixed time $t$. Write
 \begin{equation*}
@@ -910,11 +911,17 @@ where we can find the $d_i$ functions from the defined method. In order to satis
 	h^3 &: d_3(x) = f_3(x) + \frac{1}{2!}(f'(x)f_2(x) + f'_2(x)f(x)) + \frac{1}{3!}(f''(x)f'(x)f(x) + f'(x)f'(x)f(x)) \\
 	& \vdots
 \end{align*}
-Since we can find the $d_i$ from the numerical method, and $f(x)$ defines the system,
-we can rearrange this problem to find the functions $f_i$ which define the perturbed Hamiltonian system.
-Therefore, the perturbed Hamiltonian which is exactly solved by the numerical solution exists. 
+Since we can find the $d_i$ from the definition of the numerical method, and we know $f(x)$ from the definition of the system,
+we can rearrange these expressions to find the functions $f_i$ that define the system.
+Therefore it is clear that the numerical solution provides a perturbed problem for which it is an exact solution at discrete time points.
+Furthermore, if we assume that the given method is $\mathcal{O}(h^p)$,
+then we have that $f_i = 0$ for $i \leq p$.
+This is because the expansions of $\tilde{x}(t+h)$ and $x(t+h)$ will be the same up to $\mathcal{O}(h^p)$.
+% Since we can find the $d_i$ from the numerical method, and $f(x)$ defines the system,
+% we can rearrange this problem to find the functions $f_i$ which define the perturbed Hamiltonian system.
+% Therefore, the perturbed Hamiltonian which is exactly solved by the numerical solution exists. 
 
-We next want to find an expression for this perturbed Hamiltonian in terms of its closeness to the original.
+We next want to consider a Hamiltonian system, and the nature of a modified Hamiltonian obtained from a numerical method.
 
 \subsection{The Perturbed Hamiltonian}
 
@@ -949,9 +956,10 @@ There must be another Hamiltonian $\tilde{H}$ which describes these transformed 
 This modified Hamiltonian tells us about the behaviour of the solution in this new coordinate system.
 The motivation for this transformation is the aim of describing the behaviour of the system in a potentially simpler form using a different coordinate system. %is it?
 There is a relation between these coordinates which is given by
-\begin{equation*}
+\begin{equation}
 	\sum_{i=1}^{d} p_i \mathrm{d}q_i - H \mathrm{d}t = \sum_{i=1}^{d} P_i \mathrm{d}Q_i - \tilde{H} \mathrm{d}t + \mathrm{d}F(q,p).
-\end{equation*}
+	\label{eqn:genfunc}
+\end{equation}
 This is an equation involving differential forms $\mathrm{d}q_i, \mathrm{d}t$, etc. but the key takeaway is the relationship involving the expression $\mathrm{d}F$ between coordinate systems.
 The relationship between the Hamiltonians themselves is
 \begin{equation*}
@@ -959,10 +967,10 @@ The relationship between the Hamiltonians themselves is
 \end{equation*}
 We call $F$ a generating function. This is because the definition of $F$ can be used to reconstruct the coordinate transformation.
 Note also that we wrote $\mathrm{d}F(q,p)$ on the original coordinates above, but if we know the transformation then we can write $F(q,p)$ and $F(Q,P)$ analogously by inverting the transformation.
-This is because $F(q,p) = F(Q(q,p),P(q,p))$.
+This is because $F(Q,P) = F(Q(q,p),P(q,p))$.
 We now introduce a result on the modified Hamiltonian.
 
-\begin{theorem}{\cite{gni2006, Casas_2016}}
+\begin{theorem}[Hairer, Lubich, Wanner 2006]
 Consider a generating function for a numerical method $\Phi_h(q,p)$ given by
 \begin{equation}
 	F(q,P,h) = h F_1(q,P) + h^2 F_2(q,P) + \mathellipsis
@@ -1055,14 +1063,19 @@ We now consider the proof for this result.
 	\end{align*}
 	from comparing coefficients of $h$.
 	Recall that we have $\tilde{F}_{1k}(q,P) = H_k(q,P)$ from the first row of Equation \ref{eqn:genh}.
-	Therefore, the generating expression does contain the original Hamiltonian and we have
+	Therefore, the generating expression is a perturbation from the original Hamiltonian and we have
 	\begin{equation*}
 		F_j(q,P) = H_j(q,P) + \mathcal{D}_j(H_k(q,P))
 	\end{equation*}
 	where $\mathcal{D}_j$ is some function of derivatives of $H_k$ for $k \leq j$.
-	This expression allows us to determine the $H_j$ given a generating function. %TODO: the logic here is awful
-	If the numerical method defined by the generating function is $\mathcal{O}(h^p)$,
-	then $F_j = H_j$ for $j = 1, \mathellipsis, p$, and hence the closeness of the modified Hamiltonian is $\mathcal{O}(h^{p+1})$.
+	This expression allows us to determine the $H_j$ given a generating function.
+	
+	Recall the definition of the generating function from Equation \ref{eqn:genfunc}. %logic is bad but it will have to do.
+	Assume that the numerical method defined by the generating function $F$ is $\mathcal{O}(h^r)$.
+	This generating function $F$ itself is the same order.
+	Since we match terms in $F$ and $\tilde{F}$, both are $\mathcal{O}(h^r)$ i.e. the highest order term is $h^{r+1}$.
+	Therefore, we must have that $\tilde{F}_{jk} = H_k = 0$ for $k \leq r$.
+
 	Furthermore, since the $F_j$ are defined in terms of $H_j$, they must be defined on the same domain $D$.
 \end{proof}
 
@@ -1074,6 +1087,19 @@ As we can see, the perturbed Hamiltonian approaches the unmodified Hamiltonian b
 \section{Applications}
 
 \subsection{Example - The Three-Body Problem}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{Matlab/threebodyorbit}
+	\caption{
+		Integration of the three-body problem for a timespan $t \in [0, 20]$.
+		Initial conditions are configured to construct an orbit.
+		Two masses orbit a stationary third mass at the origin.
+		Initial conditions on the $y=0$ line at $(1,0)$, $(0,0)$ and $(-1,0)$.
+		Initial momentum is rotationally symmetric, approximately $(0.35, 0.53)$ at $(1,0)$.
+	}
+	\label{fig:threebody}
+\end{figure}
 
 The three-body problem \cite{musielak2014three} is a huge point of interest in celestial mechanics.
 It describes the motion of three point-masses in a closed system which move under gravitational acceleration to each other.
@@ -1099,10 +1125,25 @@ where
 \end{equation*}
 for particles with position $q_i$ and momentum $p_i$.
 
+See Figure \ref{fig:threebody} for a visualisation of the trajectories of the three body problem under a particular set of initial conditions.
+The integration from \texttt{ode45()} shows clear drift from the original path of the orbit.
+A very high relative tolerance of $10^{-12}$ was used for this method, so this is arguably the best approximation we can hope to compute with an explicit method.
+In comparison, the St\"ormer-Verlet scheme is only second order accurate, but we are able to maintain the path of orbit over the same timespan because it is a symplectic method.
+Any deviation from the orbit path is not visible.
 
 \subsection{Review}
 
-bla bla
+We have given an overview of the structure of problems in Hamiltonian mechanics and how the property of symplecticity is directly related.
+We have introduced several symplectic integration methods and the theory behind them.
+We have demonstrated these with examples to show the utility of these methods.
+It is clear that when the nature of the Hamiltonian is important to the behaviour of the problem, it would be beneficial to use a symplectic method.
+
+Symplectic integration is extremely prevalent in celestial mechanics, where we may need to integrate a Hamiltonian system over a long timespan in order to estimate the motion of celestial bodies far into the future.
+The three-body problem is a simple but insightful demonstration of problems such as these.
+Other applications in physics are molecular dynamics and particle physics.
+
+Having covered symplectic integration, the theory for which is extremely prevalent and researched,
+we now move on to the field of positivity preservation, which is a much more recent and unclear area of geometric numerical integration.
 
 % error control on explicit method versus symplectic method - what is the cost
 
