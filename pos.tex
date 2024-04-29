@@ -304,7 +304,7 @@ the solutions are given by the exponential form since the matrices are fixed in 
 and the solutions preserve positivity because the matrices are of graph-Laplacian form.
 Therefore these solutions preserve positivity, which we can use to begin constructing methods which maintain this.
 
-The primary method given in \cite{blanes_pos_2022}, which is a solution to Equations \ref{eqn:split1} and \ref{eqn:split2} is given by the 
+The primary method given in \cite{blanes_pos_2022}, which is a solution to Equations \ref{eqn:split1} and \ref{eqn:split2} is given by the equations
 \begin{equation}
     \begin{aligned}
         x_{n+\frac{1}{2}} &= \exp \left( \frac{h}{2} A(z_n) \right) x_n \\
@@ -320,6 +320,284 @@ In \cite{blanes_pos_2022}, it is stated that $|x_n - z_n|$ can be used as an est
 %order results from this method
 %example comparing some methods
 %magnus method
+First, we evaluate the truncation error of $z$. The whole numerical method can be written compactly by writing the explicit expression for $x_{n+\frac{1}{2}}$ inside the term.
+Denote $x := x(t_n)$ and $A := A(x)$ for compactness, also $A' := A'(x)$ and the same generalised for any derivatives.
+For an attempt of ease of notation, square brackets contain objects which are matrices or higher rank tensors, while parentheses contain objects which are vectors.
+We can begin by writing the stage directly as
+\begin{equation*}
+    z_{n+1} = \exp \left[ h A \left( \exp \left( \frac{h}{2} A(z_n) \right) x_n \right) \right] z_n
+\end{equation*}
+and we note that $x_n = z_n = x(t_n)$, so we can swap every $z+n$ for $x$.
+In full,
+\begin{equation}
+    z_{n+1} = \exp \left[ h A \left( \exp \left( \frac{h}{2} A(x) \right) x \right) \right] x.
+    \label{eqn:strangz}
+\end{equation}
+Now start evaluating the truncation error.
+\begin{align*}
+    x(t_n + h) - z_{n+1} &= x(t_n+h) - \exp \left[ h A \left( \exp \left[ \frac{h}{2}A \right]x \right) \right]x \\
+    &= x(t_n + h) - \left[
+        I + h \left[ A \left( \exp \left[ \frac{h}{2}A \right]x \right) \right] \right. \\
+        &+ \frac{h^2}{2} \left[ A \left( \exp \left[ \frac{h}{2}A \right]x \right) \right]^2 \\
+        &+ \frac{h^3}{6} \left. \left[ A \left( \exp \left[ \frac{h}{2}A \right]x \right) \right]^3
+    \right]x + \mathcal{O}(h^4).
+\end{align*}
+The inner term needs to be expanded out
+\begin{align*}
+    A\left( \exp \left[ \frac{h}{2}A \right]x \right) &= A \left( \left[ I + \frac{h}{2}A + \frac{h^2}{8}A^2 \right]x \right) + \mathcal{O}(h^3) \\
+    &= A\left( x + \frac{h}{2}Ax + \frac{h^2}{8}A^2 x \right) + \mathcal{O}(h^3) \\
+    &= A + A' \cdot \left( \frac{h}{2} Ax + \frac{h^2}{8} A^2 x \right) + A''(x) \left( \frac{h^2}{8}AxAx \right) + \mathcal{O}(h^3) \\
+    &= A + \frac{h}{2}A'Ax + \frac{h^2}{8} \left( A' A^2 x + A'' Ax Ax \right) + \mathcal{O}(h^3).
+\end{align*}
+Note that an internal expansion leads to a big-O term inside the brackets,
+which we can take outside the brackets by Taylor expansion centred at the collection of terms before the big-O expression.
+If we plug this back in, the terms expand as
+\begin{align*}
+    &x(t_n + h) - \left[ I + h \left[ A + \frac{h}{2}A' A x + \frac{h^2}{8} \left[ A' A^2 x + A'' Ax Ax \right] \right] \right. \\
+    &~~ + \left. \frac{h^2}{2} \left[ A + \frac{h}{2}A'Ax \right]\left[ A + \frac{h}{2}A'Ax \right] + \frac{h^3}{6}A^3 \right] x + \mathcal{O}(h^4) \\
+    &= x(t_n + h) - \left[ I + hA + \frac{h^2}{2} \left[ A' Ax + A^2 \right] \right. \\
+    &~~ + \left. \frac{h^3}{8} \left[ A' A^2 x + A'' Ax Ax + 2A'AxA + 2AA'Ax + \frac{4}{3}A^3 \right] \right]x + \mathcal{O}(h^4) \\
+    &= x(t_n + h) - \left( x + hAx + \frac{h^2}{2} \left( A' Axx + A^2x \right) \right. \\
+    &~~ + \left. \frac{h^3}{8} \left( A' A^2 xx + A'' Ax Ax x + 2A'AxAx + 2AA'Axx + \frac{4}{3}A^3x \right) \right) + \mathcal{O}(h^4).
+\end{align*}
+We can evaluate the Taylor expansion for $x$ itself
+\begin{equation}
+    \begin{aligned}
+        x(t_n + h) &= x + h \dot{x} + \frac{h^2}{2}\ddot{x} + \frac{h^3}{6}\dddot{x} + \mathcal{O}(h^4) \\
+        &= x + hAx + \frac{h^2}{2}\left( A'Axx + A^2x \right) \\
+        &~~ + \frac{h^3}{6} \left( A''AxAxx + A'A'A xxx + 2A'A^2 xx + A A' A xx + A^3 x \right) + \mathcal{O}(h^4).
+    \end{aligned}
+    \label{eqn:thirdorderexpansion}
+\end{equation}
+Written on its own, the expansion of $z_{n+1}$ is
+\begin{equation}
+    \begin{aligned}
+        z_{n+1} &= x + h Ax + \frac{h^2}{2} \left( A' A xx + A^2 x \right) \\
+        &~~~~~~ + \frac{h^3}{8} \left(
+            A' A^2 xx + A'' Ax Ax x + 2 A' Ax Ax + 2 A A' A xx + \frac{4}{3}A^3 x
+            \right) \\
+        &~~~~~~ + \mathcal{O}(h^4)
+    \end{aligned}
+    \label{eqn:strangzpanda}
+\end{equation}
+By comparing terms, the truncation error of the $z$ component is
+\begin{equation}
+    \tau_z(h) = h^3 \left( \frac{1}{24}A''AxAxx + \frac{1}{6}A'A'A xxx + \frac{5}{24} A' A^2 xx - \frac{1}{12}A A' A xx - \frac{1}{4}A' Ax Ax \right) + \mathcal{O}(h^4).
+    \label{eqn:strangtruncz}
+\end{equation}
+Now look at the truncation error provided by the $x$ part of the method.
+We already have, from above, an expression for $z_{n+1}$ in terms of powers of $h$, which will make the evaluation easier.
+Write the expression for $x_{n+1}$
+\begin{equation*}
+    x_{n+1} = \exp \left[ \frac{h}{2} A(z_{n+1}) \right] x_{n+\frac{1}{2}}
+\end{equation*}
+which is equivalently
+\begin{equation}
+    x_{n+1} = \exp \left[ \frac{h}{2} A(z_{n+1}) \right] \exp \left[ \frac{h}{2} A \right] x.
+    \label{eqn:strangx}
+\end{equation}
+Expand the expression
+\begin{align*}
+    x_{n+1} &= \exp \left[
+        \frac{h}{2}A \left( x + h Ax + \frac{h^2}{2} \left( A' A xx + A^2 x \right) + \mathcal{O}(h^3) \right)
+    \right] \exp \left[
+        \frac{h}{2}A
+    \right] x \\
+    &= \exp \left[
+        \frac{h}{2}A + \frac{h}{2} A' \cdot \left( h Ax + \frac{h^2}{2}\left( A' A xx + A^2 x \right) \right)
+    \right] \exp \left[
+        \frac{h}{2}A
+    \right] x + \mathcal{O}(h^4) \\
+    &= \exp \left[
+        \frac{h}{2}A + \frac{h^2}{2}A'Ax + \frac{h^3}{4} \left[ A' A' A xx + A' A^2 x \right]
+    \right] \exp \left[
+        \frac{h}{2}A
+    \right] x + \mathcal{O}(h^4).
+\end{align*}
+Note that because of the $(h/2)$ scale, taking out the $\mathcal{O}(h^3)$ term by expansion leads to an $\mathcal{O}(h^4)$ term outside the expression.
+This saves writing $z_{n+1}$ up to the order $h^3$ term, we don't need it.
+Using the definition of the exponential for both parts, we get
+\begin{align*}
+    x_{n+1} &= \left[
+        I + \left[ \frac{h}{2}A + \frac{h^2}{2} A' Ax + \frac{h^3}{4} \left[ A' A' A xx + A' A^2 x \right] \right] \right. \\
+        &~~ + \frac{1}{2}\left[ \frac{h^2}{4}A^2 + \frac{h^3}{4} \left[ AA'Ax + A' AxA \right] \right] \\
+        &~~ + \left. \frac{1}{6} \left[ \frac{h^3}{8}A^3 \right]
+    \right] \times \left[
+        I + \frac{h}{2}A + \frac{h^2}{8}A^2 + \frac{h^3}{48}A^3
+    \right]x + \mathcal{O}(h^4).
+\end{align*}
+We have only included every term up to third order, and then taken all higher order terms outside of the expansions.
+We can rearrange this into powers of $h$ to get
+\begin{align*}
+    x_{n+1} &= \left[
+        I + \frac{h}{2}A + \frac{h^2}{8} \left[ 4A'Ax + A^2 \right] \right. \\
+        &~~ + \left. \frac{h^3}{48}\left[ 12 A' A' A xx + 12 A' A^2 x + 6 A A' Ax + 6 A' AxA + A^3 \right] \right] \\
+        &~~ \times \left[
+        I + \frac{h}{2}A + \frac{h^2}{8}A^2 + \frac{h^3}{48}A^3
+    \right]x + \mathcal{O}(h^4).
+\end{align*}
+Multiplying this expression, considering only terms up to third order, we get
+\begin{align*}
+    x_{n+1} &= \left[
+        I + hA + \frac{h^2}{8} \left[ 4 A' Ax + 4A^2 \right]
+    \right. \\
+    &~~ + \left.
+        \frac{h^3}{48} \left[ 12 A' A' A xx + 12 A' A^2 x + 6 A A' Ax + 6 A' Ax A + 2A^3  \right] + \frac{h^3}{16} \left[ 4 A' AxA + 2A^3 \right]
+    \right]x \\
+    &~~ + \mathcal{O}(h^4). 
+\end{align*}
+By collecting terms, simplifying, and multiplying through by $x$, we get the expression
+\begin{equation}
+    \begin{aligned}
+        x_{n+1} &= x + h Ax + \frac{h^2}{2} \left( A' A xx + A^2 x \right) \\
+        &~~~~~~ + \frac{h^3}{8} \left(
+            2A'A'Axxx + 2 A' A^2 xx + A A' A xx + 3 A' Ax Ax + \frac{4}{3}A^3 x
+            \right) \\
+        &~~~~~~ + \mathcal{O}(h^4)
+    \end{aligned}
+    \label{eqn:strangxpanda}
+\end{equation}
+Comparing this to the true expansion from Equation \ref{eqn:thirdorderexpansion}, we can evaluate the truncation error $x(t_n + h) - x_{n+1}$ as
+\begin{equation}
+    \tau_x(h) = h^3 \left(
+        \frac{1}{6}A'' Ax Ax x - \frac{1}{12}A' A' A xxx + \frac{1}{12} A' A^2 xx + \frac{1}{24}A A' A xx - \frac{3}{8}A A' A xx
+    \right) + \mathcal{O}(h^4).
+    \label{eqn:strangtruncx}
+\end{equation}
+We have obtained direct expressions for the truncation errors for both components of the splitting method.
+Both expressions for truncation error, from Equations \ref{eqn:strangtruncz} and \ref{eqn:strangtruncx}, indicate that the method is second-order accurate.
+
+We will now briefly consider statements from \cite{blanes_pos_2022} regarding the properties of the splitting method.
+We have mentioned the authors' claim that the difference $|x_{n+1} - z_{n+1}|$ can be taken as an estimate of the error of the method.
+Using the expansions in Equations \ref{eqn:strangzpanda} and \ref{eqn:strangzpanda}, we can write their difference as
+\begin{equation}
+    z_{n+1} - x_{n+1} = \frac{h^3}{8} \left(
+        A'' Ax Ax x + A A' A xx - A' A^2 xx - A' Ax Ax - 2 A' A' A xx
+    \right) + \mathcal{O}(h^4).
+    \label{eqn:strangdiff}
+\end{equation}
+This expression on the difference between methods contains every expression in the truncation error for $z$ (Equation \ref{eqn:strangtruncz}), of which there are five.
+This may motivate its use as an estimate of the error.
+However on comparing the two, there is a difference of sign for three expressions, and no consistency of scaling.
+The difference expression does not contain the term $AA'Axx$, which appears in the truncation error for $x$.
+
+One potentially interesting component of this analysis comes from how the different stages eliminate different elements in the truncation errors.
+We may be motivated to take a linear combination of $x_{n+1}$ and $z_{n+1}$ such that we can obtain a new truncation error which is, in some sense, minimised.
+
+Denote a vector $g$ of the elements which appear in the expansions of $x(t_n+h)$ and its approximations.
+\begin{equation*}
+    g := \begin{pmatrix}
+        A'' Ax Ax x \\
+        A' A' A xxx \\
+        A' A^2 xx \\
+        A' Ax Ax \\
+        A A' A xx \\
+        A^3 x
+    \end{pmatrix}.
+\end{equation*}
+We ignore the fact that this is a vector of vectors which is technically not defined.
+We denote it as a vector in order to write linear combinations of elements as vector inner products. %dangerous
+Define the following vectors
+\begin{align*}
+    v &:= \begin{pmatrix}
+        \frac{1}{6} & \frac{1}{6} & \frac{1}{3} & 0 & \frac{1}{6} & \frac{1}{6}
+    \end{pmatrix}^\top \\
+    u_z &:= \begin{pmatrix}
+        \frac{1}{8} & 0 & \frac{1}{8} & 0 & \frac{1}{4} & \frac{1}{6}
+    \end{pmatrix}^\top \\
+    u_x &:= \begin{pmatrix}
+        0 & \frac{1}{4} & \frac{1}{4} & \frac{3}{8} & \frac{1}{8} & \frac{1}{6}
+    \end{pmatrix}^\top .
+\end{align*}
+Evaluating $v^\top g$ gives us the expansion of the actual value of $x(t_n+h)$ at order $h^3$.
+We also have $u_z^\top g$ and $u_x^\top g$, which are the expansions of the $z$ and $x$ components of the method at the same order.
+Let $\mu, \lambda$ be scalars for us to take a linear combination of the $x$ and $z$ methods.
+The truncation error, denoted here by $\tau$, is
+\begin{align*}
+    \tau &= v^\top g - \mu ( u_z^\top g ) - \lambda ( u_x^\top g ) \\
+    &= \left( v - \mu u_z - \lambda u_x \right)^\top g.
+\end{align*}
+This is an inner product of two vectors, so we can apply the Cauchy-Schwarz inequality to obtain the bound
+\begin{equation*}
+    \tau \leq ||v - \mu u_z - \lambda u_x||_2 \cdot ||g||_2.
+\end{equation*}
+Arguably, taking the Cauchy-Schwarz inequality is not allowed because $g$ is not a vector in the traditional sense.
+However, if we think about it, $g$ must have some norm which is finite so this should be fine. % a problem for future me
+Because $g$ is our vector of elements, we can only vary the value of the $2$-norm on the left.
+Therefore our problem is of the form
+\begin{equation*}
+    \text{minimise } ||v - \mu u_z - \lambda u_x||_2.
+\end{equation*}
+We have the additional contraint that $\mu + \lambda = 1$ in mind, because the method must be second order accurate.
+We can block the vectors and scalars to rewrite the problem in the form
+\begin{equation*}
+    \text{minimise } ||v - \begin{bmatrix}
+        u_z & u_x
+    \end{bmatrix} \begin{pmatrix}
+        \mu \\
+        \lambda
+    \end{pmatrix}||_2.
+\end{equation*}
+The solution to this optimisation problem \cite{boyd2004convex} is the solution to the normal equations
+\begin{equation*}
+    \begin{bmatrix}
+        u_z^\top \\
+        u_x^\top
+    \end{bmatrix} v - \begin{bmatrix}
+        u_z^\top \\
+        u_x^\top
+    \end{bmatrix} \begin{bmatrix}
+        u_z & u_x
+    \end{bmatrix} \begin{pmatrix}
+        \mu \\
+        \lambda
+    \end{pmatrix} = 0.
+\end{equation*}
+which rearranges to
+\begin{equation*}
+    \begin{bmatrix}
+        u_z^\top u_z & u_z^\top u_x \\
+        u_x^\top u_z & u_x^\top u_x
+    \end{bmatrix} \begin{pmatrix}
+        \mu \\
+        \lambda
+    \end{pmatrix} = \begin{bmatrix}
+        u_z^\top v \\
+        u_x^\top v
+    \end{bmatrix}.
+\end{equation*}
+Numerically, this can be represented as
+\begin{equation*}
+    \begin{bmatrix}
+        35 & 26 \\
+        26 & 89
+    \end{bmatrix} \begin{pmatrix}
+        \mu \\
+        \lambda
+    \end{pmatrix} = \begin{bmatrix}
+        38 \\
+        50
+    \end{bmatrix}
+\end{equation*}
+having been scaled up by a factor of $288$.
+Since we must satisfy the linear constraint, we can't directly solve this system.
+Define the residual as
+\begin{equation*}
+    r = \begin{bmatrix}
+        38 \\
+        50
+    \end{bmatrix} - \begin{bmatrix}
+        35 & 26 \\
+        26 & 89
+    \end{bmatrix} \begin{pmatrix}
+        \mu \\
+        \lambda
+    \end{pmatrix}
+\end{equation*}
+in which case, the solution where $||r||_2$ is minimised is given by $\mu = 19/30, \lambda = 11/30$.
+See Appendix for working.
+
+% at the end, acknowledge this could all be wrong "due to lack of information regarding the behaviour of the tensor objects that appear in this context"
 
 \subsection{Example - A Linear Problem on Two Variables}
 
@@ -422,44 +700,9 @@ They focus on a second order integrator, for which the autonomous version is giv
     \label{eqn:secondordermagnus}
 \end{equation}
 This method uses the midpoint rule in order to form a second order approximation to a formulation of the solution using the first two terms of the Magnus expansion. 
-
-We evaluate the truncation error of the second order Magnus integrator "EM2", to compare it to our three-exponential "ES2" method.
-\begin{equation*}
-    \tau_\mathrm{m}(h) = x(t_n+h) - \exp \left[
-        h A \left( \exp \left[
-            \frac{h}{2}A(x_n)
-        \right] x_n \right)
-    \right] x_n
-\end{equation*}
-The exponential expands as
-\begin{equation*}
-    \begin{aligned}
-        &\exp \left[
-            h A \left( \exp \left[
-                \frac{h}{2}A(x_n)
-            \right] x_n \right)
-        \right] x_n \\
-        &= \left[
-            I + h \left[
-                A \left( \exp \left[ \frac{h}{2} A(x_n) \right] x_n \right)
-            \right] + \frac{h^2}{2} \left[
-                A \left( \exp \left[ \frac{h}{2} A(x_n) \right] x_n \right)
-            \right]^2 + \frac{h^3}{6} \left[
-                A \left( \exp \left[ \frac{h}{2} A(x_n) \right] x_n \right)
-            \right]^3
-        \right] x_n + \mathcal{O}(h^4) \\
-        &= x_n + h \left[
-            A \left( \left[ I + \frac{h}{2}[A(x_n)] + \frac{h^2}{8}[A(x_n)]^2 + \mathcal{O}(h^3) \right] x_n \right)
-        \right] x_n \\
-        &~~~~~~~ + \frac{h^2}{2} \left[
-            A \left( \left[ I + \frac{h}{2}[A(x_n)] + \mathcal{O}(h^2) \right] x_n \right)
-        \right]^2 x_n \\
-        &~~~~~~~ + \frac{h^3}{6} \left[
-            A \left( \left[ I + \mathcal{O}(h) \right] x_n \right)
-        \right]^3 x_n + \mathcal{O}(h^4) \\
-        &= 
-    \end{aligned}
-\end{equation*}
+The formulation of the second-order Magnus integrator is identical to the $z_{n+1}$ stage of the second order Strang splitting method.
+See Equation \ref{eqn:strangz} for the definition with Taylor-expanded form in Equation \ref{eqn:strangzpanda}.
+See Equation \ref{eqn:strangtruncz} for the truncation error.
 
 \subsection{Example - The MAPK Cascade}
 
@@ -712,7 +955,44 @@ In our example $\hat{a} = -4$ and
 \end{equation*}
 So clearly the second order Pad\'e method does not preserve positivity.
 
-A possible explanation could be the alternative approximations the authors use in \cite{blanes_pos_2022}.
+There is one result which we can utilise in order to ensure positivity.
+\begin{lemma}
+    \label{lem:positiveinverse}
+    If $A$ is a matrix which satisfies $||A||_2 < 1$, we can write the inverse of $[I-A]$ as
+    \begin{equation*}
+        \left[ I - A \right]^{-1} = \sum_{k=0}^{\infty} A^k.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    The condition on the norm $||A||_2 < 1$ is required in order for the series to converge.
+    Define the series up to $N$ by $U_N:$
+    \begin{equation*}
+        U_N := \sum_{k=0}^{N} A^k.
+    \end{equation*}
+    Then multiply $[I-A]$ by this series
+    \begin{align*}
+        U_N \left[ I-A \right] &= \left[ I + A + A^2 + \mathellipsis + A^{N-1} + A^N \right] \left[ I - A \right] \\
+        &= [I-A] + \left[ A-A^2 \right] + \mathellipsis + \left[ A^{N-1} - A^N \right] + \left[ A^N - A^{N+1} \right] \\
+        &= I + [A-A] + \left[ A^2 - A^2 \right] + \mathellipsis + \left[ A^N - A^N \right] - A^{N+1} \\
+        &= I - A^{N+1}.
+    \end{align*}
+    As $N \rightarrow \infty$, $A^N$ tends to the zero matrix because $||A||_2 < 1$ as assumed.
+    Hence this product converges to the identity and we have an expression for the inverse.
+    Thus,
+    \begin{equation*}
+        \left[ I - A \right]^{-1} = \lim_{N\rightarrow \infty}U_N = \sum_{k=0}^{\infty} A^k.
+    \end{equation*}
+\end{proof}
+This result is especially useful when considering the reduction $A = \bar{A} + \hat{a}I$.
+We have $\bar{A}$ is entirely positive by definition.
+If we also have this bound on the spectral norm of $\bar{A}$,
+then we know that the inverse of $[I-\bar{A}]$ is the series on powers of $A$, all of which must be positive.
+Therefore, the inverse of $[I-\bar{A}]$ is positive.
+In this context, we can guarantee that this approximation is positivity preserving.
+This also relates to the Pad\'e approximation - if this holds then the $(1,1)$ approximation has the numerator and denominator matrices both positive.
+We will look at this later.
+
+A possible explanation for the mistake in \cite{blanes_pos_2022} could be the alternative approximations the authors use.
 Considering the step $h$, the diagonal Pad\'e approximation is the product of two matrices
 \begin{equation*}
     \mathrm{e}^{hA} \approx \left[ I - \frac{h}{2} A \right]^{-1} \left[ I + \frac{h}{2}A \right].
@@ -826,41 +1106,7 @@ Since the eigenvalues of the inverse matrix are the inverses of the eigenvalues,
 From Gershgorin's theorem, the eigenvalues of $A$ have strictly negative real part,
 so these eigenvalues of the first order exponential approximation belong to the strictly positive half of the complex plane. % this does not mean it works!
 
-There is another result regarding the expression of this inverse in terms of a series.
-\begin{lemma}
-    If $A$ is a matrix which satisfies $||A||_2 < 1$, we can write the inverse of $[I-A]$ as
-    \begin{equation*}
-        \left[ I - A \right]^{-1} = \sum_{k=0}^{\infty} A^k.
-    \end{equation*}
-\end{lemma}
-\begin{proof}
-    The condition on the norm $||A||_2 < 1$ is required in order for the series to converge.
-    Define the series up to $N$ by $U_N:$
-    \begin{equation*}
-        U_N := \sum_{k=0}^{N} A^k.
-    \end{equation*}
-    Then multiply $[I-A]$ by this series
-    \begin{align*}
-        U_N \left[ I-A \right] &= \left[ I + A + A^2 + \mathellipsis + A^{N-1} + A^N \right] \left[ I - A \right] \\
-        &= [I-A] + \left[ A-A^2 \right] + \mathellipsis + \left[ A^{N-1} - A^N \right] + \left[ A^N - A^{N+1} \right] \\
-        &= I + [A-A] + \left[ A^2 - A^2 \right] + \mathellipsis + \left[ A^N - A^N \right] - A^{N+1} \\
-        &= I - A^{N+1}.
-    \end{align*}
-    As $N \rightarrow \infty$, $A^N$ tends to the zero matrix because $||A||_2 < 1$ as assumed.
-    Hence this product converges to the identity and we have an expression for the inverse.
-    Thus,
-    \begin{equation*}
-        \left[ I - A \right]^{-1} = \lim_{N\rightarrow \infty}U_N = \sum_{k=0}^{\infty} A^k.
-    \end{equation*}
-\end{proof}
-This result is especially useful when considering the reduction $A = \bar{A} + \hat{a}I$.
-We have $\bar{A}$ is entirely positive by definition.
-If we also have this bound on the spectral norm of $\bar{A}$,
-then we know that the inverse of $[I-\bar{A}]$ is the series on powers of $A$, all of which must be positive.
-Therefore, the inverse of $[I-\bar{A}]$ is positive.
-In this context, we can guarantee that this approximation is positivity preserving.
-
-The positivity preserving methods from Equations \ref{eqn:secondorderstrangsplittingmethod,eqn:secondordermagnus} retain positivity and second order when some of the matrix exponentials are replaced with this first order substitution.
+The positivity preserving methods from Equations \ref{eqn:secondorderstrangsplittingmethod}, \ref{eqn:secondordermagnus} retain positivity and second order when some of the matrix exponentials are replaced with this first order substitution.
 We evaluate the truncation error of the second order Magnus integrator when substituting the inside exponential with an approximation.
 Terms which evaluate to vectors are contained in (parentheses). Terms which evaluate to matrices or higher order tensors are contained in [square brackets].
 \begin{equation*}
@@ -991,7 +1237,7 @@ We have already looked at the order of the second order Magnus integrator in its
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{Matlab/magnustriplemapk.eps}
+    \includegraphics[width=0.75\linewidth]{Matlab/magnustriplemapk.eps}
     \caption{
         Visualisation of the second order Magnus integration when different approximations to the matrix exponential are used.
         Left: EM2, using two matrix exponentials with \texttt{expm()}.
@@ -1132,10 +1378,6 @@ This problem gets worse when we look at how the diagonal offset affects $\bar{A}
 and taking a low order sereis approximation of the exponential of this matrix is going to be less accurate as this increases.
 In simpler terms, by using the series approximation and being given control of the diagonal offset, it is challenging to have both positivity and convergence.
 
-
-
-
-
 % And then if we forget about error and just focus on positivity, enforcing $s > 1$ brings about a third problem: if $s$ is sufficiently large,
 % then we are increasing the norm %WHAT NORM
 % of the matrix we are approximating,
@@ -1153,6 +1395,80 @@ In simpler terms, by using the series approximation and being given control of t
 % problem 2: optimal value of s is not in the bound s >= 1
 % problem 3: large values of s theoretically guarantees positivity, however this increases the norm of the matrix which makes the series even more unusable
 % "by using the series approximation with diagonal offset, having both positivity and convergence is impossible"
+
+\subsection{A Proposed Improvement to the Pad\'e Approximation}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\linewidth]{Matlab/positivepadeconvergence.eps}
+    \caption{
+        Order of convergence for the positivity preserving modification to the $(1,1)$ Pad\'e approximation to the matrix exponential.
+        The order matches a given second order approximation.
+        The construction of this approximation guarantees positivity.
+        EM2 - 196.7 seconds.
+        IQ2 - 346.0 seconds.
+    }
+    \label{fig:padepositive}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\linewidth]{Matlab/positivemapk.eps}
+    \caption{
+        Methods EM2 and IP2 applied to the MAPK problem, evaluating the global error as a function of the timestep.
+        Both methods are clearly second order, however EM2 uses directly computed matrix exponentials from \texttt{expm()},
+        while IQ2 uses positivity-preserving approximations.
+    }
+    \label{fig:pademapkpos}
+\end{figure}
+
+The following method applies many results that we have explored in this section.
+First, the construction of the Pad\'e approximation.
+Second, the implementation of scaling and squaring.
+Third, the decomposition $A = \bar{A} + a I$
+Third, Lemma \ref{lem:positiveinverse} on the positivity of the inverse $[I - A]^{-1}$.
+
+We propose a numerical integration scheme which is another modification of EM2, except using two matrix exponential approximations which are positivity preserving.
+This method is identical to the IP2 method we introduced in the previous section, except for the modification of the second order Pad\'e approximation.
+Hence this is the change that we will discuss here.
+
+The motivation for scaling and squaring comes from the identity 
+\begin{equation*}
+    \mathrm{e}^A = \left[ \mathrm{e}^\frac{A}{r} \right]^r.
+\end{equation*}
+If $r = 2^m$, then we can compute the matrix exponential of $A$ (or an approximation) by computing the exponential of $A/2^m$ and squaring the result $m$ times.
+Recall Lemma \ref{lem:positiveinverse} - clearly scaling is useful.
+Then using the Pad\'e approximation,
+\begin{align*}
+    \mathrm{e}^hA &= \left[ \mathrm{e}^\frac{hA}{2^m} \right]^{2^m} \\
+    &= \left[
+        \left[ I - \frac{hA}{2^{m+1}} \right]^{-1} \left[ I + \frac{hA}{2^{m+1}} \right] + \mathcal{O}(h^2)
+    \right]^{2^m} \\
+    &= \left[
+        \left[ I - \frac{hA}{2^{m+1}} \right]^{-1} \left[ I + \frac{hA}{2^{m+1}} \right]
+    \right]^{2^m} + \mathcal{O}(h^2) \\
+\end{align*} 
+so clearly this is a valid approximation method.
+
+Our approximation method is as follows.
+First, we deconstruct $A$ as per $A = \bar{A} + \hat{a}I$, as we have looked into earlier.
+We ignore any scaling parameter in this choice, implicitly taking $s=1$ by having $\hat{a}$ being the most negative entry on the diagonal of $A$.
+We can then approximate the exponential by taking $\exp(A) = \exp(a)\exp(\bar{A})$ and approximating the exponential of $\bar{A}$.
+We can choose to approximate the scalar or compute it directly, as computing the scalar exponential is not considered computationally expensive - there is not a significant error in either case.
+For the Pad\'e $(1,1)$ approximation of $\bar{A}$, we can guarantee the numerator matrix will be positive regardless of its scaling.
+In order to ensure positivity of the denominator matrix, we find a scaling $2^m$ such that $\bar{A}/2^m$ satisfies the bound required in Lemma \ref{lem:positiveinverse}.
+There is a trick here. In order to satisfy the bound, we need to know the $2$-norm of $\bar{A}$.
+However, we know that $||A||_2 < \sqrt{d}||A||_1$ in general, where $d$ is the dimension of the matrix.
+The $1$ norm is the maximum column sum of the matrix. However, since $A$ is a graph-Laplacian matrix, the maximum column sum of $\bar{A}$ is $\hat{a}$ by construction.
+Hence we don't need to make any computations on the properties on the matrix.
+We compute the Pad\'e approximation for the scaled-down matrix, then repeatedly square to return to the original scale.
+This gives us a $(1,1)$ Pad\'e approximation which guarantees positivity.
+
+This is a simplified version of the actual method implemented by MATLAB to compute the matrix exponential.
+Cost is theoretically reduced by computing the $(1,1)$ approximation,
+and by not needing to compute any matrix norms.
+
+
 
 \subsection{Krylov methods}
 
