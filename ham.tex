@@ -1,6 +1,7 @@
 
 
 \chapter{Symplectic Integration}
+\label{cha:ham}
 
 \section{Hamiltonian Systems and Numerical Methods}
 
@@ -135,7 +136,9 @@ which is the map from $x_n$ to $x_{n+1}$ defined by a numerical method.
 		x_{n+1} = \Psi_h(x_n).
 	\end{equation*}
 \end{definition}
-The sensitivity of the numerical flow is instead
+The sensitivity of the numerical flow is affected similarly by a change in initial conditions. %ummmm
+However, due to the discrete form of a numerical solution we will not give a general form.
+The sensitivity of the numerical flow map can however be written explicitly when applying a given method to a given problem.
 
 \subsection{Symplectic Flow}
 
@@ -502,7 +505,7 @@ A symmetric method is a method that satisfies $\Psi_h^{-1} = \Psi_{-h}$.
 This means if we integrate forwards in time by a particular step, and then integrate back,
 we return to the original value since we are equivalently applying the inverse.
 Time symmetric methods are geometric integrators themselves, preserving time symmetry,
-however this is not something we will explore in depth.
+however this is not something we will explore. % show that this composition is necessarily of even order
 
 We can show that the implicit Euler method is the adjoint of explicit Euler.
 First, let $\Psi_h^I$ denote the implicit method and let $\Psi_h^E$ denote the explicit method.
@@ -657,11 +660,6 @@ Consider applying a method $\Phi_h$ $N$ times. Conjugacy shows that
 Therefore, conjugate methods remain separated by the conjugacy map $\chi$ for an arbitrary number of iterations.
 %% find a defined inverse so that we can show conjugacy.
 
-\subsection{A-Stability}
-
-Show that all symplectic methods must be a-stable.
-This justifies that we don't care about any methods that aren't A-stable.
-
 \subsection{Runge-Kutta Methods}
 
 These are methods of the form
@@ -677,54 +675,244 @@ as defined in the introduction, equivalently defined by the Butcher tableau
 	\end{array}
 \end{equation*}
 We will first consider A-stability.
-In general, the stability function for a Runge-Kutta method \cite{iserles2009rk} is
-\begin{equation*}
-	r(\lambda) = \frac{\det(I - \lambda A + \lambda eb^\mathrm{T})}{\det(I - \lambda A)}
-\end{equation*}
-where $A = (a_{ij})$, $b = (b_i)$ and $e$ is the vector of all ones.
-The stability function is a rational function in all cases.
 
 Consider the linear test problem $\dot{x} = \lambda x$.
 We have already explored stability for the basic Euler methods.
-We will look at an explicit 3-stage method.
-First, find expressions for the $k_i$:
-\begin{align*}
-	k_1 &= \lambda x_n, \\
-	k_2 &= \lambda\left( x_n + h a_{21}k_1 \right) \\
-	&= \left( \lambda + h a_{21}\lambda^2 \right)x_n, \\
-	k_3 &= \lambda \left( x_n + h a_{31}k_1 + h a_{32}k_2 \right) \\
-	&= \lambda \left( x_n + h a_{31} \lambda x_n + h a_{32}\left( \lambda + h a_{21} \lambda^2 \right) x_n \right) \\
-	&= \left( \lambda + h a_{31}\lambda^2 + h a_{32}\lambda^2 + h^2 a_{32}a_{21}\lambda^3 \right) x_n.
-\end{align*}
-therefore
-\begin{align*}
-	x_{n+1} &= x_n + h \left( b_1 k_1 + b_2 k_2 + b_3 k_3 \right) \\
-	&= x_n + h b_1 \lambda x_n + h b_2 \left(\lambda + h a_{21} \lambda^2\right)x_n + hb_3 \left( \lambda + h a_{31} \lambda^2 + h a_{32} \lambda ^2 + h^2 a_{32} a_{21} \lambda^3\right)x_n \\
-	&= \left(
-		1 + \left( b_1 + b_2 + b_3 \right) h\lambda + \left(
-			b_2 a_{21} + b_3 (a_{31} + a_{32})
-		\right)h^2\lambda^2 + \left(
-			b_3 a_{32} a_{21}
-		\right)h^3\lambda^3
-	\right)x_n.
-\end{align*}
-This coefficient term is a polynomial on $h\lambda$, which we denote by $R(h\lambda)$.
-For any explicit $k$-stage Runge-Kutta method the stability function is a polynomial.
-To ensure A-stability, we require that $|R(h\lambda)| < 0$ for $h \lambda$ in the left half of the complex plane.
-For any explicit method, the stability function is a polynomial.
-For any polynomial $p(y)$, we diverge to infinity as $|y| \rightarrow \infty$.
-Hence it is impossible for any explicit Runge-Kutta method to be A-stable.
+We will look at a general explicit 3-stage method.
+\begin{example}
+	First, find expressions for the $k_i$:
+	\begin{align*}
+		k_1 &= \lambda x_n, \\
+		k_2 &= \lambda\left( x_n + h a_{21}k_1 \right) \\
+		&= \left( \lambda + h a_{21}\lambda^2 \right)x_n, \\
+		k_3 &= \lambda \left( x_n + h a_{31}k_1 + h a_{32}k_2 \right) \\
+		&= \lambda \left( x_n + h a_{31} \lambda x_n + h a_{32}\left( \lambda + h a_{21} \lambda^2 \right) x_n \right) \\
+		&= \left( \lambda + h a_{31}\lambda^2 + h a_{32}\lambda^2 + h^2 a_{32}a_{21}\lambda^3 \right) x_n.
+	\end{align*}
+	therefore
+	\begin{align*}
+		x_{n+1} &= x_n + h \left( b_1 k_1 + b_2 k_2 + b_3 k_3 \right) \\
+		&= x_n + h b_1 \lambda x_n + h b_2 \left(\lambda + h a_{21} \lambda^2\right)x_n + hb_3 \left( \lambda + h a_{31} \lambda^2 + h a_{32} \lambda ^2 + h^2 a_{32} a_{21} \lambda^3\right)x_n \\
+		&= \left(
+			1 + \left( b_1 + b_2 + b_3 \right) h\lambda + \left(
+				b_2 a_{21} + b_3 (a_{31} + a_{32})
+			\right)h^2\lambda^2 + \left(
+				b_3 a_{32} a_{21}
+			\right)h^3\lambda^3
+		\right)x_n.
+	\end{align*}
+	This coefficient term is a polynomial on $h\lambda$, which we denote by $r(h\lambda)$.
+	To ensure A-stability, we require that $|r(h\lambda)| < 1$ for $h \lambda$ in the left half of the complex plane.
+	For this example of an explicit method, it cannot be A-stable since the stability function is a polynomial.
+	Any non-constant polynomial $p(y)$ will diverge to $\pm \infty$ as $|y| \rightarrow \infty$, hence the bound will not be attained.
+\end{example}
+We will now consider the A-stability of Runge-Kutta methods in general.
 
-It is impossible for explicit RK methods to be A-stable, because the stability functions are polynomials which diverge to infinity as $|h\lambda| \rightarrow \infty$.
-Hence the region of convergence cannot contain the left half-plane.
-A general Runge-Kutta method is A-stable if $r(\lambda) < 0$ for all $\lambda < 0$.
+\subsection{A-Stable Runge-Kutta Methods}
+
+We start by considering the A-stability of Runge-Kutta methods.
+We know that if these exist, they cannot be explicit.
+This analysis borrows from \cite{iserles2009rk}.
+We will consider the linear test problem $\dot{x} = \lambda x$ in the scalar case for simplicity.
+Recall that the formulation of the $k_i$ is given by
+\begin{equation*}
+	k_i = x_n + h \lambda \sum_{j=1}^{s}a_{ij}k_j
+\end{equation*}
+for $i = 1, \mathellipsis, s$.
+Let $k$ be the vector of $k_i$ terms, in which case we have
+\begin{equation*}
+	k = e x_n + h \lambda A k
+\end{equation*}
+where $e$ is the vector of ones. This expression rearranges to
+\begin{equation*}
+	k = \left[ I - h \lambda A \right]^{-1} e x_n
+\end{equation*}
+assuming the inverse exists.
+Therefore the method can be expressed as 
+\begin{align*}
+	x_{n+1} &= x_n + h \lambda \sum_{i=1}^{s} b_i k_i \\
+	&= x_n + h \lambda b^\top k \\
+	&= x_n + h \lambda b^\top \left[ I - h \lambda A \right]^{-1} e x_n \\
+	&= \left[ 1 + h \lambda b^\top \left[ I - h \lambda A \right]^{-1} e \right] x_n. \\
+\end{align*}
+We have a direct operation which describes the RK method,
+which we define for simplicity as
+\begin{equation}
+	r(z) = 1 + z b^\top \left[ I - z A \right]^{-1} e
+	\label{eqn:rkstab}
+\end{equation}
+such that the method takes the form $x_n = [r(h \lambda)]^n x_0$.
+We can assume $x_0=1$ without loss of generality so the method is
+\begin{equation*}
+	x_n = [r(h \lambda)]^n
+\end{equation*}
+If we can classify that $r(z)<1$ for any $z$ with negative real part,
+then the method is A-stable.
+
+In order to characterise this expression of $r$, involving the inverse of a matrix, we need to define the \textit{adjugate} matrix in order to give a particular expression for a matrix inverse.
+\begin{definition}[\cite{horn2012matrix}]
+	For an invertible matrix $A$ we can write its inverse as
+	\begin{equation*}
+		A^{-1} = \frac{\operatorname{adj}(A)}{\det(A)}
+	\end{equation*}
+	where $\det(A)$ is the determinant of $A$ and $\operatorname{adj}(A)$ is the transpose of the cofactor matrix $C$, so
+	\begin{equation*}
+		\operatorname{adj}(A) = C^\top
+	\end{equation*}
+	where
+	\begin{equation*}
+		C_{ij} = (-1)^{i+j}\det \bar{A}_{ij}
+	\end{equation*}
+	where $\bar{A}_{ij}$ is the submatrix obtained by removing the $i$-th row and $j$-th column from $A$.
+\end{definition}
+We can show that this expression for the inverse holds for a $2 \times 2$ matrix.
+\begin{example}
+	Consider the matrix given by
+	\begin{equation*}
+		A = \begin{bmatrix}
+			a & b \\
+			c & d
+		\end{bmatrix}.
+	\end{equation*}
+	The determinant is given by $\det(A) = ad-bc$. For each entry in the cofactor matrix, we remove row $i$ and column $j$ to compute a determinant of a $1 \times 1$ submatrix.
+	Applying the formula from the definition, we end up with
+	\begin{equation*}
+		C = \begin{bmatrix}
+			d & -c \\
+			-b & a
+		\end{bmatrix}
+	\end{equation*}
+	Therefore,
+	\begin{equation*}
+		A^{-1} = \frac{\operatorname{adj}(A)}{\det(A)} = \frac{1}{\det(A)}C^\top = \frac{1}{ad-bc}\begin{bmatrix}
+			d & -b \\
+			-c & a
+		\end{bmatrix}.
+	\end{equation*}
+	which should be a familiar expression for a $2 \times 2$ matrix inverse.
+\end{example}
+
+We use this relation to characterise the matrix inverse term which appears in $r(z)$, see Equation \ref{eqn:rkstab},
+which allows us to write the stability function clearly as a rational function.
+\begin{lemma}[Iserles (2009) \cite{iserles2009rk}]
+	\label{lem:stabfrk}
+	The stability function of an $s$-stage Runge-Kutta method can be written as a rational function where the numerator and denominator are degree $s$ polynomials.
+\end{lemma}
+\begin{proof}
+	The term $[I-hA]^{-1}$ appearing in Equation \ref{eqn:rkstab} can be written as
+	\begin{equation*}
+		\left[I - zA\right]^{-1} = \frac{\operatorname{adj}(I-zA)}{\det(I-zA)}.
+	\end{equation*}
+	For an $s$-stage Runge-Kutta method, A has size $s$.
+	The determinant of $I-zA$ is a polynomial on $z$ of degree at most $s$.
+	Similarly, every entry in the adjugate is the determinant of an $(s-1)\times(s-1)$ submatrix,
+	hence is a polynomial of degree at most $s-1$.
+	We can re-write Equation \ref{eqn:rkstab} as
+	\begin{equation*}
+		r(z) = 1 + \frac{1}{\det(I-zA)}\left( z b^\top \operatorname{adj}(I-zA) e \right)
+	\end{equation*} 
+	The $1$ doesn't change the degree of the function, and both the $\det(I-zA)$ and $z b^\top \left[ \operatorname{adj}(I-zA) \right] e$ terms are degree $s$ polynomials.
+	Therefore the stability function for a Runge-Kutta method can be written as a rational function on $h \lambda$,
+	being a quotient of two polynomials of degree $s$.
+	
+	The inclusion of the determinant term simplifies this expression when we consider an explicit method.
+	In this case, $A$ is strictly lower triangular, and therefore $I-zA$ is a lower triangular matrix with ones on the diagonal.
+	Therefore $\det(I-zA) = 1$ and the stability function is a degree $s$ polynomial. 
+\end{proof}
+The stability function can also be written in the simpler form
+\begin{equation}
+	r(z) = \frac{\det(I - z A + z eb^\top)}{\det(I - z A)}
+	\label{eqn:stabrk2}
+\end{equation}
+given in \cite{iserles2009rk}.
+It remains to show that there are Runge-Kutta methods for which the expression $r(z)<1$ is satisfied for $z$ with negative real part.
+Iserles shows that if a stability function is a particular kind of approximation to the exponential $\mathrm{e}^z$, then the corresponding method will be A-stable.
+The function $e^z$ satisfies the bound we are looking for in a stability function.
+
+\begin{lemma}[Iserles (2009) \cite{iserles2009rk}]
+	\label{lem:stabrkisexp}
+	Suppose $r(z)$ is the stability function for a Runge-Kutta method of order $p$. Then
+	\begin{equation*}
+		r(z) = \mathrm{e}^z + \mathcal{O}(z^{p+1})
+	\end{equation*}
+\end{lemma}
+\begin{proof}
+	The stability function came from the fact that the method can be expressed as $x_{n+1} = r(h \lambda) x_n$.
+	Similarly, $x_{n+1} = \mathrm{e}^{h \lambda} x_n$ is the analytical solution to the linear test problem at $x(t_{n+1})$ given that $x(t_n) = x_n$.
+	Since the method is accurate to order $p$, we must have that $\mathrm{e}^{h \lambda} - r(h \lambda) = \mathcal{O}((h \lambda)^{p+1})$ by definition.
+\end{proof}
+In order to preserve the condition of A-stability, we use the Pad\'e approximation.
+\begin{definition}
+	The Pad\'e $[n,m]$ approximant to a function $f(z)$ is the unique rational function $p_{n,m}(z)/q_{n,m}(z)$ that satisfies
+	\begin{equation*}
+		f(z) - \frac{p_{n,m}(z)}{q_{n,m}(z)} = \mathcal{O}(z^{p+q+1}).
+	\end{equation*}
+	where $p_{n,m}$ is a polynomial of degree $n$ and $q_{n,m}$ of degree $m$.
+\end{definition}
+Pad\'e approximants are able to remain bounded as $|z| \rightarrow \infty$. % cite this
+A polynomial approximation will always diverge for large $z$ and cannot have any discontinuity.
+This motivates the use of Pad\'e approximations in this context as stability functions for Runge-Kutta methods.
+We now want to find Runge-Kutta methods for which the stability functions are Pad\'e approximations to the exponential.
+\begin{remark}
+	The $[1,1]$ Pad\'e approximant to the exponential is given by
+	\begin{equation*}
+		r_{1,1}(z) = \frac{p_{1,1}(z)}{q_{1,1}(z)} = \frac{1 + \frac{z}{2}}{1 - \frac{z}{2}}
+	\end{equation*}
+	and the $[2,2]$ approximant is
+	\begin{equation*}
+		r_{2,2}(z) = \frac{p_{2,2}(z)}{q_{2,2}(z)} = \frac{1 + \frac{z}{2} + \frac{z^2}{12}}{1 - \frac{z}{2} + \frac{z^2}{12}}
+	\end{equation*}
+\end{remark}
+If $p$ has degree higher than $q$, then the approximation will diverge for $|z| \rightarrow \infty$ so these approximations are unusable.
+We will consider primarily the diagonal ($n=m$) Pad\'e approximants.
+We call an approximation A-acceptable if it obeys the bound required for the method to be A-stable \cite{iserles2009rk}.
+Diagonal Pad\'e approximants to the exponential are A-acceptable \cite{wanner1978order}.
+
+We will now introduce the Gauss-Legendre Runge-Kutta (GLRK) methods in general.
+Recall the implicit midpoint rule, which has Butcher tableau
+\begin{equation*}
+	\begin{array}{c|c}
+		\frac{1}{2} & \frac{1}{2} \\
+		\hline	
+		& 1
+	\end{array}.
+\end{equation*}
+This is a second order method but has $s=1$, which is an optimal order for the number of steps.
+This is the general aim for the Gauss-Legendre Runge-Kutta methods, achieving order $2s$ for $s$ steps.
+The fourth order GLRK method on two stages is given by the tableau
+\begin{equation*}
+	\begin{array}{c|cc}
+		\frac{1}{2} - \frac{1}{6}\sqrt{3}  &\frac{1}{4} &\frac{1}{4} - \frac{1}{6}\sqrt{3} \\
+		\frac{1}{2} + \frac{1}{6}\sqrt{3}  &\frac{1}{4} + \frac{1}{6}\sqrt{3} &\frac{1}{4} \\
+		\hline
+		&\frac{1}{2} &\frac{1}{2}
+	\end{array}.
+\end{equation*}
+These methods are implicit and can be complicated and expensive to implement, but they have excellent behaviour.
+In this context, we want to know about stability.
+
+\begin{theorem}
+	The Gauss-Legendre Runge-Kutta methods are A-stable.
+\end{theorem}
+\begin{proof}
+	Assume we apply a GLRK method on $s$ stages to the linear test problem $\dot{x} = \lambda x$.
+	By Lemma \ref{lem:stabfrk}, the stability function of this method can be written as a rational function where the numerator and denominator are degree $2$ polynomials.
+	Applying Lemma \ref{lem:stabrkisexp}, this rational function is accurate to the exponential to degree $2s$ since this is the order of the method.
+	Since the Pad\'e approximation to the exponential is unique, this rational function is the $[s,s]$ Pad\'e approximant and hence the method is A-stable.
+\end{proof}
 
 \subsection{Symplectic Runge-Kutta Methods}
+
+% A stable and symplectic RK methods are necessarily implicit
+% A stable methods need r(z)<1
+% GLRK methods are A-stable
+% Symplectic methods need r(z)r(-z)=1
+% GLRK methods are symplectic
 
 We have shown that all A-stable Runge-Kutta methods are necessarily implicit.
 This is also the case for all symplectic Runge-Kutta methods.
 
-\begin{theorem}
+\begin{theorem}[Hairer, Lubich, Wanner (2006) \cite{gni2006}]
 \label{thm:symrk}
 If a Runge-Kutta method satisfies
 \begin{equation}
@@ -821,11 +1009,17 @@ The fourth-order GLRK method is given by the following Butcher tableau:
 		\frac{1}{2} - \frac{1}{6}\sqrt{3}  &\frac{1}{4} &\frac{1}{4} - \frac{1}{6}\sqrt{3} \\
 		\frac{1}{2} + \frac{1}{6}\sqrt{3}  &\frac{1}{4} + \frac{1}{6}\sqrt{3} &\frac{1}{4} \\
 		\hline
-		&\frac{1}{2} &\frac{1}{2}.
-	\end{array}
+		&\frac{1}{2} &\frac{1}{2}
+	\end{array}.
 \end{equation*}
 The Gauss-Legendre Runge-Kutta method on two stages is fourth order \cite{iserles2009rk}.
-Hence this must be a fourth-order symplectic method.
+Hence this is a fourth-order symplectic method.
+
+
+
+
+
+
 
 
 \subsection{Consideration}
