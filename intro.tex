@@ -85,7 +85,7 @@ This framework is fundamental to the methods we will look into for solving ODEs,
 The problems we will look at will involve vector solutions in general, so our notation will usually instead denote the whole vector quantity of interest as $x$,
 and make sure to individually distinguish its elements if needed.
 
-Since there is a mixed $tx$ term, this is what we call a nonlinear equation.
+Since there is a mixed $tx$ term, this is a nonlinear equation.
 This means that we cannot write a solution $x(t)$ in closed form using analytical methods.
 Instead, we need to use a numerical method.
 A numerical method provides us with a sequence of values $(x_i)_{i=1}^n$ for given points in time $(t_i)_{i=1}^n$, where each $x_i$ is an approximation to the true solution $x_i \approx x(t_i)$.
@@ -96,13 +96,13 @@ Alternatively, a boundary value problem specifies conditions on the boundary of 
 } with constraints at $x(t=0)$ and $x(t = t_n)$.
 Numerical methods for boundary value problems are fundamentally different to the methods for initial value problems we will study, hence we will not consider them in this report.
 
-For a first example, we will consider Euler's method. This method starts by assuming a value $x(t_i) = x_i$ and considering the next value.
-We denote the \textit{step size} by $h$, being the difference $t_{i+1} - t_i$.
+For a first example, we will consider Euler's method. This method starts by assuming a value $x(t_n) = x_n$ and considering the next value.
+We denote the \textit{step size} by $h$, being the difference $t_{n+1} - t_n$.
 Then we consider the next value by evaluating the Taylor series
 \begin{equation*}
-    x(t_i + h) = x(t_i) + h \dot{x}(t_i) + \frac{h^2}{2}\ddot{x}(t_i) + \frac{h^3}{6}\dddot{x}(t_i) + \mathellipsis = \sum_{k=0}^{\infty} \frac{h^k x^{(k)}(t_i)}{k!}.
+    x(t_n + h) = x(t_n) + h \dot{x}(t_n) + \frac{h^2}{2}\ddot{x}(t_n) + \frac{h^3}{6}\dddot{x}(t_n) + \mathellipsis = \sum_{k=0}^{\infty} \frac{h^k x^{(k)}(t_n)}{k!}.
 \end{equation*}
-On the left-hand side, the next point in time $t_{i+1}$ is the same as $t_i + h$.
+On the left-hand side, the next point in time $t_{n+1}$ is the same as $t_n + h$.
 On the right-hand side, if we assume $h$ is small then we can simplify this problem by assuming that every term of $h$ of order $2$ or greater is negligibly small.
 We write this as $\mathcal{O}(h^2)$. The big-O notation means that as $h \rightarrow 0$, the expression is bounded above by some constant times $h^2$.
 The whole equation reduces to
@@ -115,7 +115,7 @@ If we ignore the $\mathcal{O}(h^2)$ term, we are left with what is generally ref
     x_{i+1} = x_i + h f(t_i, x_i)
 \end{equation}
 for solving an ODE.
-This is an example of what we call an explicit method, coming from how the next term is obtained using only information which is immediately available.
+This is an example of an explicit method, coming from how the next term is obtained using only information which is immediately available.
 
 One element that we will focus on is the concept of error and accuracy of a numerical method.
 It turns out that ignoring the $\mathcal{O}(h^2)$ in order to obtain Euler's method was not a fantastic idea.
@@ -127,7 +127,7 @@ We also want to consider the concept of global truncation error, which is the er
 This is important because each step comes from a previous point, and only the initial value is given as exact. % the next bit is VERY HANDWAVY
 The local error of Euler's method is $\mathcal{O}(h^2)$, and assume it requires $N$ timesteps in order to compute a numerical solution.
 Then the global error is $\mathcal{O}(Nh^2)$. But $N$ is proportional to $1/h$ since $h = (t_n - t_0)/N$, and so the global error is $\mathcal{O}(h)$.
-This argument can be generalised to any method with uniform timestep.
+This argument can be generalised to any method with uniform timestep, but also applies to the error of a general, variable time-step method \cite{hairerwanner1993}
 
 The problem of global error analysis arises when considering how we may need a computation to match a certain tolerance.
 Assume we need the global error of a numerical solution to be below $\epsilon$.
@@ -138,7 +138,14 @@ We need to divide the global error by $8$. For a method with global truncation e
 we can half the step size and run the computation again to match this tolerance, since if $C h^3 \approx 8 \epsilon$ then $C (h/2)^3 \approx \epsilon$.
 Whereas for a lower order method, this would be much more expensive, perhaps prohibitively more so.
 
-If we want to improve error, we may start by considering a Runge-Kutta (RK) method.
+Despite Euler's method being only first order, it is still a convergent method.
+\begin{definition}
+    A numerical method is convergent if, as $h \rightarrow 0$, the numerical solution $(x_i)_{i=1}^{n}$ converges to the true solution $x(t)$. 
+\end{definition}
+This means that we can always get a good enough approximation from any convergent method as long as we can decrease the step size indefinitely.
+That being said, it would be computationally expensive to keep reducing the step size of Euler's method.
+
+If we want to improve the order at which error decreases, we may start by considering a Runge-Kutta (RK) method.
 These are methods given by
 \begin{equation*}
 	x_{n+1} = x_n + h \left( \sum_{i = 1}^{s} b_i k_i \right)
@@ -178,8 +185,9 @@ with the $k_i$ defined
         k_2 &= f \left( t_n + c_2 h, x_n + h a_{21}k_1 \right)
     \end{aligned}
 \end{equation*}
-from their defintions. Note that the expressions are simplified, coming from how $k_i$ does not use any information from $k_j$.
+from their defintions. Note that the expressions are simplified, coming from how $k_i$ does not use any information from $k_j$ if $j \geq i$.
 This is required in order for the method to be explicit.
+Equivalently, the $A$ matrix is strictly lower triangular.
 The necessary conditions \cite{iserles2009rk} are $b_1 + b_2 = 1$, $b_2 c_2 = 1/2$ and $a_{21} = c_2$ for the method to be second order accurate.
 These conditions are underdetermined, so there are several configurations to choose from.
 A popular choice for a second order RK method is also referred to as the \textit{explicit trapezium method}
@@ -208,7 +216,7 @@ Dynamical systems describing the motion of rigid bodies admits conservation of e
 Chemical reaction systems admit conservation of mass.
 However, in no part of our discussion on numerical methods did we acknowledge this requirement.
 Methods such as Euler and the explicit Runge-Kutta schemes we have established are designed in order to provide an approximate solution in the sense of having a particular truncation error.
-There is no guarantee that these methods will preserve any invariants of a system.
+There is no guarantee that these methods will preserve any invariant quantity of a system.
 This is not to say they are guaranteed not to do so,
 and we will see methods only slightly generalised from those already discussed, which do manage to behave well in terms of qualitative preservation.
 
