@@ -1,7 +1,175 @@
-\chapter{Review and Conclusions}
+\chapter{Review and Discussion}
 
-\section{First Section}
+\section{Improvements}
 
-\section{Second Section}
+\subsection{Wider Geometric Integration}
 
-Words.
+There are many facets of geometric numerical integration which we have not covered in this report.
+Many of our results on symplectic integration borrow from the book by Hairer, Lubich and Wanner \cite{gni2006}, which covers the topic in far more depth.
+We have covered the results that we believe to be key for understanding symplectic integrators.
+However, there are properties of symplectic methods, and approaches for constructing methods we have explored, which lend themselves to different disciplines within the broader subject.
+
+One of these topics is time-symmetry.
+First, recall the definition of the adjoint flow map.
+From Chapter \ref{cha:ham}, when forming methods, if we have a numerical flow denoted $\Phi_h$, the adjoint is the map defined $\Phi_h^* = \Phi_{-h}^{-1}$.
+A method is time-symmetric if it is self-adjoint, that is $\Phi_h^* = \Phi_h$.
+The definition of the adjoint means this identity can be written equivalently as $\Phi_h^{-1} = \Phi_{-h}$.
+If we have a general method $\Phi_h$, then the composition $\Phi_{h/2} \circ \Phi_{h/2}^*$ is time-symmetric.
+We can prove this by composing a step of the method in $h$ with a step in $-h$ as follows
+\begin{align*}
+    \left( \Phi_{h/2} \circ \Phi_{h/2}^* \right) \circ \left( \Phi_{-h/2} \circ \Phi_{-h/2}^* \right) &= \Phi_{h/2} \circ \left( \Phi_{h/2}^* \circ \Phi_{-h/2} \right) \circ \Phi_{-h/2}^* \\
+    &= \Phi_{h/2} \circ \left( \Phi_{-h/2}^{-1} \circ \Phi_{-h/2} \right) \circ \Phi_{-h/2}^* \\
+    &= \Phi_{h/2} \circ \mathrm{I} \circ \Phi_{-h/2}^* \\
+    &= \Phi_{h/2} \circ \Phi_{-h/2}^* \\
+    &= \Phi_{h/2} \circ \Phi_{h/2}^{-1} \\
+    &= \mathrm{I}.
+\end{align*}
+where $\mathrm{I}$ is the identity map. Each step only follows from associativity or the definition of the adjoint.
+Therefore,
+\begin{equation*}
+    \left( \Phi_{h/2} \circ \Phi_{h/2}^* \right)^{-1} = \left( \Phi_{-h/2} \circ \Phi_{-h/2}^* \right)
+\end{equation*}
+hence the method is self-adjoint.
+Recall that the St\"ormer-Verlet method, which we constructed in this way, is time-symmetric.
+
+Methods for preserving time-symmetry have their use in the same fields as symplectic integrators \cite{hernandez2018timesym}.
+The property means that if we integrate forward in time to a certain point, we can integrate backwards in time using our last result as an initial condition, and we will return to the original starting value.
+Time-symmetric methods\footnote{
+    Time-symmetric methods which are not also symplectic
+} are able to accomodate variable time-steps, unlike symplectic methods \cite{gni2006},
+hence they are popular choices in particle physics and related fields, where problems involve precise integration of oscillatory systems.
+
+\subsection{Properties of Symplectic Methods}
+% a scheme for constructing generalised order symplectic methods
+% a stronger understanding of the relationship between symplecticity and other properties of methods
+% other preserved invariants (lie group, symmetry, etc)
+
+Our focus on symplectic methods was developed from the assumption that its qualities come from the Hamiltonian structure.
+Since the symplectic identity is inherent to the model problem being Hamiltonian, a lot of analysis can be performed on the relationship between the symplectic integrator and the Hamiltonian system.
+However, this motivates us to analyse a symplectic integrator in the context of a Hamiltonian problem, and not as a general method.
+For our positivity preserving methods, we analysed and justified the truncation errors of methods,
+whereas these properties were not explored in as much depth for symplectic integration.
+This could be justified by the reason that this field is much more complete, and the properties of these methods are much more understood in the field of numerical analysis, hence we do not feel the need to explain these results.
+However, there are many general properties of symplectic methods which we have not explored, for example the merits to slower growth in error \cite{gni2006}.
+
+\subsection{Computations in Positivity Preservation}
+
+The methods we have explored for positivity preservation are second order at best.
+This motivates the development of higher-order methods in this field, which is not something we have explored.
+We have, however, given an introduction to the Magnus expansion, the form for which can be used for formulating methods.
+This is explored in more detail by the authors in \cite{blanes_pos_2022}, but we have not included it.
+They introduce a third-order method, however it does not guarantee positivity unconditionally and requires seven matrix exponentials.
+
+To design a third-order method, for example, we would first consider the expression of the solution $x(t) = \exp(\Omega(t))x_0$,
+and write a third-order (in $A$) Magnus expansion. 
+We would then design our method as a third-order (in $h$) positivity preserving approximation to this expansion. 
+
+For the methods we have explored, the problem remains of computing the matrix exponential.
+We were able to formulate a positivity preserving method which only approximated these exponentials,
+however the depth of this subject goes much deeper than we have explored.
+One such approach would be Krylov methods for approximating the matrix exponential \cite{meerbergen1999crying}.
+Were this a project on numerical linear algebra, this would be an interesting avenue to explore.
+However, the methodology itself is very different to the approximation methods we have focused on.
+We have decided instead to focus on the approximation methods seen, and develop these effectively for use in our problems.
+
+% a higher order positivity preserving method
+% better methods for approximating the matrix exponential
+% mass preservation
+
+\section{Review}
+
+%pick a few points from each chapter and summarise
+
+\subsection{Summary of Symplectic Integration}
+% introduced symplectic methods
+% explored relationship between symplectic and A-stability
+% given results on hamiltonian systems
+In Chapter \ref{cha:ham} of this project, we explored symplectic integration in the context of Hamiltonian dynamics.
+Our goal was to explore symplectic integration methods and understand how they are constructed.
+We showed symplecticity of a small selection of methods.
+The implicit midpoint and St\"ormer-Verlet schemes are both symplectic second-order methods,
+however their structures are inherently different,
+with the Verlet scheme constructed using the symplectic Euler method, a particular modification for Hamiltonian systems,
+while the implicit midpoint scheme is formulated as a second order implicit method, which is symplectic when applied to a Hamiltonian problem.
+
+We looked at results for symplectic Runge-Kutta methods, in order to expand the theory to methods capable of arbitrary order.
+With the statement that symplectic Runge-Kutta methods need satisfy the statement of Theorem \ref{thm:symrk}, we are able to justify the symplectic nature of arbitrary methods.
+These RK methods are necessarily implicit, building further on our understanding of the applications for implicit methods.
+The St\"ormer-Verlet scheme is enticing because it is explicit for a separable Hamiltonian, but we can understand that this may not be the case in general.
+Furthermore, these RK methods preserve quadratic invariant quanitites, the necessary condition for symplecticity.
+Outside of symplectic integration, preservation of invariant quanitites is its own area of study.
+
+Finally, we studied a fundamental result on how the numerical solution can be thought of as an exact solution to a modified problem.
+We considered the relationship between the Hamiltonian of the modified problem, and that of the original.
+We were able to state and prove that the order of the numerical method is the order of closeness between these two quantities.
+This gives us two ways of thinking about the numerical solution.
+First is that if the method is convergent, then the numerical solution will become more accurate as the step size decreases.
+Therefore, a higher order method will converge to this solution faster.
+On the other hand, if we decrease the step size then we also know that the modified Hamiltonian will converge closer to the original.
+A higher order symplectic method means that this modified Hamiltonian will converge faster.
+Either way, we converge to the same result. We get the true qualitative behaviour.
+
+The example of the gravitational three-body problem is an excellent demonstration of the motivation for symplectic integration.
+The symplectic method preserves the trajectories of the orbit,
+while the general purpose explicit RK method undergoes drift, inherent change of a quality of the system.
+This is the qualitative preservation of symplectic integration.
+When a symplectic integrator is used in its many applications, the quality is an inherent requirement of the solution.
+
+\subsection{Summary of Positivity Preservation}
+% introduced positivity preserving problems
+% defined two methods and proposed improvements
+% investigated areas not explored in the paper
+% tested on a variety of problems
+For our exploration of positivity preservation, we aimed to introduce the key methods introduced by the authors of \cite{blanes_pos_2022},
+explore their results on inherent positivity, and suggest modifications to the methods.
+
+To start, we introduced the concept of the graph-Laplacian matrix and showed its role in the preservation of positivity for the solution to the initial value problem.
+This was necessary in order to introduce numerical methods for solving the problem while preserving positivity.
+A very important result was how the matrix exponential of a graph-Laplacian matrix applies to positivity preservation.
+We know that if the problem is governed by a graph-Laplacian matrix, then the solutions preserve positivity.
+We also know that if the problem is governed by a constant matrix, we can write the solution in terms of the matrix exponential.
+Therefore, if we can break the problem into separable components involving constant graph-Laplacian matrices, then we know we can use the matrix exponential to produce a solution that preserves positivity.
+This is the approach we justified when exploring the second order Strang splitting (ES2) method.
+We also covered the second order Magnus (EM2) integrator, covering the theory of the Magnus expansion as the solution to a time-dependent system of ODEs.
+Despite not exploring the theory in detail, we included the information on the construction of the Magnus expansion for completeness.
+
+Unlike our study on symplectic integration, a large part of our motivation for studying positivity preservation is the potential to develop new contributions to the field.
+This could be explored in two ways: first, by constructing higher order, cheaper-than-expected, numerical methods for positivity preservation,
+or by optimising current methods using approximation theory, while maintaining the positivity preserving nature.
+We chose the second option, exploring the theory of different methods for approximating the matrix exponential, while restricting our options to those which still unconditionally preserve positivity.
+We looked at both the series and Pad\'e approximations to the matrix exponential, exploring the differences between the two, and ended up with two proposed modifications to the EM2 method.
+The first option replaced a matrix exponential with a second order series approximation, chosen up to scaling in order to guarantee positivity.
+However, error bounds on the series approximation meant that the method, while being second order, required an extremely small time step in order to work at all.
+The second option was to use a second order Pad\'e approximation, with the implementation of scaling and squaring in order to maintain stability.
+We found that this method worked, as a second order positivity preserving integrator with only first and second order approximations to the matrix exponential.
+The implementation of this method in its current state is slower than the regular implementation,
+however the process is, in theory, much more optimised.
+
+\section{Conclusion}
+
+% what is the understanding of geometric numerical integration that the reader has gained from reading this project.
+
+If we let $h$ be the difference from one real number to the next, then any convergent method with step size $h$ is symplectic, positivity preserving, and arguably the perfect geometric integrator.
+Unfortunately, this is a rather difficult parameter to achieve.
+Instead, we have to settle for a geometric integration scheme, based on the quality we want to preserve.
+For the problems we have explored, this requires rewriting the problem in a form that inherently admits this quality on its own - we cannot have a symplectic integrator without a Hamiltonian.
+Once we have a problem as we want it, we can pick an integration method.
+We have looked at this two ways.
+First, for symplectic integration we have explored some of the available options and demonstrated their qualities.
+A lot of our examples lend themselves to the St\"ormer-Verlet method, which we hope to show is an effective choice as a general symplectic integrator.
+However, we took a different approach to positivity preservation by analysing and adjusting the methods available.
+We spent a large portion of our writing exploring the numerical analysis of approximations to the matrix exponential,
+in order to reduce the cost of the integration methods while maintaining accuracy.
+We hope that these proposed adjusted methods are valuable in the preservation of positivity.
+
+The reader should have developed an understanding of the motivation and the execution of geometric numerical integration.
+We have shown examples of how qualities, inherent to a system, are not respected by general-purpose methods, particularly in the case of symplectic integration.
+In turn, we have explored methods which are centred around the aim of quality preservation.
+Both facets, both qualities we have explored have clear applications in the natural sciences, such as Hamiltonian systems for rigid body dynamics, and positive systems for chemical kinetics.
+However, at any point we may question the necessity of a geometric integrator.
+Despite being able to achieve qualitative preservation, we lack the ease of adjustment found in general purpose integrators.
+Willing to save effort, we may think that a general purpose method will be fine if we just set the error tolerance low enough.
+We hope to have shown that this is not the argument that geometric numerical integration aims to win,
+rather we aim to construct a different kind of integrator whose primary purpose is qualitative preservation.
+Fortunately, they also provide a good approximation to the solution.
+
