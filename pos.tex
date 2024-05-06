@@ -1,6 +1,7 @@
 
 
 \chapter{Positivity Preservation}
+\label{cha:pos}
 
 \section{Positive Solutions to ODEs}
 
@@ -44,7 +45,11 @@ and formulate positivity-preserving methods which are effective for these proble
         \draw[->] (1) to [bend right=10] node[midway, above] {$2$} (3);
         % Thank you ChatGPT
     \end{tikzpicture}
-    \caption{A directed graph, given for the demonstration of a graph-Laplacian matrix, taken from Wikipedia}
+    \caption{
+    	A directed graph, given for the demonstration of a graph-Laplacian matrix, taken from Wikipedia \cite{Wikipedia_2024}.
+    	Nodes are indexed from $1$ to $3$ and each directed edge has a given weight.
+    	Each node is connected to the other.
+    }
     \label{fig:graph1998}
 \end{figure}
 
@@ -55,7 +60,7 @@ Our main focus will be on problems that we can write in the form
 \begin{equation*}
     \dot{x} = A(x)x
 \end{equation*}
-where $A$ is a graph-Laplacian matrix.
+where $A$ is a graph-Laplacian matrix \cite{blanes_pos_2022}.
 
 \begin{definition}
     A graph-Laplacian matrix $A \in \mathds{R}^{d \times d}$ is a square matrix that satisfies
@@ -67,27 +72,6 @@ where $A$ is a graph-Laplacian matrix.
 \end{definition}
 
 Note that here, $A$ can depend on $x$. The entries in $A(x)$ can contain entries of $x$ in any fashion, as long as the definition is satisfied.
-
-\begin{example}
-    The Robertson reaction, taken from \cite{blanes_pos_2022}, is given by the matrix equation
-    \begin{equation*}
-        \frac{\mathrm{d}}{\mathrm{d}t}\begin{pmatrix}
-            x_1 \\
-            x_2 \\
-            x_3
-        \end{pmatrix} = \begin{bmatrix}
-            -0.04 & 10^4 x_3 & 0 \\
-            0.04 & -3\times 10^7 x_2 - 10^4 x_3 & 0 \\
-            0 & 3 \times 10^7 x_2 & 0
-        \end{bmatrix} \begin{pmatrix}
-            x_1 \\
-            x_2 \\
-            x_3
-        \end{pmatrix}.
-    \end{equation*}
-    This is a matrix equation of the form $\dot{x} = A(x)x$, where $A$ is a graph-Laplacian matrix.
-    This problem describes a chemical reaction of three species.
-\end{example}
 
 The name ``graph-Laplacian'' comes from graph theory, and the definition is not universally agreed upon.
 For our needs, we consider a graph-Laplacian matrix for a directional graph to be the in-degree matrix (empty diagonal) minus the in-degree adjacency matrix (diagonal) of the graph.
@@ -118,7 +102,8 @@ We have covered this case for integers, however in general we will consider grap
 If a problem admits the reduction to graph-Laplacian form like the above,
 we can show that the solution retains positivity.
 
-\begin{theorem}
+\begin{theorem}[Preservation of Positivity \cite{blanes_pos_2022}]
+    \label{thm:posgl}
     Solutions of $\dot{x} = A(x)x$ retain positivity if $A$ is graph-Laplacian.
 \end{theorem}
 \begin{proof}
@@ -154,14 +139,15 @@ in which case time-dependence is very important to account for.
 %% how graph laplacians also maintain conservation of mass and why this is nice.
 
 When problems describe an exchange of matter, it is useful for this matter to be conserved in our solution.
-Conservation of mass is the condition that $x$ satisfies $\mathbf{1}^\top x = C$ for some constant $C$.
+First, let $e$ be the vector of ones.
+Conservation of mass is the condition that $x$ satisfies $e^\top x = C$ for some constant $C$.
 Mass is conserved for graph-Laplacian problems because
 \begin{equation*}
-    \frac{\mathrm{d}}{\mathrm{d}t}\mathbf{1}^\top x = \mathbf{1}^\top \dot{x} = \mathbf{1}^\top A(x)x = \mathbf{0}^\top x = 0
+    \frac{\mathrm{d}}{\mathrm{d}t}e^\top x = e^\top \dot{x} = e^\top A(x)x = \mathbf{0}^\top x = 0
 \end{equation*}
-hence clearly $\mathbf{1}^\top x$ is constant.
-In the literature we often have $C=1$ for simplicity,
-there is no loss of generality because this can be applied to some scaling of the initial condition such that $\mathbf{1}^\top x_0 = 1$.
+hence clearly $e^\top x$ is constant.
+In the literature \cite{blanes_pos_2022} we often have $C=1$ for simplicity,
+there is no loss of generality because this can be applied to some scaling of the initial condition such that $e^\top x_0 = 1$.
 
 Mass preservation can be generalised to higher order problems involving inner products with the variable of interest.
 These problems concern conservation of other properties, which we will not explore in depth.
@@ -171,7 +157,17 @@ These problems concern conservation of other properties, which we will not explo
 % maybe leave this bit for later
 \subsection{Brute force approach}
 
-Before considering the problem of positivity preserving methods in depth, we will first consider the method which we will refer to as ``fixing''.
+\begin{figure}
+    \centering
+    \includegraphics[width=0.75\linewidth]{Matlab/clippingisbad.eps}
+    \caption{
+        Comparison of methods applied to the linear test problem.
+        True solution is marked in blue on each plot.
+    }
+    \label{fig:eulertriple}
+\end{figure}
+
+Before considering the problem of positivity preserving methods in depth, we will first consider the method which we will refer to as ``fixing'' or ``clipping''.
 We use the forward Euler method $x_{i+1} = x_i + hf(x_i)$, except at every step we perform a fix by considering every entry in $x_i$ and if it is negative, we just set it to zero.
 We can write this formally as the method
 \begin{align*}
@@ -183,6 +179,9 @@ This is equivalent to a projection of $x$ to a vector subspace of lower dimensio
 
 This method is very cheap, and it preserves positivity, so it seems like an easy choice.
 The fixing step to eliminate negative entries can be applied in general to any numerical method.
+See Figure \ref{fig:eulertriple}, where we have compared regular explicit Euler, explicit Euler with clipping, and implicit Euler methods applied to the linear test problem.
+Regular Euler's method fails to preserve positivity unconditionally, while the clipping method adjusts negative solutions to zero.
+Backward Euler appears to preserve positivity.
 %discuss a result
 
 Euler's method serves as a useful baseline to demonstrate experimental ideas.
@@ -227,6 +226,7 @@ We will show this by demonstrating what happens if we do. We propose a method of
 \end{equation}
 This method fixes $A$ for each step. Therefore, one step is equivalently providing the analytical exponential solution to the problem $\dot{x} = A(y)x$,
 where $y = x(t=0) = x_n$.
+In our scope of analysis we will call this the ``exponential Euler method'', due to its similarity to the classic method.
 Considering the true solution after a timestep, we want to find an expression for the \textit{truncation error}.
 We write $x(t_n) = x_n$ at the current step and look at the difference between $x(t_n + h)$ (the true value) and $x_{n+1}$ (the method).
 However, first we need to consider the Taylor expansion on $x(t + h)$
@@ -302,7 +302,7 @@ We also know that if a problem is given instead by $\dot{x} = Ax$ for any consta
 Therefore, by splitting the problem into two problems on $x$ and $z$,
 the solutions are given by the exponential form since the matrices are fixed in each problem,
 and the solutions preserve positivity because the matrices are of graph-Laplacian form.
-Therefore these solutions preserve positivity, which we can use to begin constructing methods which maintain this.
+Therefore these solutions preserve positivity \cite{blanes_pos_2022}, which we can use to begin constructing methods which maintain this.
 
 The primary method given in \cite{blanes_pos_2022}, which is a solution to Equations \ref{eqn:split1} and \ref{eqn:split2} is given by the equations
 \begin{equation}
@@ -320,6 +320,7 @@ In \cite{blanes_pos_2022}, it is stated that $|x_n - z_n|$ can be used as an est
 %order results from this method
 %example comparing some methods
 %magnus method
+We will provide our own analysis on this method, by producing our own results on the truncation error of these methods.
 First, we evaluate the truncation error of $z$. The whole numerical method can be written compactly by writing the explicit expression for $x_{n+\frac{1}{2}}$ inside the term.
 Denote $x := x(t_n)$ and $A := A(x)$ for compactness, also $A' := A'(x)$ and the same generalised for any derivatives.
 For an attempt of ease of notation, square brackets contain objects which are matrices or higher rank tensors, while parentheses contain objects which are vectors.
@@ -415,7 +416,7 @@ Expand the expression
     \right] x + \mathcal{O}(h^4).
 \end{align*}
 Note that because of the $(h/2)$ scale, taking out the $\mathcal{O}(h^3)$ term by expansion leads to an $\mathcal{O}(h^4)$ term outside the expression.
-This saves writing $z_{n+1}$ up to the order $h^3$ term, we don't need it.
+This saves writing $z_{n+1}$ up to the order $h^3$ term, since it would not be included in the final expression up to order $\mathcal{O}(h^3)$.
 Using the definition of the exponential for both parts, we get
 \begin{align*}
     x_{n+1} &= \left[
@@ -467,6 +468,32 @@ Comparing this to the true expansion from Equation \ref{eqn:thirdorderexpansion}
 We have obtained direct expressions for the truncation errors for both components of the splitting method.
 Both expressions for truncation error, from Equations \ref{eqn:strangtruncz} and \ref{eqn:strangtruncx}, indicate that the method is second-order accurate.
 
+The multiplication of the tensors as we have written them is not defined to satisfy associativity.
+With the aim of relating the notation of Butcher \cite{butcher2016numerical}, we evaluate terms in the derivatives to provide some clarity.
+We start with the definition of the system
+\begin{equation*}
+    \dot{x} = f(x) = A(x)x
+\end{equation*}
+We consider derivatives in the general case:
+\begin{align*}
+    \dot{x} &= f(x) \\
+    \ddot{x} &= f'(x)\dot{x} = f'(x)f(x) = f'f \\
+    \dddot{x} &= f''(x)f(x)f(x) + f'(x)f'(x)f(x) = f''(f,f) + f'f'f
+\end{align*}
+We can express terms for the derivatives just in $f$, which only go down to $x$ derivatives
+\begin{align*}
+    f(x) &= A(x)x = Ax \\
+    f'(x) &= \frac{\partial f}{\partial x} = \frac{\partial}{\partial x} \left( A(x)x \right) = A'(x)x + A(x) = A'x + A \\
+    f''(x) &= \frac{\partial}{\partial x} \left( A'(x)x + A(x) \right) = A''(x)x + A'(x) + A'(x) = A''x + 2A'
+\end{align*}
+and we can write the derivatives of $x$ in a way that resembles the convention
+\begin{align*}
+    \dot{x} &= f = Ax \\
+    \ddot{x} &= f'f = \left[A'x + A\right] \left(Ax\right) \\
+    \dddot{x} &= f''(f,f) + f'f'f = \left[ A''x + 2A' \right]\left( Ax, Ax \right) + \left[ A'x + A \right]\left[ A'x + A \right]\left( Ax \right)
+\end{align*}
+where $A''x + 2A'$ is a third rank tensor, $A'x + A$ is a matrix and $Ax$ is a vector.
+
 We will now briefly consider statements from \cite{blanes_pos_2022} regarding the properties of the splitting method.
 We have mentioned the authors' claim that the difference $|x_{n+1} - z_{n+1}|$ can be taken as an estimate of the error of the method.
 Using the expansions in Equations \ref{eqn:strangzpanda} and \ref{eqn:strangzpanda}, we can write their difference as
@@ -484,9 +511,14 @@ The difference expression does not contain the term $AA'Axx$, which appears in t
 One potentially interesting component of this analysis comes from how the different stages eliminate different elements in the truncation errors.
 We may be motivated to take a linear combination of $x_{n+1}$ and $z_{n+1}$ such that we can obtain a new truncation error which is, in some sense, minimised.
 Arguments are given in the Appendix, since the method borrows from convex optimisation \cite{boyd2004convex} and is not entirely relevant to the discussion.
+Particularly, the approach is similar to Ralston \cite{ralston1962runge}.
 We find that the appropriate linear combination, of the form $y_{n+1} = \mu z_{n+1} + \lambda x_{n+1}$,
-is best for $\mu = 19/30, \lambda = 11/30$.
+would be theoretically best for $\mu = 17/24, \lambda = 7/24$.
 
+The author acknowledges that the majority of this analysis on the truncation error of the splitting method is limited, due to lack of understanding of the behaviour of the mathematical objects.
+Improvements to the results could be made, given rules on the multiplication in order to make simplifications.
+We were unable to locate or provide any sources on this topic.
+The analysis is the best we could achieve in this context.
 % at the end, acknowledge this could all be wrong "due to lack of information regarding the behaviour of the tensor objects that appear in this context"
 
 \subsection{Example - A Linear Problem on Two Variables}
@@ -533,6 +565,8 @@ The formulation of the problem into graph-Laplacian form and the application of 
 Therefore we have shown that positivity may not be maintained by conventional integrators,
 but it is succesful for the ES2 integrator which we know to unconditionally preserve positivity.
 
+Implementation of ES2 with further testing is provided in Appendix \ref{apn:es2}.
+
 \subsection{The Magnus Integrator}
 
 An alternative method suggested in \cite{blanes_pos_2022} is the second order Magnus integrator.
@@ -556,7 +590,7 @@ Specifically, we write
     \begin{aligned}
         \Omega(t) &= \Omega_1(t) + \Omega_2(t) + \mathellipsis = \sum_{j = 0}^{\infty} \Omega_j (t) \\
         \Omega_1(t) &= \int_{0}^{t} A(\tau) \mathrm{d}\tau \\
-        \Omega_n(t) &= \sum_{k=1}^{n-1} \frac{B_k}{k!} \int_{0}^{t} S_n^{(j)}(\tau) \mathrm{d}\tau \\
+        \Omega_n(t) &= \sum_{k=1}^{n-1} \frac{B_k}{k!} \int_{0}^{t} S_n^{(k)}(\tau) \mathrm{d}\tau \\
     \end{aligned}
 \end{equation*}
 where $B_k$ are the Bernoulli numbers \cite{bernoulli} and the $S_n^{(j)}$ matrices are defined
@@ -583,6 +617,8 @@ The use of the Magnus expansion is in being able to express the solution to the 
 By taking the first order term in the expansion and forming a first order approximation, we construct a first-order method which is the same as the ``exponential Euler method''  we saw earlier.
 This outlines an idea for constructing better approximations, by taking higher order Magnus expansions and higher order approximations.
 
+%% derive the second order method
+
 The formulation for higher order methods is given in more detail by \cite{blanes_pos_2022} when considering Magnus integrators.
 They focus on a second order integrator, for which the autonomous version is given by
 \begin{equation}
@@ -591,6 +627,7 @@ They focus on a second order integrator, for which the autonomous version is giv
 \end{equation}
 This method uses the midpoint rule in order to form a second order approximation to a formulation of the solution using the first two terms of the Magnus expansion. 
 The formulation of the second-order Magnus integrator is identical to the $z_{n+1}$ stage of the second order Strang splitting method.
+An alternative method can be obtained by using the trapezium method approximation which is also second order \cite{blanes_pos_2022}.
 See Equation \ref{eqn:strangz} for the definition with Taylor-expanded form in Equation \ref{eqn:strangzpanda}.
 See Equation \ref{eqn:strangtruncz} for the truncation error.
 
@@ -642,30 +679,34 @@ The behaviours of both are extremely similar, however the implementation of EM2 
 We can also make the assertion that EM2 preserves positivity for this problem, by inspection of the graph.
 This result is consistent if we extend the timespan of the solution. 
 
+Implementation of positivity preserving methods for this problem are provided in Appendix \ref{apn:aprx}
+
 
 %Solving this problem with EM2. And the splitting method?
 
 % next section is approximating the exponential
-\section{Approximating the matrix exponential}
+\section{Approximation of the Matrix Exponential}
 %pade
 %the first order approximation
 %krylov methods
+This section involves some linear algebra material which we have not covered.
+A summary of the required information is given in the Appendix if needed.
 
 \subsection{Challenges, series computation}
 %mention instability for low N
 
 The positivity preservation methods discussed so far all have one problem in common, being the use of the matrix exponential.
 Computing the matrix exponential is significantly expensive, so we hope to introduce some form of approximation by which we can retain a given order of a method.
-We might first think to compute the exponential directly from the definition:
+We might first think to compute the exponential directly from the definition \cite{higham2008exponential}:
 \begin{equation*}
     \mathrm{e}^A = I + A + \frac{1}{2}A^2 + \frac{1}{6}A^3 + \mathellipsis = \sum_{j=0}^{\infty} \frac{A^j}{j!}.
 \end{equation*}
-If we are working in finite precision floating point arithmetic, we can assume that at some point the series will converge such that the sums to $n$ and $n+1$ are represented exactly the same.
+If we are working in finite precision floating point arithmetic, we can assume that at some point the series will converge such that the sums to $n$ and $n+1$ are represented exactly the same \cite{moler2003dubious}.
 In this case, we take the sum to $n$
 \begin{equation*}
     \mathrm{e}^A \approx \sum_{j = 0}^{n} \frac{A^j}{j!}.
 \end{equation*}
-using a modified Horner's form we can express this as
+and using a modified Horner's form \cite{knuth2014art} we can express this as
 \begin{align*}
 	\sum_{j = 0}^{n} \frac{A^j}{j!} &= I + A + \frac{1}{2!}A^2 + \mathellipsis + \frac{1}{n!} A^n \\
 	&= I + A\left(
@@ -685,7 +726,7 @@ A multiplication of two $d \times d$ matrices requires $\mathcal{O}(d^3)$\footno
 Even with this improvement in efficiency, using this approach to compute a matrix exponential appears expensive.
 We will now show that it is also unstable.
 
-The following example is similar to the first demonstration from \cite{moler2003dubious}.
+The following example is an adjustment of the first demonstration from \cite{moler2003dubious}.
 Consider the matrix given by
 \begin{equation*}
     A = \begin{bmatrix}
@@ -715,7 +756,7 @@ The true form of $A$ can be written as a conjugate transformation
 \end{equation*}
 and so the exponential can be written as 
 \begin{equation*}
-    e^A = \begin{bmatrix}
+    \mathrm{e}^A = \begin{bmatrix}
         1 & 3 \\
         2 & 4
     \end{bmatrix} \begin{bmatrix}
@@ -740,7 +781,7 @@ Since this implementation is clearly inadequate, we look for alternative methods
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{Matlab/padeapproximator.eps}
+    \includegraphics[width=0.65\linewidth]{Matlab/padeapproximator.eps}
     \caption{
         A Monte-Carlo estimate to evaluate the error of the Pad\'e approximation of the matrix exponential.
         For each value of $s$ in the interval $[0,2]$, we generate a sample of random $10\times 10$ graph-Laplacian matrix and positive vector pairs with entries uniformly distributed on $[0,1]$,
@@ -756,7 +797,7 @@ Since this implementation is clearly inadequate, we look for alternative methods
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{Matlab/padenegativemc.eps}
+    \includegraphics[width=0.65\linewidth]{Matlab/padenegativemc.eps}
     \caption{
         Monte-Carlo estimate for the negativity of the Pad\'e approximation of $\exp(A)x$.
         Uses the same configuration as Figure \ref{fig:mcpade}, the only difference being the evaluation of the dependent variable.
@@ -767,18 +808,13 @@ Since this implementation is clearly inadequate, we look for alternative methods
     \label{fig:mcpadeneg}
 \end{figure}
 
-The aim of the Pad\'e approximation for a scalar function $f(x)$ is to construct a rational polynomial approximation to $f$.
-The $[n,m]$ Pad\'e approximant for $f$ is the pair $p_{nm}(x), q_{nm}(x)$ which satisfy
-\begin{equation*}
-    f(x) - \frac{p_{nm}(x)}{q_{nm}(x)} = \mathcal{O}(x^{n+m+1})
-\end{equation*} 
-where $p_{nm}(x), q_{nm}(x)$ are polynomials.
-We generalise this concept to functions on matrices. Given a function $f(A)$, there is a unique $[n,m]$ Pad\'e approximant $R_{mn}(A)$ given by the pair $P_{nm}(A), Q_{nm}(A)$ and formed by $R_{nm}(A) = \left[Q_{nm}(A)\right]^{-1}P_{nm}(A)$.
+Recall the Pad\'e approximation to the matrix exponential, which we explored when looking at symplectic and A-stable Runge-Kutta methods in Chapter \ref{cha:ham}.
+We generalise this concept to functions on matrices. Given a function $f(A)$, there is a unique $[n,m]$ Pad\'e approximant \cite{higham2008exponential} $R_{mn}(A)$ given by the pair $P_{nm}(A), Q_{nm}(A)$ and formed by $R_{nm}(A) = \left[Q_{nm}(A)\right]^{-1}P_{nm}(A)$.
 We will refer to $P$ as the numerator matrix and $Q^{-1}$ as the denominator matrix.
 Formulae for Pad\'e approximants for certain matrix functions are known, such as the exponential. 
 When computing the product $Q^{-1}P$ we always use a method to solve the system $QX=P$ rather than directly computing the inverse and product.
 
-We said that formulae for the Pad\'e approximation for the exponential are known. From \cite{moler2003dubious} again, we have
+We said that formulae for the Pad\'e approximation for the exponential are known. From \cite{moler2003dubious, higham2008exponential} again, we have
 \begin{equation}
     \begin{aligned}
         P_{nm}(A) &= \sum_{j=0}^{n} \frac{(n+m-j)!n!}{(n+m)!j!(n-j)!}A^j \\
@@ -790,8 +826,8 @@ A general Pad\'e approximant is taken about a point, such that it is equal to th
 In some cases we might take the approximant about a different point, but here zero is no less suitable than anywhere else.
 
 In \cite{blanes_pos_2022} it is stated that the second order diagonal Pad\'e approximation to the exponential is positivity preserving.
-This is not true.
-This approximation is
+This is not true and we will provide a counterexample, alongside an investigation regarding how the approximation can be adjusted to preserve positivity.
+The $[1,1]$ Pad\'e approximation to the exponential of $A$ is
 \begin{equation*}
     D_{11}(A) = \left[ I - \frac{1}{2}A \right]^{-1} \left[ I + \frac{1}{2} A\right].
 \end{equation*}
@@ -846,9 +882,9 @@ In our example $\hat{a} = -4$ and
 So clearly the second order Pad\'e method does not preserve positivity.
 
 There is one result which we can utilise in order to ensure positivity.
-\begin{lemma}
+\begin{lemma}[Series Inverse \cite{horn2012matrix}]
     \label{lem:positiveinverse}
-    If $A$ is a matrix which satisfies $||A||_2 < 1$, we can write the inverse of $[I-A]$ as
+    If $A$ is a matrix which satisfies $||A||_2 < 1$, assuming $I-A$ is invertible we can write the inverse of $[I-A]$ as
     \begin{equation*}
         \left[ I - A \right]^{-1} = \sum_{k=0}^{\infty} A^k.
     \end{equation*}
@@ -879,7 +915,7 @@ If we also have this bound on the spectral norm of $\bar{A}$,
 then we know that the inverse of $[I-\bar{A}]$ is the series on powers of $A$, all of which must be positive.
 Therefore, the inverse of $[I-\bar{A}]$ is positive.
 In this context, we can guarantee that this approximation is positivity preserving.
-This also relates to the Pad\'e approximation - if this holds then the $(1,1)$ approximation has the numerator and denominator matrices both positive.
+This also relates to the Pad\'e approximation - if this holds then the $[1,1]$ approximation has the numerator and denominator matrices both positive.
 We will look at this later.
 
 A possible explanation for the mistake in \cite{blanes_pos_2022} could be the alternative approximations the authors use.
@@ -943,8 +979,11 @@ Figure \ref{fig:mcpadeneg} evaluates negativity, clearly isolating a region of s
 
 In MATLAB, the matrix exponential can be computed using the \texttt{expm()} function.
 This implementation is very stable, due to the implementation of the scaling and squaring method \cite{higham2005scaling,moler2003dubious}.
-Given some number $m$, for a square matrix $A$ we have that $\exp(A) = \left[\exp\left(\frac{A}{m}\right)\right]^m$.
-The method takes $m$ to be a given power of $2$, such that an approximation of $\exp(A/m)$ is stable by $A/m$ having a norm bounded below a threshold, and then repeatedly squares the result to get an approximation for $\exp(A)$.
+The implementation of scaling and squaring is motivated by the identity that
+\begin{equation*}
+	\mathrm{e}^A = \left[ \mathrm{e}^\frac{A}{r} \right]^r.
+\end{equation*}
+The method takes $r$ to be a given power of $2$, say such that an approximation of $\exp(A/r)$ is stable by $A/r$ having a norm bounded below a threshold \cite{higham2008exponential}, and then repeatedly squares the result to get an approximation for $\exp(A)$.
 This process provides much more stability in using the Pad\'e approximation, or even the series definition, of the matrix exponential.
 
 \subsection{A first-order approximation}
@@ -964,8 +1003,8 @@ First, note that when looking at the Pad\'e approximation we considered the posi
 \end{equation*}
 What is interesting is that both $Q^{-1}$ and $P$ in this Pad\'e approximation are themselves first order approximations of $\exp((h/2)A)$.
 
-The proof of positivity involves Gershgorin's theorem for the eigenvalues of a matrix.
-\begin{theorem}{Gershgorin}
+Understanding the positivity of this approximation involves Gershgorin's theorem for the eigenvalues of a matrix.
+\begin{theorem}[Gershgorin \cite{gershgorin1931uber, horn2012matrix}]
     The eigenvalues of a matrix $A$ lie in the union of the $n$ discs $\mathcal{D}_i$ where
     \begin{equation*}
         \mathcal{D}_i = \left\{ z \in \mathds{C}: |z - a_{ii}| \leq \sum_{
@@ -974,16 +1013,7 @@ The proof of positivity involves Gershgorin's theorem for the eigenvalues of a m
     \end{equation*}    
 \end{theorem}
 \begin{proof}
-    We give a brief proof. Let $\lambda,x$ be an eigenpair of $x$ and assume $|x_k| = ||x||_\infty$.
-    The $k$-th equation in the system is
-    \begin{equation*}
-        \sum_{j=1}^{d}a_{kj}x_j = \lambda x_k.
-    \end{equation*}
-    which rearranges to
-    \begin{equation*}
-        (a_{kk} - \lambda) x_k = \sum_{j=1, j \neq k}^{d} a_{kj}x_j.
-    \end{equation*}
-    Take absolute values, recognise that for all $j$ we have $|x_j| \leq |x_k|$, apply the triangle inequality and we get the required result on $\lambda$
+    Proof omitted, see \cite{horn2012matrix}, pages $389-390$. 
 \end{proof}
 
 Gershgorin's theorem is a very useful bound on the eigenvalues - the disc $D_i$ is centered at $a_{ii}$ and its radius is the sum of the absolute values of the non-diagonal entries in the rest of the column.
@@ -993,12 +1023,15 @@ Assume $A$ has eigenvalues $\lambda_i$. Assuming $h>0$, $I - hA$ has eigenvalues
 Since the eigenvalues of the inverse matrix are the inverses of the eigenvalues,\footnote{
     For matrix $M$ and eigenpair $\mu, y$, $y = M^{-1} My = M^{-1} \mu y$ and divide by $\mu$.
 } the eigenvalues of $[I-hA]^{-1}$ are $1/(1-h \lambda)$.
-From Gershgorin's theorem, the eigenvalues of $A$ have strictly negative real part,
+From Gershgorin's theorem, the eigenvalues of $A$ have negative real part,
 so these eigenvalues of the first order exponential approximation belong to the strictly positive half of the complex plane. % this does not mean it works!
+We know that $[I-hA]$ has positive diagonal entries and negative off-diagonal entries,
+and we can use Gershgorin's theorem to show that the diagonal of $[I-hA]^{-1}$ must be positive.
+The proof that this inverse is entirely positive is given in \cite{blanes_pos_2022}.
 
 The positivity preserving methods from Equations \ref{eqn:secondorderstrangsplittingmethod}, \ref{eqn:secondordermagnus} retain positivity and second order when some of the matrix exponentials are replaced with this first order substitution.
 We evaluate the truncation error of the second order Magnus integrator when substituting the inside exponential with an approximation.
-Terms which evaluate to vectors are contained in (parentheses). Terms which evaluate to matrices or higher order tensors are contained in [square brackets].
+We use (parentheses) to contain terms which evaluate to vectors . For terms which evaluate to matrices or higher order tensors we use [square brackets].
 \begin{equation*}
     \begin{aligned}
         \tau_\mathrm{m}(h) &= x(t_n + h) - \exp \left[
@@ -1117,7 +1150,7 @@ We have already looked at the order of the second order Magnus integrator in its
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.75\linewidth]{Matlab/seriesworse.eps}
+    \includegraphics[width=0.65\linewidth]{Matlab/seriesworse.eps}
     \caption{
         Order of convergence of the series approximations of $\exp(hA)x$ depending on $h$, tested on samples of random $4 \times 4$ systems.
         The diagonal offset used was $s = 0.5$, which as shown in Figure \ref{fig:serieslog} appears to be close to a minimiser for low order approximations.
@@ -1127,7 +1160,7 @@ We have already looked at the order of the second order Magnus integrator in its
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.75\linewidth]{Matlab/magnustriplemapk.eps}
+    \includegraphics[width=0.85\linewidth]{Matlab/magnustriplemapk.eps}
     \caption{
         Visualisation of the second order Magnus integration when different approximations to the matrix exponential are used.
         Left: EM2, using two matrix exponentials with \texttt{expm()}.
@@ -1139,23 +1172,28 @@ We have already looked at the order of the second order Magnus integrator in its
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.75\linewidth]{Matlab/magnusapproximations.eps}
+    \includegraphics[width=0.65\linewidth]{Matlab/magnusapproximations.eps}
     \caption{
         Order of convergence for EM2, IP2 and EB2 integration methods.
         We plot the relative error of the solution at end time $T$ against the step size $h$ used in the integration scheme.
         The EM2 method is second order accurate \cite{blanes_pos_2022},
         and IP2 is also second order since their gradients match.
-        EB2 is tested for both $s=0$ and $s=1$.
+        EB2 is tested for both $s=0$ and $s=1$, but is only theoretically positivity preserving for $s=1$.
     }
     \label{fig:magnusapprxorder}
 \end{figure}
 
+In this subsection and the next, we develop our own ideas from those provided by the authors in \cite{blanes_pos_2022},
+aiming to use approximations to aid the computational cost of these numerical methods.
 We propose an approximation which can be used in the context of positivity preservation.
 Theoretically, the approximations should be flexible and positivity preserving.
 We will investigate the properties of using the series definition of the exponential, while also considering the priority of positivity preservation.
 First, recall for a graph-Laplacian matrix $A$ the reduction $A = \bar{A} + \hat{a}I$ such that $\bar{A}$ is nonnegative.
 Therefore $\exp(A) = \exp(\bar{A} + \hat{a}I) = \exp(\hat{a})\exp(\bar{A})$.
-Then approximate this matrix exponential using the series definition
+In the general case, distribution of the matrix exponential involves the commutator \cite{higham2008exponential},
+however the identity matrix commutes with any other square matrix of the same size.
+
+Then, we approximate this matrix exponential using the series definition
 \begin{equation*}
     \exp(\bar{A}) \approx \sum_{k=0}^{N} \frac{1}{k!}A^k =: T_N(\bar{A}).
 \end{equation*}
@@ -1196,24 +1234,9 @@ and vector
     \end{bmatrix}.
 \end{equation*}
 We evaluate $y = \exp(A)x$ in MATLAB using \texttt{expm()} and provide an approximation $y_m = T_N(\hat{a})T_N(\bar{A})x$ given the required order $N$.
-For $N=2$ we select values for $s$ to minimise the error $||y-y_m||_2$.
-We obtain data on the norms
-\begin{table}[h!]  % this and on needs to be redone
-    \centering
-    \begin{tabular}{c | c | c | c}
-    $N$   & $s=0$ & $s=s_\mathrm{min}$ & $s=1$ \\ \hline
-    $N=2$ & $12.02$   & $4.53$ $(s_{min}=0.35)$    & $76.40$   \\
-    $N=3$ & $6.36$   & $0.88$ $(s_{min} = 0.55)$    & $27.13$   \\
-    $N=4$ & $3.67$   & $1.47$ $(s_{min} = 0.45)$    & $14.81$  
-    \end{tabular}
-    \caption{
-        Data on the convergence of the series form approximation to the matrix exponential.
-    }
-\end{table}
-It is difficult to identify useful results from this table.
-We have performed a similar test shown in Figure \ref{fig:serieslog}, where we can identify positions of optimality for the approximations depending on $s$.
-Note that this leads to another problem: in order for the method to preserve positivity in theory, we require $s \ge 1$.
-However, the optimal values of $s$ for our lower order approximations do not satisfy this constraint, as shown graphically and by table.
+We have visualised this approximation in Figure \ref{fig:serieslog}, where we can identify positions of optimality for the approximations depending on $s$.
+The minimum region of values for $s$ required for optimal error is always strictly less than $1$.
+Note that this leads to another problem: in order for the method to preserve positivity in theory, we require $s \ge 1$, however the optimal values of $s$ for our lower order approximations do not satisfy this constraint.
 Despite this, we continue. 
 Instead of comparing the convergence of different order approximations to the matrix exponential,
 it may be insightful to apply these methods to an integrator and compare with the methods and approximations have already been established.
@@ -1260,7 +1283,7 @@ However, the approximation becomes prohibitively expensive, and IP2 is a better 
 In fact, for timesteps $h > 10^{-2}$ the error of the approximation is so large that the method is unusable. 
 For extremely small timesteps $h \approx 10^{-4}$ EB2 is only ever as good as IP2.
 Essentially, the error between EM2 and EB2 is that we can save on computing matrix exponentials with EB2,
-but we may need to perform a thousand timesteps instead of one.
+but we may need to perform a thousand timesteps in the place of one.
 
 The main problem with EB2 is that when we apply the reduction $A = \bar{A} + \hat{a}I$ and start working with the diagonal offset parameter $s$,
 we want $s \ge 1$ in order to guarantee positivity, but optimal error is attained out of this bound (recall Figure \ref{fig:serieslog}).
@@ -1292,11 +1315,9 @@ In simpler terms, by using the series approximation and being given control of t
     \centering
     \includegraphics[width=0.75\linewidth]{Matlab/positivepadeconvergence.eps}
     \caption{
-        Order of convergence for the positivity preserving modification to the $(1,1)$ Pad\'e approximation to the matrix exponential.
+        Order of convergence for the positivity preserving modification to the $[1,1]$ Pad\'e approximation to the matrix exponential.
         The order matches a given second order approximation.
         The construction of this approximation guarantees positivity.
-        EM2 - 196.7 seconds.
-        IQ2 - 346.0 seconds.
     }
     \label{fig:padepositive}
 \end{figure}
@@ -1308,10 +1329,13 @@ In simpler terms, by using the series approximation and being given control of t
         Methods EM2 and IP2 applied to the MAPK problem, evaluating the global error as a function of the timestep.
         Both methods are clearly second order, however EM2 uses directly computed matrix exponentials from \texttt{expm()},
         while IQ2 uses positivity-preserving approximations.
+        EM2 solution computed in 196.7 seconds.
+        IQ2 solution computed in 346.0 seconds.
     }
     \label{fig:pademapkpos}
 \end{figure}
 
+Developing from before, we will consider using more robust techniques to again improve the cost of a numerical integration scheme from \cite{blanes_pos_2022}.
 The following method applies many results that we have explored in this section.
 First, the construction of the Pad\'e approximation.
 Second, the implementation of scaling and squaring.
@@ -1322,11 +1346,7 @@ We propose a numerical integration scheme which is another modification of EM2, 
 This method is identical to the IP2 method we introduced in the previous section, except for the modification of the second order Pad\'e approximation.
 Hence this is the change that we will discuss here.
 
-The motivation for scaling and squaring comes from the identity 
-\begin{equation*}
-    \mathrm{e}^A = \left[ \mathrm{e}^\frac{A}{r} \right]^r.
-\end{equation*}
-If $r = 2^m$, then we can compute the matrix exponential of $A$ (or an approximation) by computing the exponential of $A/2^m$ and squaring the result $m$ times.
+%TODO: come back here
 Recall Lemma \ref{lem:positiveinverse} - clearly scaling is useful.
 Then using the Pad\'e approximation,
 \begin{align*}
@@ -1344,35 +1364,91 @@ Our approximation method is as follows.
 First, we deconstruct $A$ as per $A = \bar{A} + \hat{a}I$, as we have looked into earlier.
 We ignore any scaling parameter in this choice, implicitly taking $s=1$ by having $\hat{a}$ being the most negative entry on the diagonal of $A$.
 We can then approximate the exponential by taking $\exp(A) = \exp(a)\exp(\bar{A})$ and approximating the exponential of $\bar{A}$.
-We can choose to approximate the scalar or compute it directly, as computing the scalar exponential is not considered computationally expensive - there is not a significant error in either case.
-For the Pad\'e $(1,1)$ approximation of $\bar{A}$, we can guarantee the numerator matrix will be positive regardless of its scaling.
+We can choose to approximate the scalar or compute it directly, as computing the scalar exponential is not considered computationally expensive - we have found there is not a significant error in either case.
+For the Pad\'e $[1,1]$ approximation of $\bar{A}$, we can guarantee the numerator matrix will be positive regardless of its scaling.
 In order to ensure positivity of the denominator matrix, we find a scaling $2^m$ such that $\bar{A}/2^m$ satisfies the bound required in Lemma \ref{lem:positiveinverse}.
 There is a trick here. In order to satisfy the bound, we need to know the $2$-norm of $\bar{A}$.
-However, we know that $||A||_2 < \sqrt{d}||A||_1$ in general, where $d$ is the dimension of the matrix.
+However, we know that $||A||_2 < \sqrt{d}||A||_1$ in general \cite{horn2012matrix}, where $d$ is the dimension of the matrix.
 The $1$ norm is the maximum column sum of the matrix. However, since $A$ is a graph-Laplacian matrix, the maximum column sum of $\bar{A}$ is $\hat{a}$ by construction.
 Hence we don't need to make any computations on the properties on the matrix.
 We compute the Pad\'e approximation for the scaled-down matrix, then repeatedly square to return to the original scale.
-This gives us a $(1,1)$ Pad\'e approximation which guarantees positivity.
+This gives us a $[1,1]$ Pad\'e approximation which guarantees positivity.
 
 This is a simplified version of the actual method implemented by MATLAB to compute the matrix exponential.
-Cost is (theoretically) reduced by computing the $(1,1)$ approximation,
+Cost is reduced by computing the $[1,1]$ approximation,
 and by not needing to compute any matrix norms.
 
+We have shown the results of this implementation in Figures \ref{fig:padepositive} and \ref{fig:pademapkpos}.
+The former indicates that the matrix approximation is itself second order accurate,
+while the latter indicates that EM2 maintains second order accuracy when this approximation is implemented.
+Note that in Figure \ref{fig:pademapkpos} we have stated the computation times of both methods for solving the IVP.
+Despite our implementation taking longer than the internal function,
+this is expected since the core included functions for MATLAB run using compiled FORTRAN code which is much faster in general than the interpreter for MATLAB itself \cite{moler2020history}.
 
+Implementation of our positivity preserving Pad\'e approximation in integration schemes is given in Appendix \ref{apn:exp}.
 
-\subsection{Krylov methods}
+\section{Wider Positivity Preservation}
 
-\section{Optimisation Methods}
-
-% mass preservation can be recovered from clipping using an optimisation algorithm
-
-% balancing the weights of a RK method - the added constraint enforces positivity
-
-
-\section{Special Cases}
-
-% the third order method from that chinese paper
-
+\subsection{The Implicit Euler Method}
 % backward Euler
+% unconditionally positivity preserving methods are stuck at first order
+Consider a system defined in its most general form by $\dot{x} = f(t,x)$.
+Let $y$ be the solution to the backward Euler method, so given $x = x_n$ we require $y = x_{n+1}$ to satisfy.
+\begin{equation*}
+    y = x + h f(t,y)
+\end{equation*}
+The following result shows that this method is positivity preserving.
+\begin{theorem}[Hundsdorfer, Verwer (2003) \cite{hundsdorfer2003numerical}]
+    The implicit Euler method is unconditionally positivity preserving for any positive step size $h > 0$.
+\end{theorem}
+\begin{proof}
+    The expression for the method is $y = x + hf(t,y)$, which we assume is continuous depending on $h$, where $t$ and $x$ are fixed.
+    This does require the continuity of $f$.
+    We write this method as a function $y(h)$, where the result depends on a parameter $h$ for fixed $t$ and $x$..
+    Our aim is to show that if $x$ is nonnegative then so is $y(h)$ for all $h$, however it is sufficient to prove this for a given $h$.
+    This is because $y$ is continuous on $h$, and $h$ is chosen arbitrarily, so $y$ will stay within the positive region.
+    Assume that, given some positive $h_0$, we have that $y(h) > 0$ for $h < h_0$, except for the $i$-th entry where we assume $y_i(h_0) = 0$.
+    Then we have
+    \begin{equation*}
+        0 = y_i(h_0) = x_i + h_0 f_i(t, y(h_0)).
+    \end{equation*}
+    The coefficient $h_0$ is positive, and we assumed $v_i$ is nonnegative. In order for the problem to preserve positivity we require that $f_i(t, y(h_0))$ be nonnegative.
+    In the case that $x_i = 0$ and the same for $f_i$, then $y_i = 0$ so the $i$-th entry in the solution remains at zero.
+    Otherwise, we have a contradiction, meaning that if $x$ is positive then the implicit Euler method preserves positivity.
+\end{proof}
+The proof, as given in the textbook \cite{hundsdorfer2003numerical}, causes some confusion with the implementation of the implicit Euler method at a fixed $t$.
+If it was instead given for some evaluation of $f(t,y(h))$ where $t = t_0 + h$, the process would be more clear since we are clearly computing $f$ at the time $t_{n+1}$ and value $y = x_{n+1}$ of the solution.
 
+The result lends some similarity to when we discussed positivity preservation of a problem governed by a graph-Laplacian matrix in Theorem \ref{thm:posgl}.
+The assumption of the behaviour of the derivative at zero is key to the result, since this is the behaviour that preserves positivity.
+When discussing earlier in this chapter, we used the result in a linear case, but have now been able to show it generally.
+Interestingly, the connection between these two results is even more evident when we consider how this does in fact apply to problems of the form $\dot{x} = A(x)x$,
+where $A$ is a graph-Laplacian matrix.
+The implicit Euler method applied to this problem is 
+\begin{equation*}
+    x_{n+1} = x_n + h A(x_{n+1})x_{n+1}
+\end{equation*}
+which rearranges to
+\begin{equation*}
+    x_{n+1} = \left[
+        I - h A(x_{n+1})
+    \right]^{-1}x_n
+\end{equation*}
+which we know is positivity preserving.
+The positivity preservation of this matrix can be seen as another case of this general result on the behaviour of the backward Euler method.
 
+It is widely recognised that there are no methods which, when applied to generally formulated problems, preserve positivity unconditionally and also have truncation error of order greater than $1$.
+This result is stated in \cite{bolley1978conservation}, and referenced in \cite{blanes_pos_2022, hundsdorfer2003numerical} and others. 
+
+\subsection{Review}
+
+We have given an overview on current methods in positivity preservation.
+The focus of our analysis has been the formulation and improvement of second-order methods.
+This contrasts to symplectic and more general geometric integrators,
+where we have fourth and higher order schemes available.
+In a sense, this is one limitation of the analysis we have provided,
+namely that we have studied improvements over current methods,
+but have not provided any framework for how we would formulate higher-than-second-order methods.
+This itself is still an active area of research.
+
+Having finished our analysis of positivity preservation, we provide a discussion to review all the topics from this report.
