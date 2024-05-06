@@ -1,6 +1,63 @@
 \appendix
 
-\section{Symplectic Integration}
+\chapter{Supplementary Content}
+
+\section{Preliminary}
+
+\subsection{Linear Algebra}
+
+Ascertaining the convergence of computing the matrix exponential requires bounds on matrix norms, particularly in the implementation of scaling and squaring.
+There are three vector $p$-norms of interest, where for a vector $x$ we have
+\begin{equation*}
+    ||x||_p = \left( \sum_{i=1}^{d} x_i^p  \right)^{\frac{1}{p}}.
+\end{equation*}
+We are only ever concerned with $p=1$ (sum of moduli), $p=2$ (the ``Euclidean norm'') and $p=\infty$ (modulus of maximal element).
+Matrix norms are induced by vector norms:
+\begin{equation*}
+    ||A||_p = \max_x \frac{||Ax||_p}{||x||_p}.
+\end{equation*}
+The matrix $2$-norm is the most theoretically interesting since it is the spectral radius of the matrix - the modulus of the maximal eigenvalue.
+The $1$-norm is the maximum column sum of the moduli of the entries, and the $\infty$ norm is the same for the row sums.
+However the norms are equivalent, being that for $p$ and $q$ norms on a matrix $A$ there exist constants $\alpha, \beta$ such that
+\begin{equation*}
+    \alpha ||A||_q \leq ||A||_p \leq \beta ||A||_q.
+\end{equation*}  
+Therefore bounds on one norm can be expressed as bounds on any other defined norm.
+We use this in the scaling and squaring implementation to avoid computing a matrix $2$-norm \cite{higham2005scaling}.
+
+\subsection{The MATLAB ODE Solvers}
+
+The recommended functions for solving ordinary differential equations in MATLAB are presented as \texttt{odexy()}, where \texttt{x} and \texttt{y} are whole numbers.
+These indicate the order of convergence of the methods that they apply in solving the given ODE.
+For our purposes, we use \texttt{ode45()}, which uses the Dormand-Prince pair of order $4$ and $5$ explicit Runge-Kutta methods.
+The function can be represented in a Butcher tableau
+\begin{equation*}
+    \begin{array}{c|ccccccc}
+		0 \\
+        1/5  & 1/5 & & & & & \\
+        3/10 & 3/40 &9/40 & & & & \\ 
+        4/5  & 44/45 & -56/15 & 32/9 & & & \\
+        8/9  & 19372/6561 & -25360/2187 & 64448/6561 & -212/729 & &  \\
+        1    & 9017/3168 & -355/33 	& 46732/5247 	& 49/176 	& -5103/18656 & \\
+        1  	 & 35/384 	&0 	& 500/1113 	& 125/192 	& -2187/6784 	& 11/84 \\
+		\hline
+		& 35/384     & 0 & 500/1113   & 125/192 & -2187/6784    & 11/84    & 0 \\
+        & 5179/57600 & 0 & 7571/16695 & 393/640 & -92097/339200 & 187/2100 & 1/40.
+	\end{array}
+\end{equation*}
+The first row representing $b^\top$ is the linear combination of the $k_i$ which is fifth-order accurate, while the second row corresponds to the fourth-order method.
+The implementation then uses the difference between these methods as an estimate for the error. %cite something
+
+\subsection{The MATLAB Matrix Exponential}
+
+The MATLAB function for computing the matrix exponential employs Pad\'e approximation alongside scaling and squaring.
+Given a matrix $A$, a scaling parameter $s$ is chosen such that
+\begin{equation*}
+    ||A/{2^s}||_\infty < 1/2
+\end{equation*}
+is satisfied.
+The $(6,6)$ Pad\'e approximation of $A/2^s$ is computed and then squared $s$ times.
+This approximation is accurate within $\epsilon \approx 10^{-15}$, which is approximately the machine precision for standard double precision $64$-bit arithmetic \cite{moler2003dubious, higham2005scaling}.
 
 \section{Positivity Preservation}
 
@@ -39,13 +96,8 @@ The truncation error, denoted here by $\tau$, is
     \tau &= v^\top g - \mu ( u_z^\top g ) - \lambda ( u_x^\top g ) \\
     &= \left( v - \mu u_z - \lambda u_x \right)^\top g.
 \end{align*}
-This is an inner product of two vectors, so we can apply the Cauchy-Schwarz inequality to obtain the bound
-\begin{equation*}
-    \tau \leq ||v - \mu u_z - \lambda u_x||_2 \cdot ||g||_2.
-\end{equation*}
-Arguably, taking the Cauchy-Schwarz inequality is not allowed because $g$ is not a vector in the traditional sense.
-However, if we think about it, $g$ must have some norm which is finite so this should be fine. % a problem for future me
-Because $g$ is our vector of elements, we can only vary the value of the $2$-norm on the left.
+We aim to optimise this method by minimising the $2$-norm of the vector on the left, since we have control over the parameters $\mu, \lambda$ in our optimisation.
+It also serves to note that $g$ is not a vector in the traditional sense and we have no knowledge on the scaling of its entries, therefore it is ignored.
 Therefore our problem is of the form
 \begin{equation*}
     \text{minimise } ||v - \mu u_z - \lambda u_x||_2.
@@ -53,103 +105,199 @@ Therefore our problem is of the form
 We have the additional contraint that $\mu + \lambda = 1$ in mind, because the method must be second order accurate.
 We can block the vectors and scalars to rewrite the problem in the form
 \begin{equation*}
-    \text{minimise } ||v - \begin{bmatrix}
+    \text{minimise } f(\mu, \lambda) = || v - \begin{bmatrix}
         u_z & u_x
     \end{bmatrix} \begin{pmatrix}
         \mu \\
         \lambda
-    \end{pmatrix}||_2.
+    \end{pmatrix} ||_2^2.
 \end{equation*}
-The solution to this optimisation problem \cite{boyd2004convex} is the solution to the normal equations
+The squared norm makes the computations easier.
+If we let this be our objective function, then the constraint function is $g(\mu, \lambda) = (\mu + \lambda - 1)$.
+The Lagrangian is
 \begin{equation*}
-    \begin{bmatrix}
-        u_z^\top \\
-        u_x^\top
-    \end{bmatrix} v - \begin{bmatrix}
-        u_z^\top \\
-        u_x^\top
-    \end{bmatrix} \begin{bmatrix}
-        u_z & u_x
-    \end{bmatrix} \begin{pmatrix}
-        \mu \\
-        \lambda
-    \end{pmatrix} = 0.
+    L(\mu, \lambda, k) = \sum_{i=1}^{6} (v_i - \mu u_{z(i)} - \lambda u_{x(i)})^2 + k (\mu + \lambda - 1)
 \end{equation*}
-which rearranges to
-\begin{equation*}
-    \begin{bmatrix}
-        u_z^\top u_z & u_z^\top u_x \\
-        u_x^\top u_z & u_x^\top u_x
-    \end{bmatrix} \begin{pmatrix}
-        \mu \\
-        \lambda
-    \end{pmatrix} = \begin{bmatrix}
-        u_z^\top v \\
-        u_x^\top v
-    \end{bmatrix}.
-\end{equation*}
-Numerically, this can be represented as
-\begin{equation*}
-    \begin{bmatrix}
-        35 & 26 \\
-        26 & 89
-    \end{bmatrix} \begin{pmatrix}
-        \mu \\
-        \lambda
-    \end{pmatrix} = \begin{bmatrix}
-        38 \\
-        50
-    \end{bmatrix}
-\end{equation*}
-having been scaled up by a factor of $288$.
-Since we must satisfy the linear constraint, we can't directly solve this system.
-With the residual defined as
-\begin{equation*}
-    r = \begin{pmatrix}
-        38 \\
-        50
-    \end{pmatrix} - \begin{bmatrix}
-        35 & 26 \\
-        26 & 89
-    \end{bmatrix} \begin{pmatrix}
-        \mu \\
-        \lambda
-    \end{pmatrix}
-\end{equation*}
-we can write its squared norm as
+we take partial derivatives of the Lagrangian in order to find the minimiser
 \begin{align*}
-    ||r||_2^2 &= \left( 38 - 35 \mu - 26 \lambda \right)^2 + \left( 50 - 26 \mu - 89 \lambda \right)^2 \\
-    &= 1901 \mu^2 + 6448 \mu \lambda + 8597 \lambda^2 - 5260 \mu - 10876 \lambda + 3944
-\end{align*}
-The Lagrangian takes the form $L(\mu, \lambda, k) = ||r||_2^2 + k (\lambda + \mu - 1)$, the objective function plus a Lagrange multiplier $k$ times the constraint function.
-Then
-\begin{align*}
-    \frac{\partial L}{\partial \mu} &= 3802 \mu + 6448 \lambda - 5260 + k \\
-    \frac{\partial L}{\partial \lambda} &= 6448 \mu + 17194 \lambda - 10876 + k \\
+    \frac{\partial L}{\partial \mu} &= \sum_{i=1}^{6} 2(v_i - \mu u_{z(i)} - \lambda u_{x(i)})(-u_{z(i)}) + k = 2 (\mu u_z^\top u_z + \lambda u_x^\top u_z - v^\top u_z ) + k \\
+    \frac{\partial L}{\partial \lambda} &= \sum_{i=1}^{6} 2(v_i - \mu u_{z(i)} - \lambda u_{x(i)})(-u_{x(i)}) + k =  2 (\mu u_z^\top u_x + \lambda u_x^\top u_x - v^\top u_x ) + k \\
     \frac{\partial L}{\partial k} &= \lambda + \mu - 1.
 \end{align*}
-The minimiser of the Lagrangian is the solution to the linear system
+When all the partial derivatives are zero, this can be written as the linear system
 \begin{equation*}
     \begin{bmatrix}
-        3802 & 6448 & 1 \\
-        6448 & 17194 & 1 \\
+        2u_z^\top u_z & 2u_x^\top u_z & 1 \\
+        2u_z^\top u_x & 2u_x^\top u_x & 1 \\
         1 & 1 & 0
     \end{bmatrix} \begin{pmatrix}
         \mu \\
         \lambda \\
         k
     \end{pmatrix} = \begin{pmatrix}
-        5260 \\
-        10876 \\
+        2v^\top u_z \\
+        2v^\top u_x \\
         1
+    \end{pmatrix}.
+\end{equation*}
+We can write this numerically because we know all the values in the vectors, so the system is equivalently
+\begin{equation*}
+    \begin{bmatrix}
+        70 & 52 & 288 \\
+        52 & 178 & 288 \\
+        288 & 288 & 0
+    \end{bmatrix} \begin{pmatrix}
+        \mu \\
+        \lambda \\
+        k
+    \end{pmatrix} = \begin{pmatrix}
+        76 \\
+        100 \\
+        288
     \end{pmatrix}
 \end{equation*}
-which has the solution
+having scaled the system to representation in integer values.
+The solution is
 \begin{align*}
-    \mu &= \frac{19}{30} \\
-    \lambda &= \frac{11}{30} \\
-    k &= \frac{2439}{5}.
+    \mu &= \frac{17}{24} \\
+    \lambda &= \frac{7}{24} \\
+    k &= \frac{5}{128}.
 \end{align*}
 
+% Alternatively we could find a solution to the normal equations.
+% Starting with the definition of $f$, the solution to this optimisation problem is the solution to the normal equations
+% \begin{equation*}
+%     \begin{bmatrix}
+%         u_z^\top \\
+%         u_x^\top
+%     \end{bmatrix} v - \begin{bmatrix}
+%         u_z^\top \\
+%         u_x^\top
+%     \end{bmatrix} \begin{bmatrix}
+%         u_z & u_x
+%     \end{bmatrix} \begin{pmatrix}
+%         \mu \\
+%         \lambda
+%     \end{pmatrix} = 0.
+% \end{equation*}
+% which rearranges to
+% \begin{equation*}
+%     \begin{bmatrix}
+%         u_z^\top u_z & u_z^\top u_x \\
+%         u_x^\top u_z & u_x^\top u_x
+%     \end{bmatrix} \begin{pmatrix}
+%         \mu \\
+%         \lambda
+%     \end{pmatrix} = \begin{bmatrix}
+%         u_z^\top v \\
+%         u_x^\top v
+%     \end{bmatrix}.
+% \end{equation*}
+% Numerically, this can be represented as
+% \begin{equation*}
+%     \begin{bmatrix}
+%         35 & 26 \\
+%         26 & 89
+%     \end{bmatrix} \begin{pmatrix}
+%         \mu \\
+%         \lambda
+%     \end{pmatrix} = \begin{bmatrix}
+%         38 \\
+%         50
+%     \end{bmatrix}
+% \end{equation*}
+% having been scaled up by a factor of $288$.
+% Since we must satisfy the linear constraint, we can't directly solve this system.
+% With the residual defined as
+% \begin{equation*}
+%     r = \begin{pmatrix}
+%         38 \\
+%         50
+%     \end{pmatrix} - \begin{bmatrix}
+%         35 & 26 \\
+%         26 & 89
+%     \end{bmatrix} \begin{pmatrix}
+%         \mu \\
+%         \lambda
+%     \end{pmatrix}
+% \end{equation*}
+% we can write its squared norm as
+% \begin{align*}
+%     ||r||_2^2 &= \left( 38 - 35 \mu - 26 \lambda \right)^2 + \left( 50 - 26 \mu - 89 \lambda \right)^2 \\
+%     &= 1901 \mu^2 + 6448 \mu \lambda + 8597 \lambda^2 - 5260 \mu - 10876 \lambda + 3944
+% \end{align*}
+% The Lagrangian takes the form $L(\mu, \lambda, k) = ||r||_2^2 + k (\lambda + \mu - 1)$, the objective function plus a Lagrange multiplier $k$ times the constraint function.
+% Then
+% \begin{align*}
+%     \frac{\partial L}{\partial \mu} &= 3802 \mu + 6448 \lambda - 5260 + k \\
+%     \frac{\partial L}{\partial \lambda} &= 6448 \mu + 17194 \lambda - 10876 + k \\
+%     \frac{\partial L}{\partial k} &= \lambda + \mu - 1.
+% \end{align*}
+% The minimiser of the Lagrangian is the solution to the linear system
+% \begin{equation*}
+%     \begin{bmatrix}
+%         3802 & 6448 & 1 \\
+%         6448 & 17194 & 1 \\
+%         1 & 1 & 0
+%     \end{bmatrix} \begin{pmatrix}
+%         \mu \\
+%         \lambda \\
+%         k
+%     \end{pmatrix} = \begin{pmatrix}
+%         5260 \\
+%         10876 \\
+%         1
+%     \end{pmatrix}
+% \end{equation*}
+% which has the solution
+% \begin{align*}
+%     \mu &= \frac{19}{30} \\
+%     \lambda &= \frac{11}{30} \\
+%     k &= \frac{2439}{5}.
+% \end{align*}
 
-\section{MATLAB Implementations}
+
+\chapter{MATLAB Implementations}
+
+Some code is repeated in separate files.
+
+\section{Numerical Integration}
+
+\subsection{Classical Numerical Methods}
+
+\lstinputlisting[language=MATLAB]{Matlab/nummethods.m}
+
+
+\section{Symplectic Integration}
+
+\subsection{Hamiltonian Methods}
+\label{apn:ham}
+
+Three-Body Problem and methods for Hamiltonian framework.
+St\"ormer-Verlet integration scheme.
+
+\lstinputlisting[language=MATLAB]{Matlab/sympmethods.m}
+
+
+\section{Positivity Preservation}
+
+\subsection{Second Order Positivity Preserving Methods}
+\label{apn:es2}
+
+ES2 and EM2 applied to the stratospheric reaction model from \cite{blanes_pos_2022}.
+Approximations implemented in modifications of ES2.
+
+\lstinputlisting[language=MATLAB]{Matlab/chemexp.m}
+
+\subsection{Testing of Matrix Exponential Approximations}
+\label{apn:exp}
+
+\lstinputlisting[language=MATLAB]{Matlab/mypade.m}
+
+
+\subsection{Second Order Methods IP2, EB2, IQ2}
+\label{apn:aprx}
+
+Numerical methods with exponential approximations applied to the MAPK cascade.
+
+\lstinputlisting[language=MATLAB]{Matlab/magnusexperiment.m}
