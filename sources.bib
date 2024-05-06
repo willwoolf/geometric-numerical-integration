@@ -1,34 +1,11 @@
-%% get all the sources together
 
-@inbook{gni_rk,
-booktitle={Geometric Numerical Integration},
-publisher={Springer},
-year={2006},
-author={Hairer, Ernst and Wanner, Gerhard and Lubich, Christian},
-pages={28-30}
-}
-
-@inbook{gni_qinv,
-booktitle={Geometric Numerical Integration},
-publisher={Springer},
-year={2006},
-author={Hairer, Ernst and Wanner, Gerhard and Lubich, Christian},
-pages={101-102}
-} 
-
-@inbook{gni_srk,
-booktitle={Geometric Numerical Integration},
-publisher={Springer},
-year={2006},
-pages={191-193}
-} 
 
 @book{gni2006,
   title = {Geometric Numerical Integration},
   publisher = {Springer},
   year = {2006},
   author={Hairer, Ernst and Wanner, Gerhard and Lubich, Christian},
-  pages = {28-30, 101-102, 186, 191-193}
+  pages = {28-30, 34, 101-102, 159, 186, 191-193}
 }
 
 @book{sanz2018hamiltonian,
@@ -36,20 +13,58 @@ pages={191-193}
   author={Sanz-Serna, Jesus-Maria and Calvo, Mari-Paz},
   volume={7},
   year={2018},
-  publisher={Courier Dover Publications}
+  publisher={Courier Dover Publications},
+  pages = {37, 181-182}
 }
 
+@article{bolley1978conservation,
+  title={Conservation de la positivit{\'e} lors de la discr{\'e}tisation des probl{\`e}mes d'{\'e}volution paraboliques},
+  author={Bolley, Catherine and Crouzeix, Michel},
+  journal={RAIRO. Analyse num{\'e}rique},
+  volume={12},
+  number={3},
+  pages={237--245},
+  year={1978},
+  publisher={EDP Sciences}
+}
 
+@book{hundsdorfer2003numerical,
+  title={Numerical solution of time-dependent advection-diffusion-reaction equations},
+  author={Hundsdorfer, Willem H and Verwer, Jan G},
+  volume={33},
+  year={2003},
+  pages          = {123},
+  publisher={Springer}
+}
+
+@inbook{higham2008exponential,
+  title = {10. Matrix Exponential},
+  booktitle = {Functions of Matrices},
+  author={Higham, Nicholas J},
+  chapter = {},
+  pages = {233-267},
+  doi = {10.1137/1.9780898717778.ch10},
+  URL = {https://epubs.siam.org/doi/abs/10.1137/1.9780898717778.ch10},
+  eprint = {https://epubs.siam.org/doi/pdf/10.1137/1.9780898717778.ch10},
+}
+
+@book{knuth2014art,
+	title={The Art of Computer Programming: Seminumerical Algorithms, Volume 2},
+	author={Knuth, Donald E},
+	year={2014},
+	publisher={Addison-Wesley Professional},
+	pages = {486-488}	
+}
 
 %ch9 has backward error analysis
 %ch10 has hamiltonian perturbation theory
 
 @book{Casas_2016,
-title={A concise introduction to geometric numerical integration},
-publisher={CRC Press},
-author={Casas, Fernando and Blanes, Sergio},
-pages = {105-106, 130-131},
-year={2016}
+  title={A concise introduction to geometric numerical integration},
+  publisher={CRC Press},
+  author={Casas, Fernando and Blanes, Sergio},
+  pages = {24-25, 105-106, 146, 136-138},
+  year={2016}
 } 
 
 @article{blanes_pos_2022,
@@ -61,10 +76,8 @@ year={2016}
   year            = {2022}
 }
 
-
-
 % discussion of magnus expansion
-https://pdf.sciencedirectassets.com/271542/1-s2.0-S0370157309X00049/1-s2.0-S0370157308004092/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPP%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJHMEUCIQCflwY3ab0%2F1UXNKRl3uhg98hr8M76fvQ8vp%2BmG8CSs3QIgBXP0fdfMy05z208E3XOVnbb3anFoL1h4DDmB%2BHaiO3cqswUIGxAFGgwwNTkwMDM1NDY4NjUiDJ2GAXtLvAvSuFU0WSqQBal4Uy4qEX7cWVqOOmCWAzaqZAljuNbGIQ77iuKVsMkRHlbDPegYK8skSYIpGVX6RA8p7GzWisv5TYruSct0AoZ2kcf0YHn%2BinL6dITFr5I2ySzII1%2Fo5GmjpWy8czJAPAR0bUmMtDGMOfQzABA%2FfSRYe3%2Bvy5IrgY0S7rdED1tkWQUxk0CHtbPla%2FpgTuUD9p8HalrAUz%2B%2Fdlx%2FStebS5UM29CcSgv%2Fb3htoRyZ10w1QfcUKV4f75jmlLwVQ7SFs8%2F2Xsa23MXizfS5zbhVZlP526jz6xTeCT%2FJdOpHf2b41OxAe49vACaBmjMfksMIPwIeeTX%2BSh0BbTXd4RnMJ2CqsStYIOeBafGE4Mwy6P1lRxYyHUaO%2F5jOb0pWRdC9f2oYeekh9j7xFIdIQSYl5fbASPowOj36wkbv2UNuRX3RXGUl0UNnRsXpBWdiAk107qRcaWPkEy3SL1%2FiW%2F8itUMN%2B640DZBQn46hXR6LBf3qeUlM%2Bw1wPndvC6Owr7Y9LQvZ2SmRREx%2FtiRzjjIEnkMZ11hv%2BxpGvMLOMUK6CnHCgzZrBn3KLjYw5eYHJusYZcUVOlZ6RV3YirR5u70MkS%2BAoLoidygoiZSucyG7DE7HVlY%2BylMtgNiSfh%2BfIYnZtLalCNGZiqsVHpDkO0UDP1pxo64WCjS70GHeK3rtqzHJIgmHc7OVpR7uciXulC5SaRLa6ttOM0kiDRfEKVI760gtqP4cnL6pLTAAzLx8OazLcazP11NlR3Iqq6ElmZb%2Fu5KO3j%2BYF7Z1YpBnSTij%2Bbd4KrAp5NMaSToBYWz8Aj8BLzJwnKqDUt7ct3SwaIz6GexVj%2F4SrasJ%2FyFAhX5UUO2F%2FKqbCvR7ghdDWGdBn9l5MJWsobAGOrEB91M4pV6vWG4XdhQdFZ%2FJGzMl81i52mDmOJQZQ1OgcyNNp3M8aORbWIvOPE2FF3maeASZ5bAs1NpVNfn72c2jWSmnZzL9A3LBOXDuG3Jx8GxVJVsqtiBazg0IMGTwIkI8hGoHNw0y8LfjdjbK3FIm1XY91Kn%2FW3%2BvO5qWZSHtUES%2FBYr5BwPNDj7FDzNQAk19VgwjplbiVRg%2BtrO4U4Iw%2BQ0eEwlzPtdR7UKRW0DXJw1P&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20240330T191748Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTY7EVHV4UO%2F20240330%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=4dc97899a8e7d7eb889a8848c30428ee5f793ed25b0f80c1de5217fc4cc426cf&hash=88e1ff68a53cacfcdf45c726d5fed04e08c4cabdc0fd7ff0dbc49e4b0808e871&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S0370157308004092&tid=spdf-c79517b3-b12a-4098-9f9e-e283bc1f3676&sid=aa9d437683ed404fb089ffb46b176fc9a92egxrqb&type=client&tsoh=d3d3LnNjaWVuY2VkaXJlY3QuY29t&ua=1d0459580c0e5951515152&rr=86ca712218c893df&cc=gb
+% https://pdf.sciencedirectassets.com/271542/1-s2.0-S0370157309X00049/1-s2.0-S0370157308004092/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPP%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJHMEUCIQCflwY3ab0%2F1UXNKRl3uhg98hr8M76fvQ8vp%2BmG8CSs3QIgBXP0fdfMy05z208E3XOVnbb3anFoL1h4DDmB%2BHaiO3cqswUIGxAFGgwwNTkwMDM1NDY4NjUiDJ2GAXtLvAvSuFU0WSqQBal4Uy4qEX7cWVqOOmCWAzaqZAljuNbGIQ77iuKVsMkRHlbDPegYK8skSYIpGVX6RA8p7GzWisv5TYruSct0AoZ2kcf0YHn%2BinL6dITFr5I2ySzII1%2Fo5GmjpWy8czJAPAR0bUmMtDGMOfQzABA%2FfSRYe3%2Bvy5IrgY0S7rdED1tkWQUxk0CHtbPla%2FpgTuUD9p8HalrAUz%2B%2Fdlx%2FStebS5UM29CcSgv%2Fb3htoRyZ10w1QfcUKV4f75jmlLwVQ7SFs8%2F2Xsa23MXizfS5zbhVZlP526jz6xTeCT%2FJdOpHf2b41OxAe49vACaBmjMfksMIPwIeeTX%2BSh0BbTXd4RnMJ2CqsStYIOeBafGE4Mwy6P1lRxYyHUaO%2F5jOb0pWRdC9f2oYeekh9j7xFIdIQSYl5fbASPowOj36wkbv2UNuRX3RXGUl0UNnRsXpBWdiAk107qRcaWPkEy3SL1%2FiW%2F8itUMN%2B640DZBQn46hXR6LBf3qeUlM%2Bw1wPndvC6Owr7Y9LQvZ2SmRREx%2FtiRzjjIEnkMZ11hv%2BxpGvMLOMUK6CnHCgzZrBn3KLjYw5eYHJusYZcUVOlZ6RV3YirR5u70MkS%2BAoLoidygoiZSucyG7DE7HVlY%2BylMtgNiSfh%2BfIYnZtLalCNGZiqsVHpDkO0UDP1pxo64WCjS70GHeK3rtqzHJIgmHc7OVpR7uciXulC5SaRLa6ttOM0kiDRfEKVI760gtqP4cnL6pLTAAzLx8OazLcazP11NlR3Iqq6ElmZb%2Fu5KO3j%2BYF7Z1YpBnSTij%2Bbd4KrAp5NMaSToBYWz8Aj8BLzJwnKqDUt7ct3SwaIz6GexVj%2F4SrasJ%2FyFAhX5UUO2F%2FKqbCvR7ghdDWGdBn9l5MJWsobAGOrEB91M4pV6vWG4XdhQdFZ%2FJGzMl81i52mDmOJQZQ1OgcyNNp3M8aORbWIvOPE2FF3maeASZ5bAs1NpVNfn72c2jWSmnZzL9A3LBOXDuG3Jx8GxVJVsqtiBazg0IMGTwIkI8hGoHNw0y8LfjdjbK3FIm1XY91Kn%2FW3%2BvO5qWZSHtUES%2FBYr5BwPNDj7FDzNQAk19VgwjplbiVRg%2BtrO4U4Iw%2BQ0eEwlzPtdR7UKRW0DXJw1P&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20240330T191748Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTY7EVHV4UO%2F20240330%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=4dc97899a8e7d7eb889a8848c30428ee5f793ed25b0f80c1de5217fc4cc426cf&hash=88e1ff68a53cacfcdf45c726d5fed04e08c4cabdc0fd7ff0dbc49e4b0808e871&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S0370157308004092&tid=spdf-c79517b3-b12a-4098-9f9e-e283bc1f3676&sid=aa9d437683ed404fb089ffb46b176fc9a92egxrqb&type=client&tsoh=d3d3LnNjaWVuY2VkaXJlY3QuY29t&ua=1d0459580c0e5951515152&rr=86ca712218c893df&cc=gb
 @article{blanesmagnus2009,
     title={The Magnus expansion and some of its applications},
     volume={470}, DOI={10.1016/j.physrep.2008.11.001},
@@ -77,7 +90,7 @@ https://pdf.sciencedirectassets.com/271542/1-s2.0-S0370157309X00049/1-s2.0-S0370
 }
 
 % original magnus
-https://onlinelibrary.wiley.com/doi/epdf/10.1002/cpa.3160070404?saml_referrer
+% https://onlinelibrary.wiley.com/doi/epdf/10.1002/cpa.3160070404?saml_referrer
 @article{Magnus_1954,
     title={On the exponential solution of differential equations for a linear operator},
     volume={7},
@@ -92,7 +105,7 @@ https://onlinelibrary.wiley.com/doi/epdf/10.1002/cpa.3160070404?saml_referrer
 
 % a particular case of second order systems
 % this one has model problems
-https://pdf.sciencedirectassets.com/271992/1-s2.0-S0168927408X00029/1-s2.0-S0168927406002224/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPL%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJGMEQCIFdvR5qB3KhHZHwCHS52VRp1WkmpWy3YqX%2F2l5DOF3JKAiAKrQf%2FkQR0opqq9vgmhDTIjZzlMUMgke%2F26kGgJEacYiqzBQgaEAUaDDA1OTAwMzU0Njg2NSIMiTB84BqQNmBsCsyXKpAF0Qh58dfI%2BYDxQ3GzVSc4Jz9ZghyJpiph0QVSIxHfo3dCkN3x9%2FnjzqIBSR2%2FO%2BA%2F9NQuB3FnFbEPBUe1u3P6x6Y%2Fhev2rlyMXaLu8T2%2FWJg5XRQqrhgb4fOpt6CtKgt6LmQZGQ1nxho81qXo44zZgoaEp2LbpT%2FDNMLLyFGxjPipZ9WmClvvyVz51iKXtCfXxkMt0Ubs4ZwEw7I1OPqxYLnlBRz%2FvGN%2B%2BYAUUIsWzhcRE2RUhfG2gu0jabXL7hIj5F3SPiKcwCsJbAfNfTDuAo1S9jCu2D2BAsjFfdKhY8yrLQgfjDZLrXHYbxK397%2FvlpX9n%2F9E7udeF8aye32P4ZmENrZw1TuSvWkWJd9cuaxUeiTEthfTyrXXTg5YEl7GDoZ91vOuRrC%2F%2Br2sX8BEcN9nORA4wQn%2FUctLfsKZolxYby8GzUW7HchaxFElqTOvnVefshRHsKvHZ74UQ5ncUdRcZ3XB5Tk3YLiGtqKmE05GAEN3Z0sN9AME7bvLjdSm6lyv%2FPOCHmO3X%2Bz20k53rwg0Bx7QFgJHfwr%2BNKfzIjcqkpKvkqZ7MgkIh6ZlMQGJi2KHKM4sHwh4zSZp7CHJUHPJc0D7fIN%2F9ihO%2FbjJLeMCIf51gsQR1bCKfTRcamsoOooUAUGmAIAtTQrawuyA1cx6ff6o6rxxkLgoc%2FtocCyU9%2Fsb8oS5d6QWdU7QUcePBNFnz2ggciyWDY9BO%2FY8c9g%2BnHu39%2FjohqzrryKs%2BUJCfDprLgngYeTx9r0CuyQEIkZn%2BZV14NkVp8Qe%2Fo%2Bl6C5WdNtpH6lnSdPMvSFtB9Qu%2BiZdS4MNoyy%2B2AK0NWX91uvr%2BCt5N8gs8kT%2F6jPNQfr7G7RCQgD3pnO2EzZQ6EQwtZOhsAY6sgFf5qoMxyW5c8Zj5pScjm9hQA%2FORverGGhQEOIM3TBi7Z3bfqMcg7wCngiUrev3Es71dhP1s9ZmDNO6xttbCsmHzE6AGHdREAVSxBDs3ReiYUubnmcaSrVtj8GyfLhmeMDYyTy6eN08YyC%2FwQPz7QqZbb62MuYuSqEzrgd94C7lNokw5r%2FofGXG8IFonAxf%2FyT9D0HJ2Qae2X7W%2BARSPICS42Zvo4EIDhJkivttGyhAz4%2FV&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20240330T183830Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTYRSBF334B%2F20240330%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=9ab99a34a4f587981ac97ba1eebf4bcca623f14f04333fa407fc1e58e7b2a580&hash=50ba9771b6a4a61733bb330025e0b483981a303b1f8a894b0646cce9f84212e3&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S0168927406002224&tid=spdf-c2fa3f5c-4f04-4a54-b763-8aa99c4fd937&sid=aa9d437683ed404fb089ffb46b176fc9a92egxrqb&type=client&tsoh=d3d3LnNjaWVuY2VkaXJlY3QuY29t&ua=1d0459580c0e5d575b0500&rr=86ca378fce5d4888&cc=gb
+% https://pdf.sciencedirectassets.com/271992/1-s2.0-S0168927408X00029/1-s2.0-S0168927406002224/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPL%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJGMEQCIFdvR5qB3KhHZHwCHS52VRp1WkmpWy3YqX%2F2l5DOF3JKAiAKrQf%2FkQR0opqq9vgmhDTIjZzlMUMgke%2F26kGgJEacYiqzBQgaEAUaDDA1OTAwMzU0Njg2NSIMiTB84BqQNmBsCsyXKpAF0Qh58dfI%2BYDxQ3GzVSc4Jz9ZghyJpiph0QVSIxHfo3dCkN3x9%2FnjzqIBSR2%2FO%2BA%2F9NQuB3FnFbEPBUe1u3P6x6Y%2Fhev2rlyMXaLu8T2%2FWJg5XRQqrhgb4fOpt6CtKgt6LmQZGQ1nxho81qXo44zZgoaEp2LbpT%2FDNMLLyFGxjPipZ9WmClvvyVz51iKXtCfXxkMt0Ubs4ZwEw7I1OPqxYLnlBRz%2FvGN%2B%2BYAUUIsWzhcRE2RUhfG2gu0jabXL7hIj5F3SPiKcwCsJbAfNfTDuAo1S9jCu2D2BAsjFfdKhY8yrLQgfjDZLrXHYbxK397%2FvlpX9n%2F9E7udeF8aye32P4ZmENrZw1TuSvWkWJd9cuaxUeiTEthfTyrXXTg5YEl7GDoZ91vOuRrC%2F%2Br2sX8BEcN9nORA4wQn%2FUctLfsKZolxYby8GzUW7HchaxFElqTOvnVefshRHsKvHZ74UQ5ncUdRcZ3XB5Tk3YLiGtqKmE05GAEN3Z0sN9AME7bvLjdSm6lyv%2FPOCHmO3X%2Bz20k53rwg0Bx7QFgJHfwr%2BNKfzIjcqkpKvkqZ7MgkIh6ZlMQGJi2KHKM4sHwh4zSZp7CHJUHPJc0D7fIN%2F9ihO%2FbjJLeMCIf51gsQR1bCKfTRcamsoOooUAUGmAIAtTQrawuyA1cx6ff6o6rxxkLgoc%2FtocCyU9%2Fsb8oS5d6QWdU7QUcePBNFnz2ggciyWDY9BO%2FY8c9g%2BnHu39%2FjohqzrryKs%2BUJCfDprLgngYeTx9r0CuyQEIkZn%2BZV14NkVp8Qe%2Fo%2Bl6C5WdNtpH6lnSdPMvSFtB9Qu%2BiZdS4MNoyy%2B2AK0NWX91uvr%2BCt5N8gs8kT%2F6jPNQfr7G7RCQgD3pnO2EzZQ6EQwtZOhsAY6sgFf5qoMxyW5c8Zj5pScjm9hQA%2FORverGGhQEOIM3TBi7Z3bfqMcg7wCngiUrev3Es71dhP1s9ZmDNO6xttbCsmHzE6AGHdREAVSxBDs3ReiYUubnmcaSrVtj8GyfLhmeMDYyTy6eN08YyC%2FwQPz7QqZbb62MuYuSqEzrgd94C7lNokw5r%2FofGXG8IFonAxf%2FyT9D0HJ2Qae2X7W%2BARSPICS42Zvo4EIDhJkivttGyhAz4%2FV&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20240330T183830Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTYRSBF334B%2F20240330%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=9ab99a34a4f587981ac97ba1eebf4bcca623f14f04333fa407fc1e58e7b2a580&hash=50ba9771b6a4a61733bb330025e0b483981a303b1f8a894b0646cce9f84212e3&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S0168927406002224&tid=spdf-c2fa3f5c-4f04-4a54-b763-8aa99c4fd937&sid=aa9d437683ed404fb089ffb46b176fc9a92egxrqb&type=client&tsoh=d3d3LnNjaWVuY2VkaXJlY3QuY29t&ua=1d0459580c0e5d575b0500&rr=86ca378fce5d4888&cc=gb
 @article{broekhuizen_biochem_2008,
     title={An improved and generalized second order, unconditionally positive, mass conserving integration scheme for Biochemical Systems},
     volume={58},
@@ -105,7 +118,7 @@ https://pdf.sciencedirectassets.com/271992/1-s2.0-S0168927408X00029/1-s2.0-S0168
     pages={319-340}
 }
 
-https://pdf.sciencedirectassets.com/274151/1-s2.0-S1000936123X00107/1-s2.0-S1000936123002169/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPL%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJIMEYCIQDL8jxY%2BFFVv9GMqLuUTG4CzOBg9grusUPd2jhyehALIwIhAJd6FrplYUf%2Fe0FGE81UMlTMzNpEA2UDqW8fuGcPMCY0KrMFCBsQBRoMMDU5MDAzNTQ2ODY1IgzjviPhgkQ%2BIrQXBlEqkAXFJXXqlfW9tdwRLaPG9SuK1Z05j9fgMkapoejYUUSXDFICdqSQIfMWvkortXBLiauyFUL39RW8oMP1ffhFAolWAJ7bcYGRABfpVHvTjcOZjFI4LZnxGc420Ho5fKHj8Rc05JHphHcRm2zJRSPeU7A2PGC7sAnz4BP1%2FcZ5wStRg2bLqwe2iOzlXKLK92tFkK%2FWinP6%2BVMv7HyspPhq%2BKS6Og8HeBI7fVjvldA0t6Tf6ztkbwrSd9EEx0SJyt%2FupxrAGQ6JFq1I%2BVxIppTFc36mDStp%2FPmIemqiXMD78cvMHV%2BIt6tmu8Xq6%2BIlCY9AbqTfc7UtEfquyRIG13%2FmHkg31jGMZK8i93x%2FkfD7yKkACehOzIpuru%2BQqihuHKoj2aDWYsC2iAFd4r8zMTjmBjR533Z13mIk8grwP8%2Fi98xZSwnufNEQvoM6gn%2B6%2FgUDA0GrFNYFfFWqvnNGMItcFS%2BeSgQYXdU0ybmL5zDmToskV6og%2FuuHkkGKP24BVa5gv9wgrfDa%2F%2FZYpEWVNXMy%2BM4taho2adG6n9toHTMCYaRTPuXy3UnyBMM%2B02g4BrtIjQHOnv4LTq9qnGsMikLIkvqhfQ2jpAyHU0gjWkz044%2BrJuZGVH4UZw0oWbFgr51LiVD2LX8rDkllreWAbOj6v%2B2LGxvR2%2Bledpqq8%2FF1rU4xLqZ0Zg%2FpUXzfgVD9GYOVxB9F8D8b26lU0nwnJz9rzWGacqpjK4cgwFJuFidokDrkfXeMPsuugDhyxTPBsEME8PbqyFVndH6k0lSPpWQed7LyW0sVVYoAjT2V%2FuuZ9Y8mWPPOfIcPalErTl%2B2pm35zu4gqneu%2FG2KHaUAb9bG60G4nG9oBy2kqGMG3NRD1dwh7TDBnaGwBjqwAT2v1ZG0PRhBwrTZycOWQFyHYOeraBSdaH%2BgEO02MZtZSHRZZiODJMtLUB5oqZp9330mc0d3j694%2FRTGz4jBqyqJ9ng98vK52ILm1LaiIh3fdcecQEMQd66NhRdkZ9dJ2%2BzLkL3f0WcoZemKEYFP1PTTbPb5aAk8Fv4jqRuOVOyFyNO7OcjSf65nhvCkIDLE6KXxu9kBplITvs9TApqrkz2GYMESiiValO640E2UeTIz&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20240330T184113Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTY34JLQ743%2F20240330%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=d1a64019b3817f3d05381984fa9047c63c24e9852126558e74eafb084bfee8dd&hash=76a405da2e378b8a83fdcd7eabdf22dcee191a9b7911fc834ae7d02de0b5e8b4&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S1000936123002169&tid=spdf-4947053f-69d4-4d9e-aadf-f581597b4a30&sid=aa9d437683ed404fb089ffb46b176fc9a92egxrqb&type=client&tsoh=d3d3LnNjaWVuY2VkaXJlY3QuY29t&ua=1d0459580c0e5d025b0002&rr=86ca3b8ca9584888&cc=gb
+% https://pdf.sciencedirectassets.com/274151/1-s2.0-S1000936123X00107/1-s2.0-S1000936123002169/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPL%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJIMEYCIQDL8jxY%2BFFVv9GMqLuUTG4CzOBg9grusUPd2jhyehALIwIhAJd6FrplYUf%2Fe0FGE81UMlTMzNpEA2UDqW8fuGcPMCY0KrMFCBsQBRoMMDU5MDAzNTQ2ODY1IgzjviPhgkQ%2BIrQXBlEqkAXFJXXqlfW9tdwRLaPG9SuK1Z05j9fgMkapoejYUUSXDFICdqSQIfMWvkortXBLiauyFUL39RW8oMP1ffhFAolWAJ7bcYGRABfpVHvTjcOZjFI4LZnxGc420Ho5fKHj8Rc05JHphHcRm2zJRSPeU7A2PGC7sAnz4BP1%2FcZ5wStRg2bLqwe2iOzlXKLK92tFkK%2FWinP6%2BVMv7HyspPhq%2BKS6Og8HeBI7fVjvldA0t6Tf6ztkbwrSd9EEx0SJyt%2FupxrAGQ6JFq1I%2BVxIppTFc36mDStp%2FPmIemqiXMD78cvMHV%2BIt6tmu8Xq6%2BIlCY9AbqTfc7UtEfquyRIG13%2FmHkg31jGMZK8i93x%2FkfD7yKkACehOzIpuru%2BQqihuHKoj2aDWYsC2iAFd4r8zMTjmBjR533Z13mIk8grwP8%2Fi98xZSwnufNEQvoM6gn%2B6%2FgUDA0GrFNYFfFWqvnNGMItcFS%2BeSgQYXdU0ybmL5zDmToskV6og%2FuuHkkGKP24BVa5gv9wgrfDa%2F%2FZYpEWVNXMy%2BM4taho2adG6n9toHTMCYaRTPuXy3UnyBMM%2B02g4BrtIjQHOnv4LTq9qnGsMikLIkvqhfQ2jpAyHU0gjWkz044%2BrJuZGVH4UZw0oWbFgr51LiVD2LX8rDkllreWAbOj6v%2B2LGxvR2%2Bledpqq8%2FF1rU4xLqZ0Zg%2FpUXzfgVD9GYOVxB9F8D8b26lU0nwnJz9rzWGacqpjK4cgwFJuFidokDrkfXeMPsuugDhyxTPBsEME8PbqyFVndH6k0lSPpWQed7LyW0sVVYoAjT2V%2FuuZ9Y8mWPPOfIcPalErTl%2B2pm35zu4gqneu%2FG2KHaUAb9bG60G4nG9oBy2kqGMG3NRD1dwh7TDBnaGwBjqwAT2v1ZG0PRhBwrTZycOWQFyHYOeraBSdaH%2BgEO02MZtZSHRZZiODJMtLUB5oqZp9330mc0d3j694%2FRTGz4jBqyqJ9ng98vK52ILm1LaiIh3fdcecQEMQd66NhRdkZ9dJ2%2BzLkL3f0WcoZemKEYFP1PTTbPb5aAk8Fv4jqRuOVOyFyNO7OcjSf65nhvCkIDLE6KXxu9kBplITvs9TApqrkz2GYMESiiValO640E2UeTIz&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20240330T184113Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTY34JLQ743%2F20240330%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=d1a64019b3817f3d05381984fa9047c63c24e9852126558e74eafb084bfee8dd&hash=76a405da2e378b8a83fdcd7eabdf22dcee191a9b7911fc834ae7d02de0b5e8b4&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S1000936123002169&tid=spdf-4947053f-69d4-4d9e-aadf-f581597b4a30&sid=aa9d437683ed404fb089ffb46b176fc9a92egxrqb&type=client&tsoh=d3d3LnNjaWVuY2VkaXJlY3QuY29t&ua=1d0459580c0e5d025b0002&rr=86ca3b8ca9584888&cc=gb
 @article{pan_thirdorder_2023,
     title={Third-order unconditional positivity-preserving schemes for reactive flows keeping both mass and Mole Balance},
     volume={36}, DOI={10.1016/j.cja.2023.06.030},
@@ -118,7 +131,7 @@ https://pdf.sciencedirectassets.com/274151/1-s2.0-S1000936123X00107/1-s2.0-S1000
 } 
 
 % methods for chemical kinetics - might have useful examples
-https://pdf.sciencedirectassets.com/272570/1-s2.0-S0021999100X00186/1-s2.0-S0021999101967506/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPL%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJHMEUCIDhd8qiIDkp6DMoxs06UHQDXhN97yHtA5K9BBuSzLbIiAiEAtyhl%2BFhGsR2Qxh9vJxLAzD2rxxQC7iLZQTH%2B3dOXTo8qswUIGxAFGgwwNTkwMDM1NDY4NjUiDFxkAt8G%2F5fVeAvZZCqQBcfvc5wjjJdhIEqFWHJxEKlTq0EduEiw8XpqxkbTBrMiEVZV2CBlwQplXuKG3TVEOXpeg8EATbIdmlassqIz5q8bOhHMH2AMXzX2J0lgf87xTQXksfOp7bTVglQ0tDqAbyE3RBsIayJg2t4HQB2seDZMQtJs6kJDwHMPg8H1oXZ%2BE3hGvpb9HdGyutDkKj8mJfdBCLA%2FuWf3lvl1dVu7Xg8Uomov5XSdxvSKAHKKIbl9Wjp7tEAWOAlIkhUMAYvsdBRA%2BrTxZj0FbHzXSplcEDFhiPb%2Fspa5nnoXYjwKiP%2F6ssuVfDU94w6fXbChURDiPwmWbahxrZw%2ByK2%2FpaOVB9ofIKDRjCBbYLU63IelPxvE9wb993J0XEOmTuuj4AbYUkhNsNCAAoTgWq4Y2oi9iENrKcl0V6So8oZhKH4PLB7xWIjWxiQLs0f9Ge3zcBysL9PkEQXq66qoSJJXenRB2tWu7M0fsHHPH1QJUZeAVEld3cm532w3AGkm2Og2IQORlJVvm7hEemWvBKGcSLA2ngz6Y2apzQ%2Bv4H%2BZpWG7vZi94NlThcUbjDMto6060cjS%2F9x7xDLMNUgHCzGFTXIlU3kmRHe5rbCBg4tdBL9Oewv8ZtuWvjCvAgZtedK3aKp8mdL4Mi%2F7wMuKZOqdND%2B%2FqKnJ5P%2B9CdBkJbf1Mf3fzyuF%2BP2uCaJn%2FTgIkWg%2FLI1ThXNfBe3hCsEQbr9%2Fo2ao%2FrzHqoTMKWvjVRFC%2FvmddD7Raz5%2FqdNV1HWG5yXf62PjmAVxPB0vlhCRd64BRQVYZZZBUqX31SD%2BZJJz7W%2BiIhA4PcBvyftoyqQAPKGfeScIYKwg5c2PtX7clsxMJUUQtrYsN4RTsl0EIq3G37Lh214MMIagobAGOrEBRDbMMsUscwb91%2Bj6t85JXt%2B6gv1d2oB6ScfLs%2Ftj%2F3ejbKnEXLVDs3ZY9BHfS9sYpfDPrBXabBDlvLS4hn7kvDc66nH1V5VPPUGuUlqyA0lF02Ueg0DUmiS9ACurvV1Z3SuWvUNyNomgZjS7yHeEvjFbZkFSPemJmReaMGc15vMvy4ZUt29byqG%2F6KRLLV%2FHi9pvwhKiaPk9e4FVMCKoyigWjPfc75wbprgM6iUZEp5G&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20240330T184912Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTYYU5TJQOE%2F20240330%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=327da8b2b71f4151e59a4f6165cf4de1e8eb3d207c47f38141677e85a050d0b3&hash=26db3b828a7dde691aa9fc1456ac32e4822748c9a2c65f29384c71130167e1ec&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S0021999101967506&tid=spdf-286ccf78-9167-4802-94f5-138cb721282f&sid=aa9d437683ed404fb089ffb46b176fc9a92egxrqb&type=client&tsoh=d3d3LnNjaWVuY2VkaXJlY3QuY29t&ua=1d0459580c0e5a57505a06&rr=86ca4739ed95948e&cc=gb
+% https://pdf.sciencedirectassets.com/272570/1-s2.0-S0021999100X00186/1-s2.0-S0021999101967506/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEPL%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJHMEUCIDhd8qiIDkp6DMoxs06UHQDXhN97yHtA5K9BBuSzLbIiAiEAtyhl%2BFhGsR2Qxh9vJxLAzD2rxxQC7iLZQTH%2B3dOXTo8qswUIGxAFGgwwNTkwMDM1NDY4NjUiDFxkAt8G%2F5fVeAvZZCqQBcfvc5wjjJdhIEqFWHJxEKlTq0EduEiw8XpqxkbTBrMiEVZV2CBlwQplXuKG3TVEOXpeg8EATbIdmlassqIz5q8bOhHMH2AMXzX2J0lgf87xTQXksfOp7bTVglQ0tDqAbyE3RBsIayJg2t4HQB2seDZMQtJs6kJDwHMPg8H1oXZ%2BE3hGvpb9HdGyutDkKj8mJfdBCLA%2FuWf3lvl1dVu7Xg8Uomov5XSdxvSKAHKKIbl9Wjp7tEAWOAlIkhUMAYvsdBRA%2BrTxZj0FbHzXSplcEDFhiPb%2Fspa5nnoXYjwKiP%2F6ssuVfDU94w6fXbChURDiPwmWbahxrZw%2ByK2%2FpaOVB9ofIKDRjCBbYLU63IelPxvE9wb993J0XEOmTuuj4AbYUkhNsNCAAoTgWq4Y2oi9iENrKcl0V6So8oZhKH4PLB7xWIjWxiQLs0f9Ge3zcBysL9PkEQXq66qoSJJXenRB2tWu7M0fsHHPH1QJUZeAVEld3cm532w3AGkm2Og2IQORlJVvm7hEemWvBKGcSLA2ngz6Y2apzQ%2Bv4H%2BZpWG7vZi94NlThcUbjDMto6060cjS%2F9x7xDLMNUgHCzGFTXIlU3kmRHe5rbCBg4tdBL9Oewv8ZtuWvjCvAgZtedK3aKp8mdL4Mi%2F7wMuKZOqdND%2B%2FqKnJ5P%2B9CdBkJbf1Mf3fzyuF%2BP2uCaJn%2FTgIkWg%2FLI1ThXNfBe3hCsEQbr9%2Fo2ao%2FrzHqoTMKWvjVRFC%2FvmddD7Raz5%2FqdNV1HWG5yXf62PjmAVxPB0vlhCRd64BRQVYZZZBUqX31SD%2BZJJz7W%2BiIhA4PcBvyftoyqQAPKGfeScIYKwg5c2PtX7clsxMJUUQtrYsN4RTsl0EIq3G37Lh214MMIagobAGOrEBRDbMMsUscwb91%2Bj6t85JXt%2B6gv1d2oB6ScfLs%2Ftj%2F3ejbKnEXLVDs3ZY9BHfS9sYpfDPrBXabBDlvLS4hn7kvDc66nH1V5VPPUGuUlqyA0lF02Ueg0DUmiS9ACurvV1Z3SuWvUNyNomgZjS7yHeEvjFbZkFSPemJmReaMGc15vMvy4ZUt29byqG%2F6KRLLV%2FHi9pvwhKiaPk9e4FVMCKoyigWjPfc75wbprgM6iUZEp5G&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20240330T184912Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTYYU5TJQOE%2F20240330%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=327da8b2b71f4151e59a4f6165cf4de1e8eb3d207c47f38141677e85a050d0b3&hash=26db3b828a7dde691aa9fc1456ac32e4822748c9a2c65f29384c71130167e1ec&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S0021999101967506&tid=spdf-286ccf78-9167-4802-94f5-138cb721282f&sid=aa9d437683ed404fb089ffb46b176fc9a92egxrqb&type=client&tsoh=d3d3LnNjaWVuY2VkaXJlY3QuY29t&ua=1d0459580c0e5a57505a06&rr=86ca4739ed95948e&cc=gb
 @article{sandu2001positive,
   title={Positive numerical integration methods for chemical kinetic systems},
   author={Sandu, Adrian},
@@ -130,7 +143,7 @@ https://pdf.sciencedirectassets.com/272570/1-s2.0-S0021999100X00186/1-s2.0-S0021
   publisher={Elsevier}
 }
 
-https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=0ee27742e05486ffebc2a2408c16a8c47c9a4549
+% https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=0ee27742e05486ffebc2a2408c16a8c47c9a4549
 @article{nguyen_atmosphere_2009,
     title={Mass conservative, positive definite integrator for atmospheric chemical dynamics},
     volume={43},
@@ -143,7 +156,7 @@ https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=0ee27742e05486ffe
     pages={6287--6295}
 } 
 
-https://core.ac.uk/download/pdf/197542384.pdf
+% https://core.ac.uk/download/pdf/197542384.pdf
 @article{hochbruck1997krylov,
   title={On Krylov subspace approximations to the matrix exponential operator},
   author={Hochbruck, Marlis and Lubich, Christian},
@@ -155,7 +168,7 @@ https://core.ac.uk/download/pdf/197542384.pdf
   publisher={SIAM}
 }
 
-https://www.asc.tuwien.ac.at/~winfried/teaching/101.606/download/Saad1992.pdf
+% https://www.asc.tuwien.ac.at/~winfried/teaching/101.606/download/Saad1992.pdf
 @article{saad1992analysis,
   title={Analysis of some Krylov subspace approximations to the matrix exponential operator},
   author={Saad, Yousef},
@@ -193,7 +206,7 @@ https://www.asc.tuwien.ac.at/~winfried/teaching/101.606/download/Saad1992.pdf
 @misc{bernoulli,
   title       = {Bernoulli numbers},
   journal = {Encyclopedia of Mathematics},
-  howpublished = {\url          = {https://encyclopediaofmath.org/index.php?title=Bernoulli_numbers},},
+  howpublished = {@url   = {https://encyclopediaofmath.org/index.php?title=Bernoulli_numbers},},
   note         = {Accessed: 03-04-2024}
 }
 
@@ -242,4 +255,158 @@ https://www.asc.tuwien.ac.at/~winfried/teaching/101.606/download/Saad1992.pdf
   pages={065901},
   year={2014},
   publisher={IOP Publishing}
+}
+
+@book{boyd2004convex,
+  title={Convex optimization},
+  author={Boyd, Stephen P and Vandenberghe, Lieven},
+  year={2004},
+  publisher={Cambridge university press}
+}
+
+
+@article{hernandez2018timesym,
+    author = {Hernandez, David M and Bertschinger, Edmund},
+    title = "{Time-symmetric integration in astrophysics}",
+    journal = {Monthly Notices of the Royal Astronomical Society},
+    volume = {475},
+    number = {4},
+    pages = {5570-5584},
+    year = {2018},
+    month = {Jan},
+    issn = {0035-8711},
+    doi = {10.1093/mnras/sty184},
+    url = {https://doi.org/10.1093/mnras/sty184},
+    eprint = {https://academic.oup.com/mnras/article-pdf/475/4/5570/24166802/sty184.pdf},
+}
+
+@article{meerbergen1999crying,
+  title={Using Krylov approximations to the matrix exponential operator in Davidson's method},
+  author={Meerbergen, Karl and Sadkane, Miloud},
+  journal={Applied numerical mathematics},
+  volume={31},
+  number={3},
+  pages={331--351},
+  year={1999},
+  publisher={Elsevier}
+}
+
+@book{shampine2003matlab,
+  title={Solving ODEs with matlab},
+  author={Shampine, Lawrence F and Gladwell, Ian and Thompson, Skip},
+  year={2003},
+  publisher={Cambridge university press}
+}
+
+@article{dormand1980dp,
+  title={A family of embedded Runge-Kutta formulae},
+  author={Dormand, John R and Prince, Peter J},
+  journal={Journal of computational and applied mathematics},
+  volume={6},
+  number={1},
+  pages={19--26},
+  year={1980},
+  publisher={Elsevier}
+}
+
+@article{hairerwanner1993,
+  title={Solving Differential Equations I: Nonstiff Problems},
+  author={Hairer, Ernst and Wanner, Gerhard and N{\o}rsett, Sylvert Paul},
+  year={1993},
+  publisher={Springer},
+  pages = {220, 468-469}
+}% 220 has symmetric even order 
+% result on truncation p+1 means order p
+
+@article{wanner1978order,
+  title={Order stars and stability theorems},
+  author={Wanner, Gerhard and Hairer, Ernst and N{\o}rsett, Syvert Paul},
+  journal={BIT Numerical Mathematics},
+  volume={18},
+  pages={475--489},
+  year={1978},
+  publisher={Springer}
+}
+
+@article{gershgorin1931uber,
+	title={Uber die abgrenzung der eigenwerte einer matrix},
+	author={Gershgorin, Semyon Aranovich},
+	journal={Известия Российской академии наук. Серия математическая},
+	number={6},
+	pages={749--754},
+	year={1931},
+	publisher={Российская академия наук, Математический институт им. ВА Стеклова Российской~…}
+}
+
+
+@book{horn2012matrix,
+  title={Matrix analysis},
+  author={Horn, Roger A and Johnson, Charles R},
+  year={2012},
+  pages={22, 351, 364-365, 389-390},
+  publisher={Cambridge university press}
+}
+
+@article{hairer2000properties,
+  title={Some properties of symplectic Runge-Kutta methods},
+  author={Hairer, Ernst and Leone, Pierre and others},
+  journal={New Zealand J. of Math},
+  volume={29},
+  number={2},
+  pages={133--149},
+  year={2000}
+}
+
+@article{ehle1973,
+	author = {Ehle, Byron L.},
+	title = {A-Stable Methods and Padé Approximations to the Exponential},
+	journal = {SIAM Journal on Mathematical Analysis},
+	volume = {4},
+	number = {4},
+	pages = {671-680},
+	year = {1973},
+	doi = {10.1137/0504057}
+}
+
+@article{ralston1962runge,
+	title={Runge-Kutta methods with minimum error bounds},
+	author={Ralston, Anthony},
+	journal={Mathematics of computation},
+	volume={16},
+	number={80},
+	pages={431--437},
+	year={1962}
+}
+
+
+@article{hummel1949pade,
+  title={A generalization of Taylor's expansion},
+  author={Hummel, PM and Seebeck Jr, CL},
+  journal={The American Mathematical Monthly},
+  volume={56},
+  number={4},
+  pages={243--247},
+  year={1949},
+  publisher={Taylor \& Francis}
+}
+
+@misc{Wikipedia_2024, url={https://en.wikipedia.org/wiki/Laplacian_matrix}, journal={Wikipedia}, publisher={Wikimedia Foundation}, year={2024}, month={Mar}} 
+
+@article{moler2020history,
+  title={A history of MATLAB},
+  author={Moler, Cleve and Little, Jack},
+  journal={Proceedings of the ACM on Programming Languages},
+  volume={4},
+  number={HOPL},
+  pages={28--29},
+  year={2020},
+  publisher={ACM New York, NY, USA}
+}
+
+@book{butcher2016numerical,
+  title={Numerical methods for ordinary differential equations},
+  author={Butcher, John Charles},
+  year={2016},
+  pages = {165,176},
+  publisher={John Wiley \& Sons}
 }
