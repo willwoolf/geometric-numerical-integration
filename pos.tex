@@ -584,7 +584,7 @@ The Magnus expansion considers the solution of this problem to be of the form
 \end{equation*}
 for some matrix function $\Omega(t)$ which can be expressed in terms of the governing matrix $A$.
 We write $\Omega(t)$ as an infinite sum over $\Omega_j(t)$ functions.
-From the literature, we have formulae for these entries.
+From the literature \cite{blanesmagnus2009}, we have formulae for these entries.
 Specifically, we write
 \begin{equation*}
     \begin{aligned}
@@ -602,6 +602,7 @@ where $B_k$ are the Bernoulli numbers \cite{bernoulli} and the $S_n^{(j)}$ matri
     \end{aligned} 
 \end{equation*}
 where $\left[\cdot, \cdot\right]$ is the matrix commutator $[A,B] = AB-BA$ and $\operatorname{ad}_A^{j} B = [ A, \operatorname{ad}_A^{(j-1)}B ]$ where $\operatorname{ad}_A^0 B = B$.
+For clarity, the matrix integral is defined element-wise since $t$ is a scalar.
 We truncate the Magnus expansion to attain an approximation of the solution to a particular order.
 Taking just the first term $\Omega_1$, we obtain
 \begin{equation*}
@@ -617,17 +618,31 @@ The use of the Magnus expansion is in being able to express the solution to the 
 By taking the first order term in the expansion and forming a first order approximation, we construct a first-order method which is the same as the ``exponential Euler method''  we saw earlier.
 This outlines an idea for constructing better approximations, by taking higher order Magnus expansions and higher order approximations.
 
-%% derive the second order method
-
-The formulation for higher order methods is given in more detail by \cite{blanes_pos_2022} when considering Magnus integrators.
-They focus on a second order integrator, for which the autonomous version is given by
+In \cite{blanes_pos_2022}, the second order Magnus solution is given by
+\begin{equation*}
+    x(t) = \exp \left[ \int_{0}^{t} A \left( e^{\tau A(x_0)} x_0 \right) \mathrm{d}\tau \right]x_0
+\end{equation*}
+for a problem with initial condition $x(t=0) = x_0$.
+We can swap $x_0$ for $x_n$ and this provides the Magnus solution to second order at $t_n + h$,
+which we then approximate to produce a numerical method.
+Using the trapezium method by evaluating the integrand at both ends and taking the midpoint,
+we obtain the method
+\begin{equation*}
+    x_{n+1} = \exp \left[ \frac{h}{2}\left[ A(x_n) + A\left(
+        \exp \left[ h A(x_n) \right]x_n
+    \right) \right] \right]x_n.
+\end{equation*}
+Alternatively, using the midpoint rule the method is given by
 \begin{equation}
     x_{n+1} = \exp\left(h A \left( \exp\left(\frac{1}{2}h A(x_n)\right) x_n \right) \right) x_n.
     \label{eqn:secondordermagnus}
 \end{equation}
-This method uses the midpoint rule in order to form a second order approximation to a formulation of the solution using the first two terms of the Magnus expansion. 
-The formulation of the second-order Magnus integrator is identical to the $z_{n+1}$ stage of the second order Strang splitting method.
-An alternative method can be obtained by using the trapezium method approximation which is also second order \cite{blanes_pos_2022}.
+We will consider the second order Magnus integrator as the approximation using the midpoint rule, which is the same options taken by the authors of \cite{blanes_pos_2022}.
+The authors also provide more detail on the formulation for higher order methods.
+Both the trapezium and midpoint rule approximations are second-order accurate.
+More properties of the Magnus expansion are explored in \cite{blanesmagnus2009}.
+
+The formulation of the second-order Magnus integrator (midpoint) is identical to the $z_{n+1}$ stage of the second order Strang splitting method for one step \cite{blanes_pos_2022}.
 See Equation \ref{eqn:strangz} for the definition with Taylor-expanded form in Equation \ref{eqn:strangzpanda}.
 See Equation \ref{eqn:strangtruncz} for the truncation error.
 
@@ -1084,7 +1099,7 @@ We consider the exponential term and how the internal Taylor expansion brings th
 We can take the $\mathcal{O}(h^3)$ out to show that this is clearly the regular second order Magnus method plus a remainder in $h^3$ and hence is second order.
 We have already looked at the order of the second order Magnus integrator in its original form. 
 
-\subsection{A Proposed Method}
+\subsection{A Proposed Method using Series Expansion}
 
 %unlimited figures
 \begin{figure}
@@ -1160,7 +1175,7 @@ We have already looked at the order of the second order Magnus integrator in its
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.85\linewidth]{Matlab/magnustriplemapk.eps}
+    \includegraphics[width=\linewidth]{Matlab/magnustriplemapk.eps}
     \caption{
         Visualisation of the second order Magnus integration when different approximations to the matrix exponential are used.
         Left: EM2, using two matrix exponentials with \texttt{expm()}.
@@ -1172,7 +1187,7 @@ We have already looked at the order of the second order Magnus integrator in its
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.65\linewidth]{Matlab/magnusapproximations.eps}
+    \includegraphics[width=0.65\linewidth]{Matlab/magnusapproximations2.eps}
     \caption{
         Order of convergence for EM2, IP2 and EB2 integration methods.
         We plot the relative error of the solution at end time $T$ against the step size $h$ used in the integration scheme.
@@ -1260,10 +1275,11 @@ We will consider three methods, all of which are variations of the EM2 Magnus in
     \item EB2: One first order and one second order approximation using the series method proposed, with scaling parameter chosen to consider positivity preservation. 
 \end{itemize}
 We will examine each of these methods applied to the MAPK cascade.
+
 For IP2, we used the reduction $A = \bar{A} + \hat{a}I$ with $a = -s |\max(a_{ii})|$ and chose $s=1$ to adhere to the method outlined by \cite{blanes_pos_2022},
 namely that this should be positivity preserving. In our discussion on the Pad\'e approximation we showed why positivity is not necessarily preserved.
-For the EB2 method, we used first and second order series approximations while taking $A = \bar{A}$ in our reduction, essentially $s=0$.
-From our testing, this was the only positive value of $s$ where the approximation was usable.
+For the EB2 method, we used first and second order series approximations with both $s=0$ and $s=1$.
+From our testing, $s=0$ meant the approximation was more usable but not unconditionally positivity preserving.
 We found that increasing $s$ makes the computation of EB2 far more expensive, and unusable for moderate $h$.
 It would not be useful to consider negative values of $s$ since we have discussed that this is not appropriate for positivity preservation.
 % s=0 for series and pade s=1 
@@ -1275,12 +1291,22 @@ It is important to recall that we have shown that this Pad\'e approximation is n
 The EB2 method, using series exponentials, is surprisingly accurate to EM2.
 
 Finally, observe Figure \ref{fig:magnusapprxorder}, where we show the convergences of the methods.
+To compute the order of convergence of these methods, we obtain a solution to the problem using \texttt{ode45()} with an extremely low error tolerance,
+which we refer to as the master solution.
+We integrate the system up to time $T=200$ and store the final value.
+Then, given a value of $h$, we integrate the system again using a positivity preserving method.
+We repeat this for a range of values of $h$ decreasing in magnitude in order to plot the rate of convergence.
+We use the vector $2$-norm to obtain a relative error given by $||y_P - y||_2 / ||y||_2$,
+where $y$ is our master solution and $y_P$ is our approximation.
+This provides sufficient data to visualise the order of convergence of a numerical method of our choice.
+We repeat this for all the methods we wish to analyse.
+
 Since EM2 and IP2 are both second order, they converge to the ``exact'' solution at the same rates.
 We have graphed EB2 choosing both $s=0$ and $s=1$. For $s=0$, the approximation is not guaranteed to preserve positivity,
 but the approximation follows the order of EM2 closer than the IP2 approximation.
 Choosing $s=1$ means we are approximating the exponential in a way that guarantees positivity.
 However, the approximation becomes prohibitively expensive, and IP2 is a better method for timesteps $h > 10^{-3}$.
-In fact, for timesteps $h > 10^{-2}$ the error of the approximation is so large that the method is unusable. 
+In fact, for timesteps $h > 10^{-2}$ the error of the approximation is so large that the method is unusable - the error is outside the visible region of the graph. 
 For extremely small timesteps $h \approx 10^{-4}$ EB2 is only ever as good as IP2.
 Essentially, the error between EM2 and EB2 is that we can save on computing matrix exponentials with EB2,
 but we may need to perform a thousand timesteps in the place of one.
@@ -1324,12 +1350,14 @@ In simpler terms, by using the series approximation and being given control of t
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.75\linewidth]{Matlab/positivemapk.eps}
+    \includegraphics[width=0.75\linewidth]{Matlab/positivemapk2.eps}
     \caption{
-        Methods EM2 and IP2 applied to the MAPK problem, evaluating the global error as a function of the timestep.
-        Both methods are clearly second order, however EM2 uses directly computed matrix exponentials from \texttt{expm()},
+        Methods EM2, IP2 and IQ2 applied to the MAPK problem, evaluating the global error as a function of the timestep.
+        All methods are clearly second order, however EM2 uses directly computed matrix exponentials from \texttt{expm()},
         while IQ2 uses positivity-preserving approximations.
+        IP2 is as we have defined earlier.
         EM2 solution computed in 196.7 seconds.
+        IP2 solution computed in 324.5 seconds.
         IQ2 solution computed in 346.0 seconds.
     }
     \label{fig:pademapkpos}
@@ -1381,6 +1409,12 @@ and by not needing to compute any matrix norms.
 We have shown the results of this implementation in Figures \ref{fig:padepositive} and \ref{fig:pademapkpos}.
 The former indicates that the matrix approximation is itself second order accurate,
 while the latter indicates that EM2 maintains second order accuracy when this approximation is implemented.
+Rate of convergence is computed again by comparing the final values of the solution to that of a master solution, obtained using \texttt{ode45()} method with extremely low tolerance,
+and computing a relative error in the $2$-norm.
+We can see that IQ2 retains second order accuracy.
+The IQ2 method is unconditionally positivity preserving, unlike the IP2 method proposed by the authors in \cite{blanes_pos_2022}, as we have explored earlier.
+Furthermore, we can see from Figure \ref{pademapkpos} that the IQ2 method provides a closer approximation than IP2.
+
 Note that in Figure \ref{fig:pademapkpos} we have stated the computation times of both methods for solving the IVP.
 Despite our implementation taking longer than the internal function,
 this is expected since the core included functions for MATLAB run using compiled FORTRAN code which is much faster in general than the interpreter for MATLAB itself \cite{moler2020history}.
