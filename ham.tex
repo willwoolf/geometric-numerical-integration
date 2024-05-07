@@ -600,7 +600,9 @@ It often helps when defining and solving our own problems for the variables to b
 		Integration of the two mass model for phonation for $t \in [0, 1000]$.
 		Figures show the oscillation bounds, plotting $q_2$ against $q_1$.
 		In the left figure, we observe that a symplectic method retains the bounds of oscillation,
-		whereas using \texttt{ode45()} the explicit Runge-Kutta method is not as well behaved and the bounds are not as clear. 
+		whereas using \texttt{ode45()} the explicit Runge-Kutta method is not as well behaved and the bounds are not as clear.
+		Parameters used are $\alpha = 1, \lambda = 0.5, \beta = 3, \omega = 0.3$.
+		Initial positions $q_1 = 1$ and $q_2 = 3.79$ with momentum zero.
 	}
 	\label{fig:phon}
 \end{figure}
