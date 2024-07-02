@@ -515,10 +515,9 @@ Particularly, the approach is similar to Ralston \cite{ralston1962runge}.
 We find that the appropriate linear combination, of the form $y_{n+1} = \mu z_{n+1} + \lambda x_{n+1}$,
 would be theoretically best for $\mu = 17/24, \lambda = 7/24$.
 
-The author acknowledges that the majority of this analysis on the truncation error of the splitting method is limited, due to lack of understanding of the behaviour of the mathematical objects.
-Improvements to the results could be made, given rules on the multiplication in order to make simplifications.
-We were unable to locate or provide any sources on this topic.
-The analysis is the best we could achieve in this context.
+The author acknowledges that the majority of this analysis on the truncation error of the splitting method is limited, and there is a lack of clarity regarding the evaluation of the terms which appear in the Taylor expansions.
+Improvements to the results could be made, however we have decided to leave this analysis as it stands in the case of diminishing returns.
+The analysis is the best we could achieve in this regard.
 % at the end, acknowledge this could all be wrong "due to lack of information regarding the behaviour of the tensor objects that appear in this context"
 
 \subsection{Example - A Linear Problem on Two Variables}
@@ -634,7 +633,7 @@ we obtain the method
 \end{equation*}
 Alternatively, using the midpoint rule the method is given by
 \begin{equation}
-    x_{n+1} = \exp\left(h A \left( \exp\left(\frac{1}{2}h A(x_n)\right) x_n \right) \right) x_n.
+    x_{n+1} = \exp\left[h A \left( \exp\left[\frac{1}{2}h A(x_n)\right] x_n \right) \right] x_n.
     \label{eqn:secondordermagnus}
 \end{equation}
 We will consider the second order Magnus integrator as the approximation using the midpoint rule, which is the same options taken by the authors of \cite{blanes_pos_2022}.
@@ -662,7 +661,7 @@ See Equation \ref{eqn:strangtruncz} for the truncation error.
     \label{fig:mapkdual}
 \end{figure}
 
-The Mitogen-activated protein kinase cascade (MAPK) model is an autonomous system on six variables,
+The Mitogen-activated protein kinase (MAPK) cascade model is an autonomous system on six variables,
 given in the form of $\dot{x} = A(x)x$, where $A$ is given by
 \begin{equation*}
     A(x) = \begin{bmatrix}
@@ -1046,7 +1045,6 @@ The proof that this inverse is entirely positive is given in \cite{blanes_pos_20
 
 The positivity preserving methods from Equations \ref{eqn:secondorderstrangsplittingmethod}, \ref{eqn:secondordermagnus} retain positivity and second order when some of the matrix exponentials are replaced with this first order substitution.
 We evaluate the truncation error of the second order Magnus integrator when substituting the inside exponential with an approximation.
-We use (parentheses) to contain terms which evaluate to vectors . For terms which evaluate to matrices or higher order tensors we use [square brackets].
 \begin{equation*}
     \begin{aligned}
         \tau_\mathrm{m}(h) &= x(t_n + h) - \exp \left[
@@ -1367,8 +1365,8 @@ Developing from before, we will consider using more robust techniques to again i
 The following method applies many results that we have explored in this section.
 First, the construction of the Pad\'e approximation.
 Second, the implementation of scaling and squaring.
-Third, the decomposition $A = \bar{A} + a I$
-Third, Lemma \ref{lem:positiveinverse} on the positivity of the inverse $[I - A]^{-1}$.
+Third, the decomposition $A = \bar{A} + a I$.
+Finally, Lemma \ref{lem:positiveinverse} on the positivity of the inverse $[I - A]^{-1}$.
 
 We propose a numerical integration scheme which is another modification of EM2, except using two matrix exponential approximations which are positivity preserving.
 This method is identical to the IP2 method we introduced in the previous section, except for the modification of the second order Pad\'e approximation.
@@ -1413,7 +1411,7 @@ Rate of convergence is computed again by comparing the final values of the solut
 and computing a relative error in the $2$-norm.
 We can see that IQ2 retains second order accuracy.
 The IQ2 method is unconditionally positivity preserving, unlike the IP2 method proposed by the authors in \cite{blanes_pos_2022}, as we have explored earlier.
-Furthermore, we can see from Figure \ref{pademapkpos} that the IQ2 method provides a closer approximation than IP2.
+Furthermore, we can see from Figure \ref{fig:pademapkpos} that the IQ2 method provides a closer approximation than IP2.
 
 Note that in Figure \ref{fig:pademapkpos} we have stated the computation times of both methods for solving the IVP.
 Despite our implementation taking longer than the internal function,

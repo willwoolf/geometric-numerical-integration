@@ -31,16 +31,22 @@
 \usepackage{float}
 \usepackage{dsfont}
 \usepackage[width=6in, height=8in]{geometry}
+%\usepackage{geometry}
 \usepackage{xcolor}
 
 \usepackage[
 backend=biber,
 natbib=true,
-url=false, 
+url=true, 
 doi=true,
-eprint=false
+eprint=true
 ]{biblatex}
 \addbibresource{sources.bib}
+
+
+% agsm is harvard
+% unsrt is standard numerical
+% ieeetr is whatever jasmine uses
 
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
@@ -68,24 +74,28 @@ eprint=false
 
 \lstset{style=mystyle}
 
+\setcounter{tocdepth}{1}
+
 \begin{document}
 
-\input{title.tex}
+\include{title.tex}
 
-\input{abs.tex}
+\include{abs.tex}
 
-\input{intro.tex}
+\tableofcontents
 
-\input{ham.tex}
+\include{intro.tex}
 
-\input{pos.tex}
+\include{ham.tex}
 
-\input{conc.tex}
+\include{pos.tex}
 
-\input{appen.tex}
+\include{conc.tex}
 
+\printbibliography
+%give the whole document to overleaf when final compile is needed
 
-\appendix
+\include{appen.tex}
 
 
 

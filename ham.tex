@@ -210,7 +210,7 @@ One such example is the symplectic Euler method \cite{gni2006} given by
 	\end{pmatrix} = \begin{pmatrix}
 		q_{n} \\
 		p_{n}
-	\end{pmatrix} + h \nabla H(q_{n}, p_{n+1}).
+	\end{pmatrix} + h J \nabla H(q_{n}, p_{n+1}).
 \end{equation*}
 For an arbitrary problem this method is implicit. However, many problems have a separate Hamiltonian that allows the iteration to be performed in two explicit steps. 
 The simple harmonic oscillator has a Hamiltonian $H(q, p) = \frac{1}{2m}p^2 + \frac{1}{2}kq^2$ which can be written as $H(q, p) = V(q) + T(p)$, where $V(q)$ represents kinetic energy and $T(p)$ represents potential energy of the system \cite{gni2006, Casas_2016}.

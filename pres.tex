@@ -37,32 +37,19 @@
 	where $J$ is the symplectic matrix.
 \end{frame}
 
-\begin{frame}{Symplecticity}
-	A flow $\Phi$ is symplectic if it satisfies
+\begin{frame}{Symplectic Methods}
+	If the flow $\Phi$ of a method satisfies
 	\begin{equation*}
-		\Phi^\top J \Phi = J.
+		\Phi^\top J \Phi = J
 	\end{equation*}
-	If a problem is Hamiltonian then its analytical flow map is symplectic.
-\end{frame}
-
-\begin{frame}{Symplectic Methods} \pause
-	The Symplectic Euler method, with flow $\Phi_h$, is
-	\begin{equation*}
-		\begin{pmatrix}
-			q_{n+1} \\
-			p_{n+1} 
-		\end{pmatrix} = \begin{pmatrix}
-			q_{n} \\
-			p_{n}
-		\end{pmatrix} + h J \nabla H(q_{n}, p_{n+1}).
-	\end{equation*} \pause
-	The St\"ormer-Verlet method, with flow $\Phi_{h/2}^* \circ \Phi_{h/2}$, is
+	then it is symplectic. \pause 
+	The St\"ormer-Verlet method is
 	\begin{align*}
 		p_{n+\frac{1}{2}} &= p_n - \frac{h}{2}\nabla_q H \left( q_n, p_{n+\frac{1}{2}} \right) \\
 		q_{n+1} &= q_n + \frac{h}{2}\left( \nabla_p H \left( q_n, p_{n+\frac{1}{2}} \right) + \nabla_p H \left(q_{n+1}, p_{n+\frac{1}{2}} \right) \right) \\
 		p_{n+1} &= p_{n+\frac{1}{2}} - \frac{h}{2} \nabla_q H \left( q_{n+1}, p_{n+\frac{1}{2}} \right).
 	\end{align*} \pause
-	If the Hamiltonian $H$ is separable, then these methods are explicit.
+	If the Hamiltonian $H$ is separable, the method is explicit.
 \end{frame}
 
 \begin{frame}{Examples}
@@ -82,21 +69,11 @@
 \end{frame}
 
 \begin{frame}{Positivity Preservation}
-	If a system is described using a graph-Laplacian matrix
+	If a system is described using a graph-Laplacian matrix $A$ such that \pause
 	\begin{equation*}
 		\dot{x} = A(t,x)x
-	\end{equation*}
-	then its solutions $x(t)$ preserve positivity. \\ \pause
-	If a system is described using a constant matrix 
-	\begin{equation*}
-		\dot{x} = Bx
-	\end{equation*}
-	then it admits solutions $x(t) = \mathrm{e}^B x_0$. \\ \pause
-	We can use this to produce a method
-	\begin{equation*}
-		x_{n+1} = \exp(h A(x_n)) x_n
-	\end{equation*}
-	which is first-order accurate and unconditionally positivity preserving.
+	\end{equation*} \pause
+	then its solutions $x(t)$ preserve positivity.
 \end{frame}
 
 \begin{frame}{Positivity Preserving Integrators}
@@ -124,7 +101,7 @@
 		\item<2-> series: $$\mathrm{e}^{hA} = \sum_{k=0}^{N} \frac{(hA)^k}{k!} + \mathcal{O}(h^{N+1})$$
 		\item<3-> pad\'e: $$\mathrm{e}^{hA} = Q_{n,m}^{-1} P_{n,m} + \mathcal{O}(h^{n+m+1}).$$
 	\end{enumerate}\pause[4]
-	These approximations may need to be adjusted so they preserve positivity.
+	We focus on approximations which are positivity preserving.
 \end{frame}
 
 \begin{frame}{Examples}

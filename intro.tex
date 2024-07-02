@@ -118,9 +118,7 @@ for solving an ODE.
 This is an example of an explicit method, coming from how the next term is obtained using only information which is immediately available.
 
 One element that we will focus on is the concept of error and accuracy of a numerical method.
-It turns out that ignoring the $\mathcal{O}(h^2)$ in order to obtain Euler's method was not a fantastic idea.
-Euler's method is what we refer to as first-order accurate.
-This means that the expressions for the true solution (by Taylor series) and the approximation (by the method) are the same up to and including the term in $h$ of order $1$.
+Euler's method is first-order accurate, meaning that the expressions for the true solution (by Taylor series) and the approximation (by the method) are the same up to and including the term in $h$ of order $1$.
 Here we define the concept of truncation error as $\tau(h) = x(t_i) - x_i$, being the error between the true solution and the approximation for a single step of size $h$.
 As we have seen, the local truncation error of Euler's method is $\mathcal{O}(h^2)$.
 We also want to consider the concept of global truncation error, which is the error accumulated over an entire numerical solution.
@@ -236,7 +234,7 @@ The \textit{linear test problem} is the ODE and initial condition given by
         x(0) &= x_0.
     \end{aligned}
 \end{equation*}
-If $\lambda$ is real and negative, then $x$ goes to zero as $t \rightarrow \infty$.
+If $\lambda$ has negative real part, then $x$ goes to zero as $t \rightarrow \infty$.
 Consider the forward Euler method applied to this problem. The iteration is
 \begin{align*}
     x_{n+1} &= x_n + h f(t_n, x_n) \\
@@ -253,7 +251,7 @@ Therefore, suppose the true solution goes to zero, meaning $\lambda$ must be neg
 The numerical solution goes to zero if $-2 < h \lambda < 0$.
 For values of the timestep $h$ where $h > 2/|\lambda|$, this behaviour is not respected.
 This concept is called A-stability.
-The definition itself extends to complex values of $h \lambda$, which we will state, however for all our concerns we are only interested in real values.
+The definition itself extends to complex values of $h \lambda$, which must be considered when considering A-stability of a given numerical method.
 
 \begin{definition}
     A numerical method is A-stable if the numerical solution of $\dot{x} = \lambda x$ goes to zero for all values of $h \lambda $ in the left half of the complex plane.    
@@ -320,9 +318,7 @@ and so the numerical solution goes to zero if
     \left| \frac{2 + h \lambda}{2 - h \lambda} \right| < 1.
 \end{equation*}
 This inequality is satisfied if $h \lambda$ is closer to $-2$ than to $2$, hence the regions of growth and decay are exactly the right and left halves of the complex plane.
-Therefore this method is not only A-stable, but also respects if the solution does not decay.
-See Figure {figure} for the decay regions for all three methods.
-Clearly, the implicit midpoint method attains better qualities for respect of growth or decay of the true solution.
+The implicit midpoint method attains better qualities for respect of growth or decay of the true solution in comparison to the Euler methods.
 
 The reader may notice that the implicit midpoint method we have examined is similar in appearance to the explicit trapezium method from earlier,
 in that the evaluation of the right hand side involves a combination of the point $x_n$ and a second stage.
