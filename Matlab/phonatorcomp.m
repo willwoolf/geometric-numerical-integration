@@ -6,7 +6,7 @@ lambda = 0.5;
 beta = 3;
 omega = 0.3;
 
-TSPAN = [0, 50];
+TSPAN = [0, 1000];
 q_init = [1, 3.79]';
 p_init = [0, 0]';
 X0 = [q_init(1) p_init(1) q_init(2) p_init(2)/alpha];

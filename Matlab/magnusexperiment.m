@@ -3,21 +3,21 @@
 
 init = [0.1, 0.175, 0.15, 1.15, 0.81, 0.5]'
 tspan = [0 200];
-opts = odeset(RelTol=1e-12); %12 is as good as it gets
-[T_master,X_master] = ode45(@(t,y) MAPK(t,y)*y, tspan, init, opts);
+% opts = odeset(RelTol=1e-12); %12 is as good as it gets
+% [T_master,X_master] = ode45(@(t,y) MAPK(t,y)*y, tspan, init, opts);
 
-% [T_em2, X_em2] = MagnusEM2(@MAPK, tspan, init, 0.1);
-% [T_ip2, X_ip2] = MagnusIP2(@MAPK, tspan, init, 0.1);
-[T_eb2, X_eb2] = MagnusEP2(@MAPK, tspan, init, 0.1);
+[T_em2, X_em2] = MagnusEM2(@MAPK, tspan, init, 0.1);
+[T_ip2, X_ip2] = MagnusIP2(@MAPK, tspan, init, 0.1);
+[T_eb2, X_eb2] = MagnusEB2(@MAPK, tspan, init, 0.0005);
 
-% subplot(131)
+subplot(131)
 % plot(T_master, X_master)
-% plot(T_em2, X_em2)
+plot(T_em2, X_em2)
 
-% subplot(132)
-% plot(T_ip2, X_ip2)
+subplot(132)
+plot(T_ip2, X_ip2)
 
-% subplot(133)
+subplot(133)
 plot(T_eb2, X_eb2)
 
 
@@ -106,16 +106,14 @@ loglog(H,E3)
 
 %% IQ2
 % same for IQ2
-tic
 E3 = zeros(size(H)) % vector of global errors
 for k = 1:PN
     h=H(k);
-    [~, X_iq    sol] = MagnusIQ2(@MAPK, tspan, init, h);
+    [~, X_iqsol] = MagnusIQ2(@MAPK, tspan, init, h);
     x_iqfin = X_iqsol(end,:);
     E3(k) = norm(x_iqfin' - X_true',2)/norm(X_true',2);
 end
 loglog(H,E3)
-toc
 
 %% functions
 
